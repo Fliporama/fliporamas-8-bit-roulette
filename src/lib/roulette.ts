@@ -34,17 +34,13 @@ export function getPocketColor(number: number): PocketColor {
   return RED_NUMBERS.has(number) ? 'red' : 'black'
 }
 
-function validNumbers(numbers: number[]): boolean {
-  return numbers.length > 0 && numbers.every((number) => Number.isInteger(number) && number >= 0 && number <= 36)
-}
-
 function target(
   kind: BetKind,
   numbers: number[],
   label: string,
   returnMultiplier: number,
 ): BetTarget {
-  const sortedNumbers = [...new Set(numbers)].sort((left, right) => left - right)
+  const sortedNumbers = [...numbers].sort((left, right) => left - right)
   return {
     id: `${kind}-${sortedNumbers.join('-')}`,
     kind,
@@ -73,41 +69,32 @@ export function createInsideTarget(
   kind: InsideBetKind,
   selection: number[],
 ): BetTarget | undefined {
-  if (!validNumbers(selection)) return undefined
   const numbers = [...new Set(selection)]
+  const [first, second] = numbers
 
-  if (kind === 'straight' && numbers.length === 1) {
-    return target(kind, numbers, `Straight ${numbers[0]}`, 36)
+  if (kind === 'straight') return target(kind, [first], `Straight ${first}`, 36)
+
+  if (kind === 'split') {
+    return numbers.length === 2 && shareEdge(first, second)
+      ? target(kind, numbers, `Split ${first} / ${second}`, 18)
+      : undefined
   }
 
-  if (kind === 'split' && numbers.length === 2 && shareEdge(numbers[0], numbers[1])) {
-    return target(kind, numbers, `Split ${numbers[0]} / ${numbers[1]}`, 18)
-  }
-
-  const positiveNumbers = numbers.filter((number) => number > 0)
-  if (kind === 'street' && numbers.length === 3 && positiveNumbers.length === 3) {
-    const rowStart = Math.floor((positiveNumbers[0] - 1) / 3) * 3 + 1
-    const street = [rowStart, rowStart + 1, rowStart + 2]
-    if (street.every((number) => numbers.includes(number))) {
-      return target(kind, street, `Street ${rowStart}-${rowStart + 2}`, 12)
-    }
-  }
-
-  if (kind === 'sixLine' && numbers.length === 6 && positiveNumbers.length === 6) {
-    const blockStart = Math.floor((positiveNumbers[0] - 1) / 6) * 6 + 1
-    const sixLine = Array.from({ length: 6 }, (_, index) => blockStart + index)
-    if (sixLine.every((number) => numbers.includes(number))) {
-      return target(kind, sixLine, `Six line ${blockStart}-${blockStart + 5}`, 6)
-    }
-  }
-
-  return undefined
+  // Streets and six lines are the run of 3 or 6 containing the picked number; zero is in neither.
+  if (first === 0) return undefined
+  const size = kind === 'street' ? 3 : 6
+  const start = Math.floor((first - 1) / size) * size + 1
+  return target(
+    kind,
+    Array.from({ length: size }, (_, index) => start + index),
+    `${kind === 'street' ? 'Street' : 'Six line'} ${start}-${start + size - 1}`,
+    36 / size,
+  )
 }
 
-export function createOutsideTarget(
-  kind: OutsideBetKind,
-  group?: number,
-): BetTarget | undefined {
+const ORDINALS = ['1st', '2nd', '3rd']
+
+export function createOutsideTarget(kind: OutsideBetKind, group: 1 | 2 | 3 = 1): BetTarget {
   let numbers: number[]
   let label: string
   let returnMultiplier = 2
@@ -140,20 +127,22 @@ export function createOutsideTarget(
       label = '19-36'
       break
     case 'dozen':
-      if (group !== 1 && group !== 2 && group !== 3) return undefined
       numbers = Array.from({ length: 12 }, (_, index) => (group - 1) * 12 + index + 1)
-      label = `${group}${group === 1 ? 'st' : group === 2 ? 'nd' : 'rd'} 12`
+      label = `${ORDINALS[group - 1]} 12`
       returnMultiplier = 3
       break
     case 'column':
-      if (group !== 1 && group !== 2 && group !== 3) return undefined
       numbers = Array.from({ length: 12 }, (_, index) => index * 3 + group)
-      label = `${group}${group === 1 ? 'st' : group === 2 ? 'nd' : 'rd'} column`
+      label = `${ORDINALS[group - 1]} column`
       returnMultiplier = 3
       break
   }
 
   return target(kind, numbers, label, returnMultiplier)
+}
+
+export function formatChips(amount: number): string {
+  return amount.toLocaleString('en-US')
 }
 
 export function calculateReturns(

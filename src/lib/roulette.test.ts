@@ -23,7 +23,9 @@ describe('bet targets', () => {
     expect(createInsideTarget('street', [1, 2, 3])?.returnMultiplier).toBe(12)
     expect(createInsideTarget('sixLine', [1, 2, 3, 4, 5, 6])?.returnMultiplier).toBe(6)
     expect(createInsideTarget('split', [1, 5])).toBeUndefined()
-    expect(createInsideTarget('street', [1, 2, 4])).toBeUndefined()
+    expect(createInsideTarget('street', [5])?.numbers).toEqual([4, 5, 6])
+    expect(createInsideTarget('sixLine', [9])?.numbers).toEqual([7, 8, 9, 10, 11, 12])
+    expect(createInsideTarget('street', [0])).toBeUndefined()
   })
 
   it('handles zero for even-money bets and validates dozens and columns', () => {
@@ -32,19 +34,18 @@ describe('bet targets', () => {
     const dozen = createOutsideTarget('dozen', 2)
     const column = createOutsideTarget('column', 3)
 
-    expect(red?.numbers).not.toContain(0)
-    expect(even?.numbers).not.toContain(0)
-    expect(dozen?.numbers).toEqual(Array.from({ length: 12 }, (_, index) => index + 13))
-    expect(column?.numbers).toContain(36)
-    expect(createOutsideTarget('dozen', 4)).toBeUndefined()
+    expect(red.numbers).not.toContain(0)
+    expect(even.numbers).not.toContain(0)
+    expect(dozen.numbers).toEqual(Array.from({ length: 12 }, (_, index) => index + 13))
+    expect(column.numbers).toContain(36)
   })
 })
 
 describe('roulette returns', () => {
   it('returns total winning stakes and nothing for losing bets', () => {
     const straight = createInsideTarget('straight', [7])!
-    const red = createOutsideTarget('red')!
-    const black = createOutsideTarget('black')!
+    const red = createOutsideTarget('red')
+    const black = createOutsideTarget('black')
 
     expect(
       calculateReturns(7, [

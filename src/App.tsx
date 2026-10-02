@@ -4,16 +4,11 @@ import RouletteTable from './components/RouletteTable'
 import {
   calculateReturns,
   createInsideTarget,
-  createOutsideTarget,
+  formatChips,
   getPocketColor,
   randomPocket,
 } from './lib/roulette'
-import type {
-  BetPlacement,
-  BetTarget,
-  InsideBetKind,
-  OutsideBetKind,
-} from './lib/roulette'
+import type { BetPlacement, BetTarget, InsideBetKind } from './lib/roulette'
 
 const STARTING_BANKROLL = 1000
 const CHIP_VALUES = [1, 5, 10, 25, 100]
@@ -24,28 +19,13 @@ const INSIDE_MODES: { kind: InsideBetKind; label: string }[] = [
   { kind: 'sixLine', label: 'Six-line' },
 ]
 
-const EVEN_MONEY_BETS: { kind: OutsideBetKind; label: string }[] = [
-  { kind: 'low', label: '1-18' },
-  { kind: 'even', label: 'Even' },
-  { kind: 'red', label: 'Red' },
-  { kind: 'black', label: 'Black' },
-  { kind: 'odd', label: 'Odd' },
-  { kind: 'high', label: '19-36' },
-]
-
-function formatChips(amount: number): string {
-  return new Intl.NumberFormat('en-US').format(amount)
-}
-
 function App() {
   const [balance, setBalance] = useState(STARTING_BANKROLL)
   const [chipValue, setChipValue] = useState(5)
   const [mode, setMode] = useState<InsideBetKind>('straight')
   const [bets, setBets] = useState<BetPlacement[]>([])
   const [pendingSplit, setPendingSplit] = useState<number[]>([])
-  const [lastSpin, setLastSpin] = useState<
-    { number: number; returned: number; change: number } | undefined
-  >()
+  const [lastSpin, setLastSpin] = useState<{ number: number; change: number } | undefined>()
   const [isSpinning, setIsSpinning] = useState(false)
   const [message, setMessage] = useState('PICK A CHIP, THEN PLACE YOUR BET')
   const spinTimer = useRef<number | undefined>(undefined)
@@ -55,7 +35,7 @@ function App() {
   const numberStakes: Record<number, number> = {}
 
   for (const bet of bets) {
-    if (['straight', 'split', 'street', 'sixLine'].includes(bet.target.kind)) {
+    if (INSIDE_MODES.some((item) => item.kind === bet.target.kind)) {
       for (const number of bet.target.numbers) {
         numberStakes[number] = (numberStakes[number] ?? 0) + bet.stake
       }
@@ -96,7 +76,7 @@ function App() {
         return
       }
 
-      const split = createInsideTarget('split', [pendingSplit[0] ?? number, number])
+      const split = createInsideTarget('split', [pendingSplit[0], number])
       if (!split) {
         setPendingSplit([number])
         setMessage('NOT ADJACENT. PICK A NEIGHBORING POCKET')
@@ -108,20 +88,13 @@ function App() {
       return
     }
 
-    const target =
-      mode === 'straight'
-        ? createInsideTarget(mode, [number])
-        : mode === 'street'
-          ? createInsideTarget(mode, Array.from({ length: 3 }, (_, index) => Math.floor((number - 1) / 3) * 3 + index + 1))
-          : createInsideTarget(mode, Array.from({ length: 6 }, (_, index) => Math.floor((number - 1) / 6) * 6 + index + 1))
-
-    placeBet(target)
+    placeBet(createInsideTarget(mode, [number]))
   }
 
-  function chooseMode(nextMode: InsideBetKind) {
+  function chooseMode(nextMode: InsideBetKind, label: string) {
     setMode(nextMode)
     setPendingSplit([])
-    setMessage(nextMode === 'split' ? 'PICK TWO ADJACENT POCKETS' : `${nextMode.toUpperCase()} BET SELECTED`)
+    setMessage(nextMode === 'split' ? 'PICK TWO ADJACENT POCKETS' : `${label.toUpperCase()} BET SELECTED`)
   }
 
   function removeBet(targetId: string) {
@@ -149,7 +122,7 @@ function App() {
     spinTimer.current = window.setTimeout(() => {
       const returned = calculateReturns(result, bets)
       setBalance((current) => current + returned)
-      setLastSpin({ number: result, returned, change: returned - totalStake })
+      setLastSpin({ number: result, change: returned - totalStake })
       setBets([])
       setPendingSplit([])
       setIsSpinning(false)
@@ -214,7 +187,7 @@ function App() {
                       aria-pressed={mode === item.kind}
                       key={item.kind}
                       disabled={isSpinning}
-                      onClick={() => chooseMode(item.kind)}
+                      onClick={() => chooseMode(item.kind, item.label)}
                     >
                       {item.label}
                     </button>
@@ -225,64 +198,13 @@ function App() {
               <RouletteTable
                 mode={mode}
                 numberStakes={numberStakes}
+                stakes={betStakeById}
                 selectedNumbers={pendingSplit}
+                winner={lastSpin?.number}
                 disabled={isSpinning}
                 onPocketClick={placeInsideBet}
+                onBet={placeBet}
               />
-
-              <div className="outside-section">
-                <div className="outside-heading">
-                  <span className="control-label">OUTSIDE BETS</span>
-                  <span className="payout-key">PAYOUT INCLUDES STAKE</span>
-                </div>
-                <div className="even-money-grid">
-                  {EVEN_MONEY_BETS.map(({ kind, label }) => {
-                    const betTarget = createOutsideTarget(kind)
-                    const activeStake = betTarget ? betStakeById.get(betTarget.id) : undefined
-                    return (
-                      <button
-                        className={`outside-button outside-${kind}${activeStake ? ' has-bet' : ''}`}
-                        type="button"
-                        key={kind}
-                        disabled={isSpinning}
-                        aria-label={`${label}, pays 1 to 1`}
-                        onClick={() => placeBet(betTarget)}
-                      >
-                        <span>{label}</span>
-                        {activeStake ? <small>{formatChips(activeStake)}</small> : <small>1:1</small>}
-                      </button>
-                    )
-                  })}
-                </div>
-                <div className="group-bet-grid">
-                  {[1, 2, 3].map((group) => {
-                    const targets = [
-                      createOutsideTarget('dozen', group),
-                      createOutsideTarget('column', group),
-                    ]
-                    return (
-                      <div className="group-bet-pair" key={group}>
-                        {targets.map((betTarget) => {
-                          if (!betTarget) return null
-                          const activeStake = betStakeById.get(betTarget.id)
-                          return (
-                            <button
-                              className={`group-button${activeStake ? ' has-bet' : ''}`}
-                              type="button"
-                              key={betTarget.id}
-                              disabled={isSpinning}
-                              onClick={() => placeBet(betTarget)}
-                            >
-                              <span>{betTarget.label}</span>
-                              <small>{activeStake ? formatChips(activeStake) : '2:1'}</small>
-                            </button>
-                          )
-                        })}
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
             </div>
             <div className="table-note" aria-live="polite">
               <span className="note-marker" />

@@ -56,7 +56,8 @@ A click anywhere, or Space, Enter or Escape, during `spinning` or `tallying` jum
 - `WHEEL_ORDER`: the European sequence, clockwise from zero:
   `0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26`
 - `pocketAngle(number)`: degrees clockwise from the top of the wheel to the centre of that pocket (`index × 360 / 37`).
-- `ballRestAngle(result, wheelRotation)`: the on-screen angle at which the ball must stop so that it sits in `result`'s pocket when the wheel has turned by `wheelRotation` degrees.
+
+The ball is drawn as a child of the rotating wheel, so its angle is relative to the wheel and `pocketAngle` alone positions it. No on-screen angle conversion is needed.
 
 ### `src/lib/tally.ts` (pure)
 
@@ -73,6 +74,8 @@ A click anywhere, or Space, Enter or Escape, during `spinning` or `tallying` jum
 | `big` | 2 to under 10 | screen shake and a chip burst |
 | `huge` | 10 or more | harder shake, bigger burst, gold flash |
 
+`stepDuration(stepCount)` gives the time per tally step: 2500 ms shared across the steps, never more than 500 ms or less than 60 ms each.
+
 ### `src/lib/sound.ts`
 
 - `play(name, step?)` with names `ballClick`, `tick`, `win`, `bigWin`, `loss`. `tick` takes the step index and rises in pitch with it.
@@ -86,7 +89,7 @@ Props: `result`, `onLanded`.
 
 - A full-screen dimmed overlay with an SVG wheel at the centre: 37 wedges built from `WHEEL_ORDER`, coloured with `getPocketColor`, in the existing palette.
 - Entrance: the wheel springs in.
-- The wheel rotates clockwise and slows. The ball orbits counter-clockwise on the outer track and slows, then moves inward with two small bounces and stops at `ballRestAngle`, after which it turns with the wheel.
+- The wheel rotates clockwise and slows. The ball orbits counter-clockwise on the outer track and slows, then moves inward with two small bounces and stops in the winning pocket, after which it turns with the wheel.
 - The number of laps varies slightly per spin. This is cosmetic only and uses `Math.random`.
 - `ballClick` sounds are spaced to match the ball's speed.
 - After landing, the winning number is shown large for about 0.8 seconds, then `onLanded` is called and the overlay shrinks away.
@@ -94,18 +97,22 @@ Props: `result`, `onLanded`.
 
 ### `src/components/WinTally.tsx`
 
-Props: `steps`, `tier`, `onStep(step | undefined)`, `onDone`.
+Props: `tally`, `onStep(step | undefined)`, `onDone`.
 
-- Plays the steps in order: about 0.5 seconds each, shortening when there are more than five.
+- Plays the steps in order, `stepDuration` apart: about 0.5 seconds each, shortening when there are more than five.
 - For each step it calls `onStep` (so the table can highlight that bet), plays `tick`, and advances a centre banner showing the running total counting up.
-- At the end the total flies to the bankroll panel using a shared `layoutId`, and the displayed bankroll counts up to the real balance.
+- At the end the total flies to the bankroll panel using a shared `layoutId`, and the displayed bankroll counts up to the real balance (a small `CountUp` component, also used for the banner total).
 - Shake and particles follow the tier. Particles are small squares in the chip colours.
 - For tier `none` it plays the loss treatment: staked chips fade off the table and `loss` plays.
+
+### `src/lib/useSkip.ts`
+
+A hook shared by the two components above: calls a handler on a click, or on Space, Enter or Escape. Held-down key repeats are ignored, so the key press that starts a spin cannot also skip it.
 
 ## Changes to existing files
 
 - `src/App.tsx`: phase state replaces `isSpinning` and the timer; holds the current round (`result`, tally, current scoring step); renders `RouletteWheel` and `WinTally`; adds the mute button to the top bar; the bankroll shows the displayed value.
-- `src/components/RouletteTable.tsx`: a new optional `scoring` prop (the current tally step). The scoring bet's spots bounce and glow, reusing the existing gold winner pulse. The `5 × 36 → +180` pop-up is rendered inside the button it belongs to: the bet's own button for outside bets, and the winning pocket for inside bets (every winning inside bet contains the winning number). This needs no position measuring.
+- `src/components/RouletteTable.tsx`: a new `scoring` prop (the current tally step) and a `losing` flag that fades the staked chips. The scoring bet's spots bounce and glow, reusing the existing gold winner pulse. The `5 × 36 → +180` pop-up is rendered inside the button it belongs to: the bet's own button for outside bets, and the winning pocket for inside bets (every winning inside bet contains the winning number). This needs no position measuring.
 - `src/game.css`: overlay, wheel, banner, pop-up, shake and particle styles.
 - `package.json`: adds `motion`.
 - `src/lib/roulette.ts`: unchanged.
@@ -133,8 +140,9 @@ All durations live as named constants at the top of the file that uses them, so 
 
 Unit tests (Vitest, alongside the existing `roulette.test.ts`):
 
-- `wheel.test.ts`: `WHEEL_ORDER` holds 37 unique numbers from 0 to 36; for every result, `ballRestAngle` points at that result's pocket for several wheel rotations.
-- `tally.test.ts`: `returned` matches `calculateReturns`; steps are in ascending payout order with correct running totals; tier boundaries at 0, just under 2, 2, just under 10 and 10.
+- `wheel.test.ts`: `WHEEL_ORDER` holds 37 unique numbers from 0 to 36; `pocketAngle` advances one pocket arc per position.
+- `tally.test.ts`: `returned` matches `calculateReturns`; steps are in ascending payout order with correct running totals; tier boundaries at 0, under 2, exactly 2, just under 10 and exactly 10; `stepDuration` bounds.
+- `sound.test.ts`: the tick pitch rises and caps; mute and `play` work with no storage and no Web Audio.
 
 Checked by hand in the browser:
 

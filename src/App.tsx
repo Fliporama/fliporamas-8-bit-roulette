@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Play, RotateCcw, Trash2, X } from 'lucide-react'
+import { Play, RotateCcw, Trash2, Volume2, VolumeX, X } from 'lucide-react'
 import RouletteTable from './components/RouletteTable'
 import {
   calculateReturns,
@@ -9,6 +9,7 @@ import {
   randomPocket,
 } from './lib/roulette'
 import type { BetPlacement, BetTarget, InsideBetKind } from './lib/roulette'
+import { isMuted, setMuted } from './lib/sound'
 
 const STARTING_BANKROLL = 1000
 const CHIP_VALUES = [1, 5, 10, 25, 100]
@@ -28,6 +29,7 @@ function App() {
   const [lastSpin, setLastSpin] = useState<{ number: number; change: number } | undefined>()
   const [isSpinning, setIsSpinning] = useState(false)
   const [message, setMessage] = useState('PICK A CHIP, THEN PLACE YOUR BET')
+  const [muted, setMutedState] = useState(isMuted)
   const spinTimer = useRef<number | undefined>(undefined)
 
   const totalStake = bets.reduce((total, bet) => total + bet.stake, 0)
@@ -131,6 +133,11 @@ function App() {
     }, 1050)
   }
 
+  function toggleMute() {
+    setMuted(!muted)
+    setMutedState(!muted)
+  }
+
   function resetSession() {
     if (spinTimer.current !== undefined) window.clearTimeout(spinTimer.current)
     spinTimer.current = undefined
@@ -154,6 +161,9 @@ function App() {
           <span>FREE PLAY</span>
           <span className="status-divider">/</span>
           <span>LOCAL SESSION</span>
+          <button className="icon-action" type="button" title={muted ? 'Unmute sound' : 'Mute sound'} aria-label={muted ? 'Unmute sound' : 'Mute sound'} aria-pressed={muted} onClick={toggleMute}>
+            {muted ? <VolumeX size={15} aria-hidden="true" /> : <Volume2 size={15} aria-hidden="true" />}
+          </button>
         </div>
       </header>
 

@@ -58,7 +58,7 @@ button:disabled {
   min-height: 100vh;
   margin: 0 auto;
   padding: 0 34px;
-  animation: rise-in 420ms steps(6, end) both;
+  animation: rise-in 420ms steps(6, end) backwards;
 }
 
 .topbar {
@@ -804,6 +804,69 @@ h1 {
   width: 4px;
   height: 4px;
   background: var(--gold);
+}
+
+.wheel-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  background: rgb(8 14 13 / 82%);
+  cursor: pointer;
+}
+
+.wheel-frame {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(78vmin, 520px);
+  aspect-ratio: 1;
+}
+
+.wheel,
+.ball-arm {
+  position: absolute;
+  inset: 0;
+}
+
+.wheel svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.wheel text {
+  fill: var(--paper);
+  font-family: 'VT323', monospace;
+  font-size: 11px;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.ball {
+  position: absolute;
+  left: 50%;
+  width: 4.5%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: 0 0 0 2px #080e0d, 0 0 10px rgb(242 237 218 / 60%);
+  translate: -50% -50%;
+}
+
+.wheel-result {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 2.2em;
+  padding: 0.35em;
+  border: 3px solid var(--gold);
+  box-shadow: 5px 5px 0 #080e0d;
+  color: var(--paper);
+  font-family: var(--pixel);
+  font-size: 48px;
+  line-height: 1;
 }
 
 @keyframes rise-in {

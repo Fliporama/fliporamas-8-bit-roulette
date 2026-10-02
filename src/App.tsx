@@ -1,8 +1,10 @@
-import { useState } from 'react'
-import { AnimatePresence } from 'motion/react'
+import { useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { Play, RotateCcw, Trash2, Volume2, VolumeX, X } from 'lucide-react'
+import CountUp from './components/CountUp'
 import RouletteTable from './components/RouletteTable'
 import RouletteWheel from './components/RouletteWheel'
+import WinTally from './components/WinTally'
 import {
   createInsideTarget,
   formatChips,
@@ -12,7 +14,7 @@ import {
 import type { BetPlacement, BetTarget, InsideBetKind } from './lib/roulette'
 import { isMuted, setMuted } from './lib/sound'
 import { buildTally } from './lib/tally'
-import type { Tally } from './lib/tally'
+import type { Tally, TallyStep } from './lib/tally'
 
 const STARTING_BANKROLL = 1000
 const CHIP_VALUES = [1, 5, 10, 25, 100]
@@ -31,12 +33,14 @@ function App() {
   const [mode, setMode] = useState<InsideBetKind>('straight')
   const [bets, setBets] = useState<BetPlacement[]>([])
   const [pendingSplit, setPendingSplit] = useState<number[]>([])
-  const [lastSpin, setLastSpin] = useState<{ number: number; change: number } | undefined>()
+  const [lastSpin, setLastSpin] = useState<{ number: number; returned: number; change: number } | undefined>()
   const [phase, setPhase] = useState<Phase>('betting')
-  const [round, setRound] = useState<{ result: number; tally: Tally; staked: number } | undefined>()
+  const [round, setRound] = useState<{ id: number; result: number; tally: Tally; staked: number } | undefined>()
+  const [scoring, setScoring] = useState<TallyStep | undefined>()
   const [message, setMessage] = useState('PICK A CHIP, THEN PLACE YOUR BET')
   const [muted, setMutedState] = useState(isMuted)
 
+  const roundCount = useRef(0)
   const isLocked = phase !== 'betting'
   // The balance is settled the moment spin is pressed; the display holds the win back until the round ends.
   const shownBalance = balance - (round?.tally.returned ?? 0)
@@ -121,15 +125,23 @@ function App() {
     const result = randomPocket()
     const tally = buildTally(result, bets)
     setBalance((current) => current + tally.returned)
-    setRound({ result, tally, staked: totalStake })
+    roundCount.current += 1
+    setRound({ id: roundCount.current, result, tally, staked: totalStake })
     setPhase('spinning')
     setMessage('THE WHEEL IS SPINNING')
+  }
+
+  function startTally() {
+    if (!round) return
+    setPhase('tallying')
+    setMessage(`${round.result} ${getPocketColor(round.result).toUpperCase()}`)
   }
 
   function finishRound() {
     if (!round) return
     const { returned } = round.tally
-    setLastSpin({ number: round.result, change: returned - round.staked })
+    setLastSpin({ number: round.result, returned, change: returned - round.staked })
+    setScoring(undefined)
     setBets([])
     setPendingSplit([])
     setRound(undefined)
@@ -148,6 +160,7 @@ function App() {
     setPendingSplit([])
     setLastSpin(undefined)
     setRound(undefined)
+    setScoring(undefined)
     setPhase('betting')
     setMessage('FRESH SESSION. GOOD LUCK')
   }
@@ -213,7 +226,9 @@ function App() {
                 numberStakes={numberStakes}
                 stakes={betStakeById}
                 selectedNumbers={pendingSplit}
-                winner={lastSpin?.number}
+                winner={phase === 'tallying' && round ? round.result : lastSpin?.number}
+                scoring={scoring}
+                losing={phase === 'tallying' && round?.tally.tier === 'none'}
                 disabled={isLocked}
                 onPocketClick={placeInsideBet}
                 onBet={placeBet}
@@ -228,7 +243,14 @@ function App() {
           <aside className="console" aria-label="Game controls">
             <section className="bankroll-panel" aria-label="Chip balance">
               <div className="panel-kicker"><span>YOUR BANK</span><span>CHIPS</span></div>
-              <div className="bankroll-value" aria-live="polite">{formatChips(shownBalance)}</div>
+              <div className="bankroll-value" aria-live="polite">
+                <CountUp value={shownBalance} />
+                {phase === 'betting' && lastSpin && lastSpin.returned > 0 && (
+                  <motion.span className="bank-flash" layoutId="win-total" aria-hidden="true">
+                    +{formatChips(lastSpin.returned)}
+                  </motion.span>
+                )}
+              </div>
               <div className="bankroll-footer">
                 <span>ON TABLE <b>{formatChips(totalStake)}</b></span>
                 <button className="icon-action" type="button" title="Start a new chip session" aria-label="Start a new chip session" onClick={resetSession}>
@@ -317,8 +339,10 @@ function App() {
       </main>
 
       <AnimatePresence>
-        {phase === 'spinning' && round && <RouletteWheel result={round.result} onLanded={finishRound} />}
+        {/* Keyed per round: a wheel still fading out must not be reused by the next spin. */}
+        {phase === 'spinning' && round && <RouletteWheel key={round.id} result={round.result} onLanded={startTally} />}
       </AnimatePresence>
+      {phase === 'tallying' && round && <WinTally tally={round.tally} onStep={setScoring} onDone={finishRound} />}
 
       <footer className="site-footer">
         <span>FLIPORAMA <i /> FREE-PLAY TABLE</span>

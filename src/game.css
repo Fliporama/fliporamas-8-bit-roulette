@@ -433,6 +433,7 @@ h1 {
 }
 
 .outside-button {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -867,6 +868,146 @@ h1 {
   font-family: var(--pixel);
   font-size: 48px;
   line-height: 1;
+}
+
+.is-scoring {
+  z-index: 2;
+  outline: 3px solid var(--gold);
+  outline-offset: -3px;
+  opacity: 1 !important;
+  filter: brightness(1.35);
+  animation: bounce 300ms steps(3, end);
+}
+
+.payout-pop {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  z-index: 3;
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  padding: 6px 8px;
+  border: 2px solid var(--gold);
+  background: var(--ink);
+  box-shadow: 3px 3px 0 #080e0d;
+  color: var(--gold);
+  font-family: var(--pixel);
+  font-size: 10px;
+  font-style: normal;
+  line-height: 1.2;
+  white-space: nowrap;
+  translate: -50% 0;
+  animation: pop-in 160ms steps(3, end);
+}
+
+.payout-pop span:first-child {
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.is-losing .pocket small,
+.is-losing .pocket.has-chip::after,
+.is-losing .outside-button.has-bet small {
+  opacity: 0;
+  transition: opacity 500ms steps(5, end);
+}
+
+.tally-banner {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  z-index: 9;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 22px;
+  border: 3px solid var(--gold);
+  background: var(--ink);
+  box-shadow: 5px 5px 0 #080e0d;
+  color: var(--gold);
+  font-family: var(--pixel);
+  font-size: 12px;
+  pointer-events: none;
+  translate: -50% 0;
+}
+
+.tally-banner b {
+  color: var(--mint);
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.spark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--paper);
+}
+
+.gold-flash {
+  position: fixed;
+  inset: 0;
+  background: var(--gold);
+  opacity: 0;
+  pointer-events: none;
+  animation: gold-flash 500ms steps(5, end);
+}
+
+.bankroll-value {
+  position: relative;
+}
+
+.bank-flash {
+  position: absolute;
+  right: 0;
+  bottom: 6px;
+  color: var(--mint);
+  font-size: 10px;
+  opacity: 0;
+  animation: bank-flash 1400ms steps(7, end);
+}
+
+.shake-big {
+  animation: shake 400ms steps(2, end);
+  --shake: 4px;
+}
+
+.shake-huge {
+  animation: shake 700ms steps(2, end);
+  --shake: 9px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@keyframes bounce {
+  50% { translate: 0 -6px; }
+}
+
+@keyframes pop-in {
+  from { opacity: 0; scale: 0.6; }
+}
+
+@keyframes gold-flash {
+  from { opacity: 0.35; }
+}
+
+@keyframes bank-flash {
+  from, 70% { opacity: 1; }
+}
+
+@keyframes shake {
+  10%, 50%, 90% { translate: calc(var(--shake) * -1) var(--shake); }
+  30%, 70% { translate: var(--shake) calc(var(--shake) * -1); }
 }
 
 @keyframes rise-in {

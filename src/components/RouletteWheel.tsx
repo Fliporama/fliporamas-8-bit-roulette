@@ -71,8 +71,11 @@ export default function RouletteWheel({ result, onLanded }: RouletteWheelProps) 
     ballRadius.set(RIM)
     // The ball arm is a child of the wheel, so its angle is relative to the wheel:
     // it runs against the wheel, stops over the winning pocket, then rides round with it.
+    const land = () => {
+      if (!cancelled) setLanded(true)
+    }
     const controls = [
-      animate(wheelTurn, 540 + Math.random() * 360, { duration: SPIN_MS / 1000, ease: 'easeOut' }),
+      animate(wheelTurn, 540 + Math.random() * 360, { duration: SPIN_MS / 1000, ease: 'easeOut', onComplete: land }),
       animate(armTurn, pocketAngle(result) - 360 * laps, { duration: settle, ease: 'easeOut' }),
       animate(ballRadius, [RIM, RIM, 74, 80, BALL_REST, 73, BALL_REST], {
         duration: settle,
@@ -80,10 +83,10 @@ export default function RouletteWheel({ result, onLanded }: RouletteWheelProps) 
         ease: 'linear',
       }),
     ]
-    controls[0].then(() => {
-      if (!cancelled) setLanded(true)
-    })
-    skipRoll.current = () => controls.forEach((control) => control.complete())
+    skipRoll.current = () => {
+      controls.forEach((control) => control.complete())
+      land()
+    }
 
     return () => {
       cancelled = true

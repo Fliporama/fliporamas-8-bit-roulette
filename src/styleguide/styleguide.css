@@ -236,3 +236,28 @@
   height: calc(var(--px) * 96);
   max-width: 100%;
 }
+
+/* A stretch of the room's wall to stand room sprites against. */
+.sg-room {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: calc(var(--px) * 6);
+  padding: calc(var(--px) * 8) calc(var(--px) * 6) 0;
+  border: var(--px) solid var(--ink-0);
+}
+
+.sg-room > figure {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: calc(var(--px) * 2);
+  margin: 0;
+}
+
+.sg-room figcaption {
+  padding: 0 calc(var(--px) * 2);
+  background: var(--ink-0);
+  color: var(--paper-1);
+}

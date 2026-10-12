@@ -376,10 +376,32 @@ h1 {
 }
 
 .scene-lamp {
-  top: 0;
+  /* Hung high, its cord running up out of sight, so its rim clears the croupier's visor. */
+  top: calc(var(--px) * -7);
   left: 50%;
   margin-left: calc(var(--px) * -24);
   animation: sway 4s steps(1, end) infinite;
+}
+
+/* The croupier stands behind the rail: the table's top edge meets the waist. */
+.scene-croupier {
+  bottom: 0;
+  left: 50%;
+  margin-left: calc(var(--px) * -40);
+}
+
+.croupier {
+  position: relative;
+}
+
+.croupier svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.croupier-torso {
+  animation: breathe 4s steps(1, end) infinite;
 }
 
 .scene-wheel {
@@ -1227,6 +1249,11 @@ button.pocket:disabled {
 
 @keyframes winner {
   50% { filter: brightness(1.7); }
+}
+
+/* A breath: the chest and head rise one art pixel while the hands stay on the rail. */
+@keyframes breathe {
+  50% { translate: 0 calc(var(--px) * -1); }
 }
 
 /* The lamp on its cord: one art pixel either way. */

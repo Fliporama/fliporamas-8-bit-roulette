@@ -1,11 +1,15 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import './styleguide.css'
+import { Figure } from '../components/Croupier'
 import Felt from '../components/Felt'
 import Sprite from '../components/Sprite'
+import Wall from '../components/Wall'
 import WheelCanvas from '../components/WheelCanvas'
 import { CHIP_VALUES } from '../lib/chips'
 import { CHIP_SHADOW, CHIP_SPRITES } from '../sprites/chips'
+import { ARMS } from '../sprites/croupier'
+import type { Arms } from '../sprites/croupier'
 import { ICONS } from '../sprites/icons'
 import { LAMPS } from '../sprites/room'
 import { RAIL } from '../sprites/table'
@@ -134,6 +138,18 @@ export default function Styleguide() {
       <Section title="Wheel">
         <div className="sg-wheel">
           <WheelCanvas />
+        </div>
+      </Section>
+
+      <Section title="Croupier">
+        <div className="sg-room">
+          <Wall lamp={{ x: 0.5, y: 0 }} skirt={0.75} />
+          {(Object.keys(ARMS) as Arms[]).map((pose) => (
+            <figure key={pose}>
+              <Figure arms={pose} />
+              <figcaption>{pose}</figcaption>
+            </figure>
+          ))}
         </div>
       </Section>
 

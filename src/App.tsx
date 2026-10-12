@@ -17,8 +17,8 @@ import {
 import type { BetTarget, InsideBetKind } from './lib/roulette'
 import { CHIP_VALUES } from './lib/chips'
 import type { ChipValue, PlacedBet } from './lib/chips'
-import { isSceneOn, lightFor, setSceneOn } from './lib/scene'
-import type { Moment } from './lib/scene'
+import { isSceneOn, lightFor, lookFor, reactionFor, setSceneOn } from './lib/scene'
+import type { Look, Moment } from './lib/scene'
 import { isMuted, setMuted } from './lib/sound'
 import { buildTally } from './lib/tally'
 import type { Tally, TallyStep } from './lib/tally'
@@ -51,6 +51,7 @@ function App() {
   const [message, setMessage] = useState('PICK A CHIP, THEN PLACE YOUR BET')
   const [muted, setMutedState] = useState(isMuted)
   const [sceneOn, setSceneOnState] = useState(isSceneOn)
+  const [look, setLook] = useState<{ at: Look; id: number }>({ at: 0, id: 0 })
 
   const roundCount = useRef(0)
   const chipCount = useRef(0)
@@ -80,6 +81,7 @@ function App() {
 
     chipCount.current += 1
     const chip = { id: chipCount.current, value: chipValue }
+    setLook({ at: lookFor(target), id: chip.id })
     setBalance((current) => current - chipValue)
     setBets((current) => {
       const existing = current.find((bet) => bet.target.id === target.id)
@@ -222,7 +224,7 @@ function App() {
                 <span>0-36 <i /> SINGLE ZERO</span>
               </div>
 
-              <Scene light={light} on={sceneOn}>
+              <Scene light={light} reaction={reactionFor(moment)} look={look} on={sceneOn}>
                 <p className="eyebrow">ARCADE TABLE 01 <span>/</span> EUROPEAN WHEEL</p>
                 <h1 id="game-title">ROULETTE</h1>
               </Scene>

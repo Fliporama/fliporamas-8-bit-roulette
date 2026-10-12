@@ -6,6 +6,7 @@ import '@fontsource/silkscreen/latin-400.css'
 import '../tokens.css'
 import './styleguide.css'
 import Sprite from '../components/Sprite'
+import { styleguideHref } from './options'
 import type { StyleguideOptions } from './options'
 import { CHIP_SHADOW, LAMP, RAIL, chip } from './sprites'
 import type { ChipValue } from './sprites'
@@ -27,6 +28,20 @@ const SAMPLE = 'FLIPORAMA ROULETTE 0123456789'
 const CHIPS: ChipValue[] = [1, 5, 10, 25, 100]
 const BUTTON_STATES = ['rest', 'hover', 'pressed', 'disabled']
 const SCALES = [1, 2, 4]
+const PALETTE_CHOICES = [
+  { value: 'a', label: 'A: Lamp-lit' },
+  { value: 'b', label: 'B: Smoke and oxblood' },
+] as const
+const PIXEL_CHOICES = [
+  { value: 2, label: '2 px: fine' },
+  { value: 3, label: '3 px: medium' },
+  { value: 4, label: '4 px: chunky' },
+] as const
+const TYPE_CHOICES = [
+  { value: 1, label: '1: Press Start 2P + VT323' },
+  { value: 2, label: '2: Pixelify Sans + VT323' },
+  { value: 3, label: '3: Jersey 10 + Silkscreen' },
+] as const
 
 // The lit sample, in art pixels.
 const FELT = { cols: 96, rows: 44 }
@@ -145,6 +160,57 @@ export function LitSample({ look }: { look: string }) {
   )
 }
 
+/** One option in a choice: the same sample every time, so only the option itself differs. */
+function Option({ label, to, current, children }: { label: string; to: StyleguideOptions; current: StyleguideOptions; children?: ReactNode }) {
+  const isCurrent = styleguideHref(to) === styleguideHref(current)
+  return (
+    <a
+      className={isCurrent ? 'sg-option is-current' : 'sg-option'}
+      href={styleguideHref(to)}
+      aria-current={isCurrent ? 'true' : undefined}
+      data-palette={to.palette}
+      data-type={to.type}
+      style={{ '--px': `${to.px}px` } as CSSProperties}
+    >
+      <strong>{label}</strong>
+      <LitSample look={to.palette} />
+      <span className="sg-option-display">ROULETTE 17</span>
+      <span className="sg-option-text">Place your bets. No more bets.</span>
+      {children}
+    </a>
+  )
+}
+
+/** Temporary: the three decisions the owner makes by eye. Removed once they are locked. */
+function Choices({ options }: { options: StyleguideOptions }) {
+  return (
+    <Section title="Choices">
+      <p className="sg-note">
+        Click an option to apply it to this whole page. Current pick: palette={options.palette} px={options.px} type=
+        {options.type}
+      </p>
+      <h3>Palette</h3>
+      <div className="sg-options">
+        {PALETTE_CHOICES.map(({ value, label }) => (
+          <Option key={value} label={label} to={{ ...options, palette: value }} current={options} />
+        ))}
+      </div>
+      <h3>Pixel size</h3>
+      <div className="sg-options">
+        {PIXEL_CHOICES.map(({ value, label }) => (
+          <Option key={value} label={label} to={{ ...options, px: value }} current={options} />
+        ))}
+      </div>
+      <h3>Type pairing</h3>
+      <div className="sg-options">
+        {TYPE_CHOICES.map(({ value, label }) => (
+          <Option key={value} label={label} to={{ ...options, type: value }} current={options} />
+        ))}
+      </div>
+    </Section>
+  )
+}
+
 export default function Styleguide({ options }: { options: StyleguideOptions }) {
   const look = `${options.palette}-${options.type}`
   return (
@@ -158,6 +224,8 @@ export default function Styleguide({ options }: { options: StyleguideOptions }) 
         <h1>Art bible</h1>
         <p>Fliporama Roulette: a back-room speakeasy, one lamp over the felt. The rules are in docs/art-bible.md.</p>
       </header>
+
+      <Choices options={options} />
 
       <Section title="Palette">
         {RAMPS.map((ramp) => (

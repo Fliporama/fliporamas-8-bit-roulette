@@ -314,3 +314,53 @@
   top: calc(var(--px) * 20);
   left: calc(var(--px) * 62);
 }
+
+/* The choices: temporary, removed with the Choices section once the picks are locked. */
+.sg-note {
+  color: var(--smoke-2);
+}
+
+.sg-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  gap: calc(var(--px) * 6);
+}
+
+.sg-option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: calc(var(--px) * 3);
+  min-width: 0;
+  max-width: 100%;
+  padding: calc(var(--px) * 4);
+  border: var(--px) solid var(--ink-2);
+  background: var(--ink-0);
+  color: var(--paper-1);
+  text-decoration: none;
+}
+
+.sg-option:hover {
+  border-color: var(--smoke-0);
+}
+
+.sg-option.is-current {
+  border-color: var(--brass-2);
+}
+
+.sg-option strong {
+  color: var(--brass-2);
+  font-family: 'VT323', monospace;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.sg-option-display {
+  font-family: var(--font-display);
+  font-size: var(--type-4);
+}
+
+.sg-option-text {
+  font-family: var(--font-text);
+  font-size: var(--type-3);
+}

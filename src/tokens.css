@@ -1,6 +1,7 @@
 /* The art bible's tokens: see docs/art-bible.md. Step 0 is the darkest of each ramp. */
 
-/* Palette A: lamp-lit */
+/* Palette A: lamp-lit. Also selectable by attribute, so a sample can show A inside a page set to B. */
+[data-palette='a'],
 :root {
   --ink-0: #0a0f0e;
   --ink-1: #121c19;
@@ -26,12 +27,12 @@
   --paper-1: #f5efdc;
   --lamp-0: #ffd27a;
   --lamp-1: #fff3c4;
+}
 
+:root {
   /* One art pixel. Every size, border and offset is a whole multiple of it. */
   --px: 3px;
 
-  --font-display: 'Press Start 2P', monospace;
-  --font-text: 'VT323', monospace;
   --type-1: 10px;
   --type-2: 14px;
   --type-3: 18px;
@@ -92,6 +93,12 @@
   --paper-1: #f1ece2;
   --lamp-0: #ffc98a;
   --lamp-1: #ffeccc;
+}
+
+[data-type='1'],
+:root {
+  --font-display: 'Press Start 2P', monospace;
+  --font-text: 'VT323', monospace;
 }
 
 [data-type='2'] {

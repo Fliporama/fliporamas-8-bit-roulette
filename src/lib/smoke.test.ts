@@ -29,6 +29,12 @@ it('leaves the edges of the band clear', () => {
     expect(smokeToken(0, y, 3, COLS, ROWS)).toBeUndefined()
     expect(smokeToken(COLS - 1, y, 3, COLS, ROWS)).toBeUndefined()
   }
+  for (const seconds of [0, 3, 40]) {
+    for (let x = 0; x < COLS; x++) {
+      expect(smokeToken(x, 0, seconds, COLS, ROWS)).toBeUndefined()
+      expect(smokeToken(x, ROWS - 1, seconds, COLS, ROWS)).toBeUndefined()
+    }
+  }
 })
 
 it('still behaves after hours of running, and with no room', () => {

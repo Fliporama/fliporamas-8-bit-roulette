@@ -36,20 +36,22 @@ export function artPixel(element: Element): number {
 
 /**
  * Fills a `cols` × `rows` canvas, one canvas pixel per art pixel. `colour` returns nothing for a clear pixel.
- * Returns what it painted, for a caller that wants to show the same picture again without working it out.
+ * Returns what it painted, for a caller that wants to show the same picture again without working it out,
+ * or to hand it back as `reuse` for the next frame instead of having a new one made.
  */
 export function paint(
   canvas: HTMLCanvasElement,
   cols: number,
   rows: number,
   colour: (x: number, y: number) => Rgb | undefined,
+  reuse?: ImageData,
 ): ImageData | undefined {
   if (cols <= 0 || rows <= 0) return
   if (canvas.width !== cols) canvas.width = cols
   if (canvas.height !== rows) canvas.height = rows
   const context = canvas.getContext('2d')
   if (!context) return
-  const image = context.createImageData(cols, rows)
+  const image = reuse?.width === cols && reuse.height === rows ? reuse : context.createImageData(cols, rows)
   // Written a byte at a time: this runs for every pixel of every frame, so nothing is allocated per pixel.
   const bytes = image.data
   let at = 0
@@ -61,6 +63,8 @@ export function paint(
         bytes[at + 1] = pixel[1]
         bytes[at + 2] = pixel[2]
         bytes[at + 3] = 255
+      } else {
+        bytes[at + 3] = 0 // a reused picture may have had something here
       }
       at += 4
     }

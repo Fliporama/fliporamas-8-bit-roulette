@@ -4,6 +4,7 @@ import type { Light, Look, Reaction } from '../lib/scene'
 import { useLive } from '../lib/useLive'
 import { LAMPS, WHEEL_STAND } from '../sprites/room'
 import Croupier from './Croupier'
+import Smoke from './Smoke'
 import Sprite from './Sprite'
 import Wall from './Wall'
 import WheelCanvas from './WheelCanvas'
@@ -66,6 +67,8 @@ export default function Scene({ light, reaction, look, on, children }: SceneProp
           </div>
           <Sprite data={WHEEL_STAND} />
         </div>
+        {/* Behind the croupier: smoke across the face would hide the eyes, the one thing it shows. */}
+        <Smoke live={live} />
         <div className="scene-croupier">
           <Croupier reaction={reaction} look={look} live={live} />
         </div>

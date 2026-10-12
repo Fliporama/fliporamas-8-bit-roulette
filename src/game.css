@@ -162,14 +162,20 @@ p {
   overflow: hidden;
 }
 
-.wall {
+.wall,
+.smoke {
   position: absolute;
   inset: 0;
   overflow: hidden;
 }
 
+.smoke {
+  pointer-events: none;
+}
+
 .felt canvas,
 .wall canvas,
+.smoke canvas,
 .wheel-canvas {
   display: block;
   image-rendering: pixelated;

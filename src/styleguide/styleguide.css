@@ -298,15 +298,11 @@
 
 .sg-lit-felt {
   position: relative;
+  width: calc(var(--px) * 96);
+  height: calc(var(--px) * 45);
+  overflow: hidden;
   border: solid var(--ink-0);
   border-width: 0 0 var(--px);
-}
-
-.sg-light {
-  display: block;
-  width: calc(var(--px) * 96);
-  height: calc(var(--px) * 44);
-  image-rendering: pixelated;
 }
 
 .sg-lit-felt .sg-stack {

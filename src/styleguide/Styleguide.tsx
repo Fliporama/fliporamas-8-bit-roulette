@@ -1,6 +1,7 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import './styleguide.css'
+import Felt from '../components/Felt'
 import Sprite from '../components/Sprite'
 import { CHIP_VALUES } from '../lib/chips'
 import { CHIP_SHADOW, CHIP_SPRITES } from '../sprites/chips'
@@ -27,14 +28,6 @@ const SCALES = [1, 2, 4]
 
 // The lit sample, in art pixels.
 const FELT = { cols: 96, rows: 44 }
-const POOL = { x: 0.5, y: 0.2, reachX: 0.66, reachY: 1.05 } // centre and reach, as fractions of the felt
-const BAND = 0.3 // share of each light step given to the dithered band at its edge
-const BAYER = [
-  [0, 8, 2, 10],
-  [12, 4, 14, 6],
-  [3, 11, 1, 9],
-  [15, 7, 13, 5],
-]
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -82,36 +75,6 @@ function TypeFace({ label, font, steps }: { label: string; font: string; steps: 
   )
 }
 
-/**
- * Lamp light on felt, one canvas pixel per art pixel. Light falls off in four flat steps of the
- * felt ramp; where two steps meet, an ordered dither blends them. Never a smooth gradient.
- */
-function LightPool() {
-  const canvas = useRef<HTMLCanvasElement>(null)
-  useEffect(() => {
-    const context = canvas.current?.getContext('2d')
-    if (!canvas.current || !context) return
-    const style = getComputedStyle(canvas.current)
-    const felt = [0, 1, 2, 3].map((step) => style.getPropertyValue(`--felt-${step}`).trim())
-    for (let y = 0; y < FELT.rows; y++) {
-      for (let x = 0; x < FELT.cols; x++) {
-        const distance = Math.hypot(
-          ((x + 0.5) / FELT.cols - POOL.x) / POOL.reachX,
-          ((y + 0.5) / FELT.rows - POOL.y) / POOL.reachY,
-        )
-        const light = Math.max(0, Math.min(2.999, (1 - distance) * 3))
-        const step = Math.floor(light)
-        // 0 across the flat part of a step, rising to 1 through the band at its bright edge.
-        const blend = Math.max(0, (light - step - (1 - BAND)) / BAND)
-        const dithered = blend > (BAYER[y % 4][x % 4] + 0.5) / 16
-        context.fillStyle = felt[step + (dithered ? 1 : 0)]
-        context.fillRect(x, y, 1, 1)
-      }
-    }
-  }, [])
-  return <canvas className="sg-light" ref={canvas} width={FELT.cols} height={FELT.rows} />
-}
-
 function ChipStack() {
   return (
     <div className="sg-stack">
@@ -134,7 +97,7 @@ function LitSample() {
         ))}
       </div>
       <div className="sg-lit-felt">
-        <LightPool />
+        <Felt />
         <ChipStack />
       </div>
     </div>

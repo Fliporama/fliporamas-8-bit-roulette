@@ -1059,6 +1059,19 @@ h1 {
   --shake: 9px;
 }
 
+/* Canvases drawn one canvas pixel per art pixel. */
+.felt,
+.wheel-canvas {
+  display: block;
+  image-rendering: pixelated;
+}
+
+.felt {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

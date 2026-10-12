@@ -90,12 +90,11 @@ async function captureRound() {
   await shot('7-settled')
 
   // A live resize: the canvases must redraw at the new size, and nothing may overflow.
-  if (!phone) {
-    await page.setViewportSize({ width: 700, height: 900 })
-    await page.waitForTimeout(400)
-    await shot('8-resized')
-    await checkOverflow()
-  }
+  // Desktop narrows to a tablet; a phone narrows to the smallest common phone.
+  await page.setViewportSize(phone ? { width: 360, height: 780 } : { width: 700, height: 900 })
+  await page.waitForTimeout(400)
+  await shot('8-resized')
+  await checkOverflow()
 
   await context.close()
   await browser.close()

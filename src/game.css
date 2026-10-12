@@ -273,7 +273,9 @@ h1 {
 
 /* The wheel at rest: the page's centrepiece until a spin opens the big one. */
 .heading-wheel {
-  flex: 0 0 auto;
+  /* Gives way before the title does: the wheel redraws at whatever size it is left. */
+  flex: 0 1 auto;
+  min-width: 0;
   display: grid;
   place-items: center;
   width: calc(var(--px) * 56);
@@ -486,11 +488,18 @@ button.pocket:disabled {
   cursor: wait;
 }
 
-/* A tile holding a straight bet: the number steps aside for the chips. */
+/* A tile holding a straight bet: its number becomes a tag in the corner, drawn over the chips,
+   so it can be read however narrow the tile or tall the stack. */
 .pocket.has-chip {
-  justify-items: start;
-  padding-left: var(--px);
+  place-items: start;
   font-size: var(--type-1);
+}
+
+.pocket.has-chip span {
+  position: relative;
+  z-index: 4;
+  padding: var(--px);
+  background: var(--ink-0);
 }
 
 .pocket.is-pending {
@@ -785,6 +794,11 @@ button.pocket:disabled {
 
 .console .bets-section .section-heading h2 {
   color: var(--ink-0);
+}
+
+/* The page's pale focus ring would vanish on paper. */
+.bets-section button:focus-visible {
+  outline-color: var(--ink-0);
 }
 
 .empty-slip {

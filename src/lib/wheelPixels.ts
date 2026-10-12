@@ -83,6 +83,8 @@ export function wheelPixel(x: number, y: number, view: WheelView): string | unde
   const radius = (distance / half) * 100
   const angle = Math.atan2(dx, -dy) / RADIANS
   let token: string
+  // Numbers are printed over this band in paper: lamp light must not wash it out beneath them.
+  let numbered = false
 
   if (radius > RADII.track) {
     const streak = hash(Math.floor(distance), Math.floor(wrap(angle - view.turn) / GRAIN.arc)) % GRAIN.oneIn
@@ -99,6 +101,7 @@ export function wheelPixel(x: number, y: number, view: WheelView): string | unde
       const number = WHEEL_ORDER[index % WHEEL_ORDER.length]
       if (view.landed?.lit && number === view.landed.winner) return 'brass-2'
       token = POCKET[getPocketColor(number)]
+      numbered = radius >= RADII.well
       if (radius < RADII.well) token = DARKER[token]
       if (view.landed && number !== view.landed.winner) token = DARKER[token]
     }
@@ -118,7 +121,7 @@ export function wheelPixel(x: number, y: number, view: WheelView): string | unde
   }
 
   const light = -dy / distance + (dither(x, y) - 0.5) * LIGHT.band
-  if (light > LIGHT.edge) token = LIGHTER[token]
+  if (light > LIGHT.edge && !numbered) token = LIGHTER[token]
   else if (light < -LIGHT.edge) token = DARKER[token]
   return shadowed ? DARKER[token] : token
 }

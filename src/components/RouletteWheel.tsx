@@ -89,8 +89,8 @@ export default function RouletteWheel({ result, onLanded }: RouletteWheelProps) 
     rock.set(0)
     ballRadius.set(RADII.rim)
     impact.set(0)
-    // The ball arm is a child of the wheel, so its angle is relative to the wheel:
-    // it runs against the wheel, stops over the winning pocket, then rides round with it.
+    // The ball's angle is kept relative to the wheel: it runs against the wheel,
+    // stops over the winning pocket, then rides round with it.
     const land = () => {
       if (cancelled) return
       const degrees = wheelTurn.get() + armTurn.get()

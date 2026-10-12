@@ -20,6 +20,12 @@ it('brings the next pocket round as the wheel turns back by one pocket', () => {
   expect(top({ turn: -2 * POCKET_ARC })).toMatch(/^ink-/) // 15, black
 })
 
+it('never lightens the number band, so the numbers stay readable', () => {
+  expect(top()).toBe('felt-2')
+  expect(top({ turn: -POCKET_ARC })).toBe('oxblood-1')
+  expect(top({ turn: -2 * POCKET_ARC })).toBe('ink-1')
+})
+
 it('reads turns of any size and sign the same way', () => {
   expect(top({ turn: -POCKET_ARC - 720 })).toBe(top({ turn: -POCKET_ARC }))
   expect(top({ turn: 36 * POCKET_ARC + 1080 })).toBe(top({ turn: -POCKET_ARC }))

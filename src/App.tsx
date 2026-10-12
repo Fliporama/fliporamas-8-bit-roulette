@@ -7,6 +7,7 @@ import Particles from './components/Particles'
 import RouletteTable from './components/RouletteTable'
 import RouletteWheel from './components/RouletteWheel'
 import Scene from './components/Scene'
+import ScreenEffects from './components/ScreenEffects'
 import Settings from './components/Settings'
 import Sprite from './components/Sprite'
 import Wall from './components/Wall'
@@ -209,7 +210,7 @@ function App() {
       <div className="room-wall" aria-hidden="true" style={{ '--repeat': WALL_REPEAT } as CSSProperties}>
         <Wall />
       </div>
-      <div className="app-shell">
+      <div className="app-shell" data-effects={reducedMotion ? 'off' : effects}>
         <header className="topbar">
           <a className="brand" href="#game" aria-label="Fliporama Roulette home">
             <span className="brand-mark" aria-hidden="true">F</span>
@@ -394,6 +395,11 @@ function App() {
 
         {/* Reduced motion: nothing is thrown, whatever the setting. */}
         {effects !== 'off' && !reducedMotion && <Particles share={PARTICLE_SHARE[effects]} />}
+
+        {/* If the moving layer cannot keep pace it steps down for this visit; the stored choice is left alone. */}
+        {effects !== 'off' && (
+          <ScreenEffects light={light} moving={effects === 'full' && !reducedMotion} onStruggle={() => setEffectsState('low')} />
+        )}
 
         <footer className="site-footer">
           <span>FLIPORAMA <i /> FREE-PLAY TABLE</span>

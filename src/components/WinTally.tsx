@@ -81,7 +81,7 @@ export default function WinTally({ tally, onStep, onDone }: WinTallyProps) {
   if (tier === 'none') return null
 
   return (
-    <div className="tally-banner" ref={banner} aria-hidden="true">
+    <div className={celebrating ? 'tally-banner is-celebrating' : 'tally-banner'} ref={banner} aria-hidden="true">
       <span>WIN</span>
       <motion.b layoutId="win-total">
         +<CountUp value={total} />

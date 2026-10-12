@@ -1337,6 +1337,38 @@ button.pocket:disabled {
   image-rendering: pixelated;
 }
 
+/* A big win knocks the tube's colours apart for a moment: red one way, blue the other, by whole art pixels.
+   Only at full effects. The filters are drawn by ScreenEffects. */
+[data-effects='full'] .shake-big {
+  animation: shake 400ms steps(2, end), split 250ms steps(1, end);
+}
+
+[data-effects='full'] .shake-huge {
+  animation: shake 700ms steps(2, end), split-wide 400ms steps(1, end);
+}
+
+/* The banner's own translate must survive, so it takes the split without the shake. */
+[data-effects='full'] .tally-banner.is-celebrating {
+  animation: split 250ms steps(1, end);
+}
+
+.screen-filters {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+/* The tube the game is seen through, over everything but the settings panel. */
+.screen-effects {
+  position: fixed;
+  inset: 0;
+  z-index: 12;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  image-rendering: pixelated;
+}
+
 .gold-flash {
   position: fixed;
   inset: 0;
@@ -1384,6 +1416,15 @@ button.pocket:disabled {
 @keyframes shake {
   10%, 50%, 90% { translate: calc(var(--shake) * -1) var(--shake); }
   30%, 70% { translate: var(--shake) calc(var(--shake) * -1); }
+}
+
+@keyframes split {
+  from { filter: url('#split-near'); }
+}
+
+@keyframes split-wide {
+  0% { filter: url('#split-far'); }
+  50% { filter: url('#split-near'); }
 }
 
 @keyframes rise-in {

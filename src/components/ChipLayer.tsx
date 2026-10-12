@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import type { TargetAndTransition, ValueTransition } from 'motion/react'
 import { CHIP_VALUES, boxAnchor, stackAnchor, tossDuration } from '../lib/chips'
 import type { Chip, PlacedBet, Point } from '../lib/chips'
+import { emit } from '../lib/particles'
 import { formatChips } from '../lib/roulette'
 import type { BetTarget } from '../lib/roulette'
 import { play } from '../lib/sound'
@@ -32,11 +33,7 @@ const CROUCH = [
   { transform: 'translateY(-3px) scale(0.92, 1.1)' },
   { transform: 'none' },
 ]
-const THUNK = [
-  { transform: 'translateY(0)', filter: 'brightness(1)' },
-  { transform: 'translateY(2px)', filter: 'brightness(1.6)' },
-  { transform: 'translateY(0)', filter: 'brightness(1)' },
-]
+const THUNK = [{ transform: 'translateY(0)' }, { transform: 'translateY(2px)' }, { transform: 'translateY(0)' }]
 const COMPRESS = [
   { transform: 'none' },
   { transform: 'translateY(2px) scale(1.12, 0.8)' },
@@ -198,7 +195,12 @@ function TossedChip({ chip, index, stack, anchor, target, hopping, layer, still 
     const thunks = table
       ? tiles(table, target).map((tile) => tile.animate(THUNK, { delay: landAt, duration: 180 }))
       : []
-    const click = window.setTimeout(() => play('chip'), landAt)
+    const click = window.setTimeout(() => {
+      play('chip')
+      // Dust and a glint from under the chip, wherever it is on screen by now.
+      const box = hop.current?.getBoundingClientRect()
+      if (box) emit('land', box.left + box.width / 2, box.bottom)
+    }, landAt)
     return () => {
       window.clearTimeout(click)
       thunks.forEach((thunk) => thunk.cancel())
@@ -266,22 +268,14 @@ function TossedChip({ chip, index, stack, anchor, target, hopping, layer, still 
       transition={{ delay, duration: flight, ease: 'linear' }}
     >
       {!still && (
-        <>
-          <motion.i
-            className="chip-shadow"
-            initial={{ scale: PICKER_SCALE, opacity: 0.15 }}
-            animate={{ scale: [PICKER_SCALE, APEX_SCALE + 0.3, 1], opacity: [0.15, 0.1, 0.45] }}
-            transition={{ delay, duration: flight, times: [0, 0.5, 1] }}
-          >
-            <Sprite data={CHIP_SHADOW} />
-          </motion.i>
-          <motion.i
-            className="chip-puff"
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: [0.5, 2], opacity: [0.7, 0] }}
-            transition={{ delay: landAt / 1000, duration: 0.3, ease: 'easeOut' }}
-          />
-        </>
+        <motion.i
+          className="chip-shadow"
+          initial={{ scale: PICKER_SCALE, opacity: 0.15 }}
+          animate={{ scale: [PICKER_SCALE, APEX_SCALE + 0.3, 1], opacity: [0.15, 0.1, 0.45] }}
+          transition={{ delay, duration: flight, times: [0, 0.5, 1] }}
+        >
+          <Sprite data={CHIP_SHADOW} />
+        </motion.i>
       )}
       <span className="chip-hop" ref={hop}>
         <motion.span

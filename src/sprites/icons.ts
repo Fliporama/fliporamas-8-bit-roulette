@@ -11,5 +11,6 @@ export const ICONS = {
   remove: sprite(['x.....x', '.x...x.', '..x.x..', '...x...', '..x.x..', '.x...x.', 'x.....x'], KEY),
   lampOn: sprite(['...x...', '..xxx..', '.xxxxx.', 'xxxxxxx', '..x.x..', '.x.x.x.', 'x..x..x'], KEY),
   lampOff: sprite(['...x...', '..xxx..', '.xxxxx.', 'xxxxxxx', '...x...', '.......', '.......'], KEY),
+  gear: sprite(['.x.x.x.', 'xxxxxxx', '.xx.xx.', 'xx...xx', '.xx.xx.', 'xxxxxxx', '.x.x.x.'], KEY),
   play: sprite(['.x.....', '.xxx...', '.xxxxx.', '.xxxxxx', '.xxxxx.', '.xxx...', '.x.....'], KEY),
 }

@@ -1,19 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import CountUp from './CountUp'
-import Sprite from './Sprite'
-import { CHIP_VALUES } from '../lib/chips'
+import { emit } from '../lib/particles'
 import { play } from '../lib/sound'
 import { stepDuration } from '../lib/tally'
 import type { Tally, TallyStep } from '../lib/tally'
 import { useSkip } from '../lib/useSkip'
-import { CHIP_SPRITES } from '../sprites/chips'
 
 const LOSS_MS = 500
 const END_HOLD_MS = 700
-const BURST_MS = 700
-const BURST_REACH = 260
-const BURST_COUNT = { big: 14, huge: 32 }
 
 interface WinTallyProps {
   tally: Tally
@@ -26,13 +21,7 @@ export default function WinTally({ tally, onStep, onDone }: WinTallyProps) {
   const { steps, tier, returned } = tally
   const [total, setTotal] = useState(reducedMotion ? returned : 0)
   const [celebrating, setCelebrating] = useState(false)
-  const [sparks] = useState(() =>
-    Array.from({ length: BURST_COUNT.huge }, (_, index) => ({
-      x: (Math.random() - 0.5) * 2 * BURST_REACH,
-      y: (Math.random() - 0.5) * 2 * BURST_REACH,
-      chip: CHIP_VALUES[index % CHIP_VALUES.length],
-    })),
-  )
+  const banner = useRef<HTMLDivElement>(null)
   const callbacks = useRef({ onStep, onDone })
   useEffect(() => {
     callbacks.current = { onStep, onDone }
@@ -72,6 +61,9 @@ export default function WinTally({ tally, onStep, onDone }: WinTallyProps) {
         if (tier !== 'small' && !reducedMotion) {
           shell?.classList.add(`shake-${tier}`)
           setCelebrating(true)
+          // Chips go up from behind the banner; with effects off nobody is listening and nothing flies.
+          const box = banner.current?.getBoundingClientRect()
+          if (box) emit(tier === 'huge' ? 'jackpot' : 'win', box.left + box.width / 2, box.top + box.height / 2)
         }
         later(finish.current, END_HOLD_MS)
       }, steps.length * stepMs)
@@ -89,23 +81,11 @@ export default function WinTally({ tally, onStep, onDone }: WinTallyProps) {
   if (tier === 'none') return null
 
   return (
-    <div className="tally-banner" aria-hidden="true">
+    <div className="tally-banner" ref={banner} aria-hidden="true">
       <span>WIN</span>
       <motion.b layoutId="win-total">
         +<CountUp value={total} />
       </motion.b>
-      {celebrating &&
-        sparks.slice(0, BURST_COUNT[tier === 'huge' ? 'huge' : 'big']).map((spark, index) => (
-          <motion.i
-            className="spark"
-            key={index}
-            initial={{ x: 0, y: 0, opacity: 1 }}
-            animate={{ x: spark.x, y: spark.y, opacity: 0 }}
-            transition={{ duration: BURST_MS / 1000, ease: 'easeOut' }}
-          >
-            <Sprite data={CHIP_SPRITES[spark.chip]} />
-          </motion.i>
-        ))}
       {celebrating && tier === 'huge' && <i className="gold-flash" />}
     </div>
   )

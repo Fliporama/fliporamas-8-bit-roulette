@@ -269,6 +269,37 @@ p {
   background: var(--lamp-0);
 }
 
+/* The settings panel. Where popovers are supported it opens under the top bar; elsewhere it simply sits in the bar. */
+.settings {
+  gap: calc(var(--px) * 4);
+  padding: calc(var(--px) * 5);
+  border: var(--px) solid var(--brass-2);
+  background: var(--ink-0);
+  box-shadow: calc(var(--px) * 2) calc(var(--px) * 2) 0 var(--ink-0);
+  color: var(--paper-1);
+}
+
+.settings:popover-open {
+  position: fixed;
+  inset: calc(var(--px) * 22) calc(var(--px) * 6) auto auto;
+  display: grid;
+  margin: 0;
+}
+
+.setting {
+  display: grid;
+  gap: calc(var(--px) * 2);
+}
+
+.setting-options {
+  display: flex;
+  gap: calc(var(--px) * 2);
+}
+
+.setting-options .button {
+  flex: 1;
+}
+
 .icon-action {
   display: inline-grid;
   place-items: center;
@@ -807,8 +838,7 @@ button.pocket:disabled {
 
 /* A chip is 12 × 11 art pixels, hung so that its face is centred on its slot. */
 .chip-hop,
-.chip-body,
-.chip-puff {
+.chip-body {
   position: absolute;
   top: 0;
   left: 0;
@@ -816,8 +846,7 @@ button.pocket:disabled {
   height: calc(var(--px) * 11);
 }
 
-.chip-hop,
-.chip-puff {
+.chip-hop {
   translate: calc(var(--px) * -6) calc(var(--px) * -5);
 }
 
@@ -825,11 +854,6 @@ button.pocket:disabled {
   position: absolute;
   top: calc(var(--px) * 4);
   left: calc(var(--px) * -7);
-}
-
-.chip-puff {
-  border: var(--px) solid var(--paper-1);
-  border-radius: 50%;
 }
 
 .stack-label b {
@@ -1303,10 +1327,14 @@ button.pocket:disabled {
   font-weight: 400;
 }
 
-.spark {
-  position: absolute;
-  top: 50%;
-  left: 50%;
+/* Everything thrown into the air: above the wheel's overlay and the win banner, and never in the way of a click. */
+.particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 11;
+  pointer-events: none;
+  image-rendering: pixelated;
 }
 
 .gold-flash {
@@ -1368,8 +1396,9 @@ button.pocket:disabled {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* The winning pocket blinks between its own edge light and the lamp's: palette colours, never a brightness filter. */
 @keyframes winner {
-  50% { filter: brightness(1.7); }
+  50% { --lit: var(--lamp-1); border-color: var(--lamp-1); }
 }
 
 @keyframes frame-of-four {

@@ -47,6 +47,11 @@ async function checkOverflow() {
   if (scrollWidth > innerWidth) errors.push(`Horizontal overflow: ${scrollWidth} > ${innerWidth}`)
 }
 
+async function checkLight(expected, when) {
+  const light = await page.evaluate(() => document.getElementById('game')?.dataset.light)
+  if (light !== expected) errors.push(`Light ${when}: ${light}`)
+}
+
 async function captureStyleguide() {
   await page.goto(`${url}?styleguide`)
   await page.waitForTimeout(800)
@@ -82,12 +87,15 @@ async function captureRound() {
   await page.getByRole('button', { name: /spin the wheel/i }).click()
   await page.waitForTimeout(2200)
   await shot('4-spinning')
+  // The room dims for the spin and must come back: see the check after the round.
+  if (!reduced) await checkLight('dim', 'while spinning')
   await page.waitForTimeout(3000)
   await shot('5-landed')
   await page.waitForTimeout(1500)
   await shot('6-tally')
   await page.waitForTimeout(4000)
   await shot('7-settled')
+  await checkLight('normal', 'after the round')
 
   // A live resize: the canvases must redraw at the new size, and nothing may overflow.
   // Desktop narrows to a tablet; a phone narrows to the smallest common phone.

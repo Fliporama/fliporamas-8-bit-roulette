@@ -16,9 +16,12 @@ import {
 import type { BetTarget, InsideBetKind } from './lib/roulette'
 import { CHIP_VALUES } from './lib/chips'
 import type { ChipValue, PlacedBet } from './lib/chips'
+import { isSceneOn, lightFor } from './lib/scene'
+import type { Moment } from './lib/scene'
 import { isMuted, setMuted } from './lib/sound'
 import { buildTally } from './lib/tally'
 import type { Tally, TallyStep } from './lib/tally'
+import { useRoomLight } from './lib/useRoomLight'
 import { CHIP_SPRITES } from './sprites/chips'
 import { ICONS } from './sprites/icons'
 import { RAIL } from './sprites/table'
@@ -46,10 +49,13 @@ function App() {
   const [scoring, setScoring] = useState<TallyStep | undefined>()
   const [message, setMessage] = useState('PICK A CHIP, THEN PLACE YOUR BET')
   const [muted, setMutedState] = useState(isMuted)
+  const [sceneOn] = useState(isSceneOn)
 
   const roundCount = useRef(0)
   const chipCount = useRef(0)
   const isLocked = phase !== 'betting'
+  const moment: Moment = { phase, won: Boolean(round && round.tally.tier !== 'none') }
+  const light = useRoomLight(lightFor(moment), sceneOn)
   // The balance is settled the moment spin is pressed; the display holds the win back until the round ends.
   const shownBalance = balance - (round?.tally.returned ?? 0)
   const totalStake = bets.reduce((total, bet) => total + bet.stake, 0)
@@ -195,7 +201,7 @@ function App() {
         </div>
       </header>
 
-      <main id="game">
+      <main id="game" data-light={lightFor(moment)}>
         <section className="game-heading" aria-labelledby="game-title">
           <div>
             <p className="eyebrow">ARCADE TABLE 01 <span>/</span> EUROPEAN WHEEL</p>
@@ -220,7 +226,7 @@ function App() {
                 ))}
               </div>
               <div className="table-felt">
-                <Felt />
+                <Felt light={light} />
                 <div className="bet-mode-bar">
                   <span className="control-label">INSIDE BET</span>
                   <div className="mode-switch" role="group" aria-label="Inside bet type">

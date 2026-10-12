@@ -10,11 +10,12 @@ const FLECK_ONE_IN = 61 // how sparse the single-pixel flecks of texture are
 /**
  * The step of the felt ramp at one art pixel of a `cols` × `rows` felt lit from top centre.
  * Light falls off in flat steps with a dithered band where two meet; never a smooth gradient.
+ * `shift` moves the lamp's pool by that many light steps: the room dimmed or flared.
  */
-export function feltStep(x: number, y: number, cols: number, rows: number): FeltStep {
+export function feltStep(x: number, y: number, cols: number, rows: number, shift = 0): FeltStep {
   if (cols <= 0 || rows <= 0) return 0
   const distance = Math.hypot(((x + 0.5) / cols - POOL.x) / POOL.reachX, ((y + 0.5) / rows - POOL.y) / POOL.reachY)
-  const light = Math.max(0, Math.min(3.999, (1 - distance) * 4))
+  const light = Math.max(0, Math.min(3.999, (1 - distance) * 4 + shift))
   let step = Math.floor(light)
   // 0 across the flat part of a step, rising to 1 through the band at its bright edge.
   const blend = Math.max(0, (light - step - (1 - BAND)) / BAND)

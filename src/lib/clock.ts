@@ -9,6 +9,11 @@ const CENTRE = (FACE - 1) / 2
 const MINUTE_HAND = 4 // art pixels from the centre
 const HOUR_HAND = 3
 
+/** Milliseconds from `at` until the minute hand next moves. */
+export function untilNextMinute(at: Date): number {
+  return 60_000 - (at.getSeconds() * 1000 + at.getMilliseconds())
+}
+
 /** A hand as whole pixels from the centre towards `turns` of a full circle, clockwise from twelve. */
 function hand(drawing: Sketch, turns: number, length: number, token: string) {
   const angle = turns * 2 * Math.PI

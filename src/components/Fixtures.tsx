@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { CSSProperties } from 'react'
-import { clockHands } from '../lib/clock'
+import { clockHands, untilNextMinute } from '../lib/clock'
 import type { SpriteData } from '../lib/sprite'
 import { CLOCK, DOOR, DOOR_WINDOW, FAN, GRAMOPHONE, PATRONS, PENDULUM, RECORD, SHELF } from '../sprites/room'
 import Sprite from './Sprite'
 
 // Someone passing behind the frosted glass.
 const PASS = { everyMin: 8000, everyMax: 20000, stepMs: 160, pauseMs: 1800, pauseOneIn: 3 }
-const MINUTE_MS = 60_000
 
 /** A flip-book of sprites, cycled by CSS: see `.frames` in game.css. */
 export function Frames({ frames, className = '' }: { frames: readonly SpriteData[]; className?: string }) {
@@ -42,8 +41,12 @@ export default function Fixtures({ live }: { live: boolean }) {
 
   useEffect(() => {
     if (!live) return
-    const tick = window.setInterval(() => setNow(new Date()), MINUTE_MS)
-    return () => window.clearInterval(tick)
+    // Read at once, since the time went stale while the room was still, then again as each minute turns.
+    let timer = window.setTimeout(function tick() {
+      setNow(new Date())
+      timer = window.setTimeout(tick, untilNextMinute(new Date()))
+    }, 0)
+    return () => window.clearTimeout(timer)
   }, [live])
 
   // Now and then a silhouette crosses behind the glass, one art pixel at a time; some stop a while.
@@ -71,7 +74,11 @@ export default function Fixtures({ live }: { live: boolean }) {
       step(from)
     }
     timer = window.setTimeout(start, wait())
-    return () => window.clearTimeout(timer)
+    return () => {
+      window.clearTimeout(timer)
+      // Nobody is left standing half-way across the glass for the next time the room comes to life.
+      setPasser(undefined)
+    }
   }, [live])
 
   return (

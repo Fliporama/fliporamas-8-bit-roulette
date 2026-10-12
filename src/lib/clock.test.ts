@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { FACE, clockHands } from './clock'
+import { FACE, clockHands, untilNextMinute } from './clock'
 
 const CENTRE = (FACE - 1) / 2
 const cells = (hours: number, minutes: number, token: string) =>
@@ -36,4 +36,10 @@ it('keeps both hands on the face at any time', () => {
       expect(rect.y).toBeLessThan(FACE)
     }
   }
+})
+
+it('waits until the minute turns, not a minute from now', () => {
+  expect(untilNextMinute(new Date(2026, 9, 13, 3, 14, 59, 400))).toBe(600)
+  expect(untilNextMinute(new Date(2026, 9, 13, 3, 14, 20, 0))).toBe(40_000)
+  expect(untilNextMinute(new Date(2026, 9, 13, 3, 14, 0, 0))).toBe(60_000)
 })

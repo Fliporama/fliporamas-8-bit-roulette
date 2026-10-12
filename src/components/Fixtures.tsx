@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { clockHands } from '../lib/clock'
 import type { SpriteData } from '../lib/sprite'
@@ -22,10 +22,14 @@ export function Frames({ frames, className = '' }: { frames: readonly SpriteData
 
 /** The hands for the visitor's own time of day. */
 export function Clock({ at }: { at: Date }) {
+  const hours = at.getHours()
+  const minutes = at.getMinutes()
+  // Redrawn only when the minute changes, not each time a silhouette takes a step.
+  const hands = useMemo(() => clockHands(hours, minutes), [hours, minutes])
   return (
     <>
       <Sprite data={CLOCK} />
-      <Sprite className="clock-hands" data={clockHands(at.getHours(), at.getMinutes())} />
+      <Sprite className="clock-hands" data={hands} />
       <Sprite className="clock-pendulum" data={PENDULUM} />
     </>
   )

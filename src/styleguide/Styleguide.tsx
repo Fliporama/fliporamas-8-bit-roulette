@@ -3,11 +3,14 @@ import type { CSSProperties, ReactNode } from 'react'
 import './styleguide.css'
 import { Figure } from '../components/Croupier'
 import Felt from '../components/Felt'
+import Smoke from '../components/Smoke'
 import Sprite from '../components/Sprite'
 import Wall from '../components/Wall'
 import WheelCanvas from '../components/WheelCanvas'
 import { CHIP_VALUES } from '../lib/chips'
 import { clockHands } from '../lib/clock'
+import { LIGHT_SHIFT } from '../lib/scene'
+import type { Light } from '../lib/scene'
 import { CHIP_SHADOW, CHIP_SPRITES } from '../sprites/chips'
 import { ARMS } from '../sprites/croupier'
 import type { Arms } from '../sprites/croupier'
@@ -154,6 +157,19 @@ export default function Styleguide() {
         </div>
       </Section>
 
+      <Section title="Light">
+        <div className="sg-row">
+          {(Object.keys(LIGHT_SHIFT) as Light[]).map((level) => (
+            <figure className="sg-light-level" key={level}>
+              <Wall lamp={{ x: 0.5, y: 0.4 }} shift={LIGHT_SHIFT[level]} skirt={0.75} />
+              {level === 'normal' && <Smoke live />}
+              <Sprite data={LAMPS[level]} />
+              <figcaption>{level}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </Section>
+
       <Section title="Room">
         <div className="sg-row sg-furniture">
           {[DOOR, CLOCK, clockHands(10, 10), GRAMOPHONE, SHELF, WHEEL_STAND, ...PATRONS, ...FAN, ...RECORD, LAMPS.dim, LAMPS.normal, LAMPS.flare].map(
@@ -202,7 +218,6 @@ export default function Styleguide() {
         {SCALES.map((scale) => (
           <div className="sg-row" key={scale}>
             <small className="sg-scale">{scale}x</small>
-            <Sprite data={LAMPS.normal} scale={scale} />
             <Sprite data={RAIL} scale={scale} />
             <Sprite data={CHIP_SPRITES[25]} scale={scale} />
           </div>

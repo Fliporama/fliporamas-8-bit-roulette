@@ -267,3 +267,26 @@
   padding: calc(var(--px) * 4);
   background: var(--smoke-0);
 }
+
+/* The wall and the lamp at one light level; the middle one also carries smoke. */
+.sg-light-level {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: space-between;
+  width: calc(var(--px) * 96);
+  height: calc(var(--px) * 80);
+  margin: 0;
+  border: var(--px) solid var(--ink-0);
+}
+
+.sg-light-level > svg,
+.sg-light-level > figcaption {
+  position: relative;
+}
+
+.sg-light-level > figcaption {
+  padding: 0 calc(var(--px) * 2);
+  background: var(--ink-0);
+  color: var(--paper-1);
+}

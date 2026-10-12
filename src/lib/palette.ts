@@ -42,11 +42,19 @@ export function paint(canvas: HTMLCanvasElement, cols: number, rows: number, col
   const context = canvas.getContext('2d')
   if (!context) return
   const image = context.createImageData(cols, rows)
+  // Written a byte at a time: this runs for every pixel of every frame, so it allocates nothing.
+  const bytes = image.data
+  let at = 0
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
       const pixel = colour(x, y)
-      if (!pixel) continue
-      image.data.set([pixel[0], pixel[1], pixel[2], 255], (y * cols + x) * 4)
+      if (pixel) {
+        bytes[at] = pixel[0]
+        bytes[at + 1] = pixel[1]
+        bytes[at + 2] = pixel[2]
+        bytes[at + 3] = 255
+      }
+      at += 4
     }
   }
   context.putImageData(image, 0, 0)

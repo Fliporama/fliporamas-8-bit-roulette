@@ -1,0 +1,63 @@
+/* The art bible's tokens: see docs/art-bible.md. Step 0 is the darkest of each ramp. */
+
+:root {
+  --ink-0: #0a0f0e;
+  --ink-1: #121c19;
+  --ink-2: #1c2a26;
+  --felt-0: #0c3a2e;
+  --felt-1: #135242;
+  --felt-2: #1c6d55;
+  --felt-3: #2f8f6c;
+  --wood-0: #2a1a12;
+  --wood-1: #4a2e1c;
+  --wood-2: #6e4628;
+  --brass-0: #6b4a1e;
+  --brass-1: #a87a2c;
+  --brass-2: #dab04a;
+  --brass-3: #f4dc8a;
+  --oxblood-0: #5c1a1c;
+  --oxblood-1: #96302e;
+  --oxblood-2: #c8504a;
+  --smoke-0: #4a5a54;
+  --smoke-1: #7f9289;
+  --smoke-2: #aebdb3;
+  --paper-0: #d9d2ba;
+  --paper-1: #f5efdc;
+  --lamp-0: #ffd27a;
+  --lamp-1: #fff3c4;
+
+  /* One art pixel. Every size, border and offset is a whole multiple of it. */
+  --px: 3px;
+
+  --font-display: 'Press Start 2P', monospace;
+  --font-text: 'VT323', monospace;
+
+  --type-1: 10px;
+  --type-2: 14px;
+  --type-3: 18px;
+  --type-4: 28px;
+  --type-5: 44px;
+
+  /* Chips in real casino colours: white, red, blue, green, black. Each takes its face, its lit and
+     shadowed rims and its edge stripes from the ramps. */
+  --chip-1: var(--paper-0);
+  --chip-1-light: var(--paper-1);
+  --chip-1-dark: var(--smoke-2);
+  --chip-1-stripe: var(--smoke-0);
+  --chip-5: var(--oxblood-1);
+  --chip-5-light: var(--oxblood-2);
+  --chip-5-dark: var(--oxblood-0);
+  --chip-5-stripe: var(--paper-1);
+  --chip-10: var(--smoke-1);
+  --chip-10-light: var(--smoke-2);
+  --chip-10-dark: var(--smoke-0);
+  --chip-10-stripe: var(--paper-1);
+  --chip-25: var(--felt-2);
+  --chip-25-light: var(--felt-3);
+  --chip-25-dark: var(--felt-1);
+  --chip-25-stripe: var(--paper-1);
+  --chip-100: var(--ink-2);
+  --chip-100-light: var(--smoke-0);
+  --chip-100-dark: var(--ink-1);
+  --chip-100-stripe: var(--brass-2);
+}

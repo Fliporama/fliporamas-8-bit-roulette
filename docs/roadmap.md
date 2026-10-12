@@ -1,6 +1,6 @@
 # Roadmap: Fliporama Roulette to an award-grade site
 
-**Current phase:** 1 (Art direction bible), not started
+**Current phase:** 2 (The table, restyled), not started
 **To resume in a new session:** say "continue the roadmap". The session protocol is in `CLAUDE.md`.
 
 ## Brief
@@ -36,7 +36,7 @@ One phase is one session. Each gets its own brainstorm, spec (`docs/superpowers/
   - Vercel preview so every phase has a shareable link.
   - Done when: a fresh session can run, test, screenshot and deploy from `CLAUDE.md` alone.
 
-- [ ] **Phase 1. Art direction bible**
+- [x] **Phase 1. Art direction bible** (done 2026-10-13)
   - One page of rules everything else obeys: a limited palette (about 24 colours), one pixel grid with integer scaling, two typefaces, a lighting model, and the motion language.
   - A small spike to choose the rendering approach: keep DOM and CSS with a canvas effects layer on top (recommended: it keeps accessibility and today's code), or move the table to a low-resolution canvas.
   - A hidden `/styleguide` page showing palette, type, buttons, chips and tiles in the new style.
@@ -106,8 +106,11 @@ One phase is one session. Each gets its own brainstorm, spec (`docs/superpowers/
 
 Update this section at the end of every session: what was finished, what was left half-done, and anything the next session must know.
 
-- **2026-10-12, Phase 0 done.** This roadmap, `CLAUDE.md`, the memory entry and `npm run capture` (Playwright driving the installed Edge; desktop and phone both verified) are in place. Budgets are recorded above.
-- **Pull request #2** (`feat/pixel-roulette` into `main`) had all checks passing. It was squash-merged on 2026-10-12. Start Phase 1 on a new branch cut from `main`.
-- **Vercel:** project `fliporama-roulette` in team `choy-lee` is linked to the GitHub repo, so every push deploys. Production is `fliporama-roulette-choy-lee.vercel.app`, built from `main`. Every URL sits behind Vercel login, so links are not shareable with outsiders yet; opening them up is a project setting for the owner to change (needed by Phase 8 at the latest).
-- The chip toss and wheel rework (merged in pull request #2) have been seen in screenshots but the narrow layout after a live resize, reduced motion, and resetting mid-spin were never exercised. Check them in Phase 7 at the latest.
-- A chip on a straight bet covers the tile's number. Revisit in Phase 2 when tiles are redrawn.
+- **2026-10-13, Phase 1 done.** The owner approved the styleguide at `/?styleguide`. The rules are in `docs/art-bible.md` and the values in `src/tokens.css`; read the bible before any visual work.
+- **The picks:** the lamp-lit palette (24 colours in eight ramps), a 3 px art pixel (`--px`), Press Start 2P for display and VT323 for text.
+- **Rendering approach:** DOM and CSS, with sprites as inline SVG (`sprite` in `src/lib/sprite.ts`, `Sprite` in `src/components/`) and a small canvas wherever per-pixel shading is needed, as the lit sample on the styleguide does.
+- **Phase 2 starts here:** `src/game.css` still holds about 40 untokenised hex colours and does not import `src/tokens.css`; the game was deliberately left untouched. Migrate it to the tokens as the table is restyled. The sample sprites (chips, lamp, rail) live in `src/styleguide/sprites.ts`; move them out of the styleguide when the game starts using them.
+- A chip on a straight bet covers the tile's number. Fix it when the tiles are redrawn.
+- **First load:** the game's JavaScript is 127.3 kB gzipped in two files, against the 200 kB budget.
+- **Vercel:** project `fliporama-roulette` in team `choy-lee` deploys every push; production is `fliporama-roulette-choy-lee.vercel.app`, built from `main`. Every URL sits behind Vercel login; opening them up is a project setting for the owner (needed by Phase 8 at the latest).
+- Still never exercised from the chip toss and wheel rework: the narrow layout after a live resize, reduced motion, and resetting mid-spin. Check them in Phase 7 at the latest.

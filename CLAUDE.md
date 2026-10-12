@@ -33,6 +33,8 @@ The repo is linked to the Vercel project `fliporama-roulette` (team `choy-lee`).
 
 ## Checking visual work
 
+Read `docs/art-bible.md` before any visual work; it fixes the palette, lighting, pixel grid, type and motion rules. See them applied at `/?styleguide`.
+
 Look at the result before calling visual or animation work done: run `npm run capture` and read the PNGs in `captures/`. The Claude-in-Chrome extension window renders at about one frame a second on this machine, so it cannot judge motion and its screenshots time out; use the capture script instead. The owner judges the feel of motion by eye, so ask them to look at anything that moves.
 
 ## Conventions

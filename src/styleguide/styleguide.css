@@ -1,0 +1,316 @@
+/* The styleguide page. Colours come only from tokens.css; sizes are multiples of --px. */
+
+.styleguide {
+  --gap: calc(var(--px) * 8);
+  min-height: 100vh;
+  padding: calc(var(--px) * 12) max(16px, calc(50vw - 560px));
+  background: var(--ink-0);
+  color: var(--paper-1);
+  font-family: var(--font-text);
+  font-size: var(--type-3);
+  line-height: 1.3;
+}
+
+.styleguide h1,
+.styleguide h2,
+.styleguide h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.styleguide h1 {
+  color: var(--brass-2);
+  font-size: var(--type-5);
+}
+
+.styleguide h2 {
+  padding-bottom: calc(var(--px) * 3);
+  border-bottom: var(--px) solid var(--ink-2);
+  color: var(--brass-2);
+  font-size: var(--type-4);
+}
+
+.styleguide h3 {
+  color: var(--paper-1);
+  font-size: var(--type-2);
+}
+
+.styleguide p {
+  margin: 0;
+}
+
+.sg-header p,
+.sg-ramp-label p {
+  color: var(--smoke-2);
+}
+
+.sg-header {
+  display: grid;
+  gap: calc(var(--px) * 3);
+}
+
+.sg-section {
+  display: grid;
+  gap: var(--gap);
+  margin-top: calc(var(--px) * 20);
+}
+
+.sg-ramp {
+  display: grid;
+  grid-template-columns: minmax(0, 220px) repeat(4, minmax(0, 1fr));
+  gap: calc(var(--px) * 4);
+  align-items: start;
+}
+
+.sg-ramp-label {
+  display: grid;
+  gap: calc(var(--px) * 2);
+}
+
+.sg-swatch {
+  display: grid;
+  gap: var(--px);
+  min-width: 0;
+  color: var(--smoke-2);
+}
+
+.sg-swatch code {
+  overflow: hidden;
+  color: var(--paper-1);
+  font-family: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sg-swatch-chip {
+  height: calc(var(--px) * 16);
+  border: var(--px) solid var(--ink-0);
+  /* Lit from above: a light top edge and a hard shadow below. */
+  box-shadow:
+    inset 0 var(--px) 0 color-mix(in srgb, var(--paper-1) 14%, transparent),
+    0 calc(var(--px) * 2) 0 var(--ink-2);
+}
+
+.sg-face {
+  display: grid;
+  gap: calc(var(--px) * 3);
+  min-width: 0;
+}
+
+.sg-face p {
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--px) * 4);
+  overflow-wrap: anywhere;
+}
+
+.sg-face small {
+  flex: 0 0 auto;
+  width: 9ch;
+  color: var(--smoke-1);
+  font-family: var(--font-text);
+  font-size: var(--type-3);
+}
+
+@media (max-width: 640px) {
+  .sg-ramp {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sg-ramp-label {
+    grid-column: 1 / -1;
+  }
+
+  .sg-face p {
+    flex-direction: column;
+    gap: 0;
+  }
+}
+
+.sg-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--px) * 6);
+}
+
+/* Buttons: a lit top edge, a shadowed bottom edge and a hard drop shadow that pressing removes. */
+.sg-button {
+  --face: var(--ink-2);
+  --lit: var(--smoke-0);
+  --shade: var(--ink-1);
+  --drop: calc(var(--px) * 2);
+  padding: calc(var(--px) * 4) calc(var(--px) * 6);
+  border: var(--px) solid var(--ink-0);
+  background: var(--face);
+  box-shadow:
+    inset 0 var(--px) 0 var(--lit),
+    inset 0 calc(var(--px) * -1) 0 var(--shade),
+    0 var(--drop) 0 var(--ink-0);
+  color: var(--paper-1);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: var(--type-1);
+  text-transform: uppercase;
+}
+
+.sg-button.is-primary {
+  --face: var(--brass-2);
+  --lit: var(--brass-3);
+  --shade: var(--brass-1);
+  color: var(--ink-0);
+}
+
+.sg-button:hover:not(:disabled),
+.sg-button.is-hover {
+  --face: var(--smoke-0);
+  --lit: var(--smoke-1);
+}
+
+.sg-button.is-primary:hover:not(:disabled),
+.sg-button.is-primary.is-hover {
+  --face: var(--brass-3);
+  --lit: var(--lamp-1);
+}
+
+.sg-button:active:not(:disabled),
+.sg-button.is-pressed {
+  box-shadow:
+    inset 0 var(--px) 0 var(--shade),
+    inset 0 calc(var(--px) * -1) 0 var(--lit);
+  translate: 0 var(--drop);
+}
+
+.sg-button:disabled {
+  --face: var(--smoke-0);
+  --lit: var(--smoke-0);
+  --shade: var(--smoke-0);
+  color: var(--ink-0);
+  box-shadow: 0 var(--drop) 0 var(--ink-0);
+}
+
+.sg-tile {
+  --face: var(--ink-1);
+  --lit: var(--ink-2);
+  --shade: var(--ink-0);
+  display: grid;
+  place-items: center;
+  width: calc(var(--px) * 18);
+  height: calc(var(--px) * 18);
+  border: var(--px) solid var(--ink-0);
+  background: var(--face);
+  box-shadow:
+    inset 0 var(--px) 0 var(--lit),
+    inset 0 calc(var(--px) * -1) 0 var(--shade);
+  color: var(--paper-1);
+  font-family: var(--font-display);
+  font-size: var(--type-2);
+}
+
+.sg-tile.is-red {
+  --face: var(--oxblood-1);
+  --lit: var(--oxblood-2);
+  --shade: var(--oxblood-0);
+}
+
+.sg-tile.is-zero {
+  --face: var(--felt-2);
+  --lit: var(--felt-3);
+  --shade: var(--felt-1);
+}
+
+/* A stack: each chip sits two art pixels above the one beneath it. */
+.sg-stack {
+  position: relative;
+  width: calc(var(--px) * 12);
+  height: calc(var(--px) * 11);
+}
+
+.sg-stack-chip,
+.sg-stack-shadow {
+  position: absolute;
+  left: 0;
+}
+
+.sg-stack-chip {
+  top: calc(var(--px) * -2 * var(--level));
+}
+
+.sg-stack-shadow {
+  top: calc(var(--px) * 9);
+  left: calc(var(--px) * -1);
+}
+
+.sg-stack-stage {
+  display: grid;
+  place-items: end center;
+  width: calc(var(--px) * 24);
+  height: calc(var(--px) * 22);
+  padding-bottom: calc(var(--px) * 2);
+}
+
+/* Chips are only ever seen on the table, so they are shown on it. */
+.sg-felt {
+  align-self: start;
+  justify-self: start;
+  padding: calc(var(--px) * 5) calc(var(--px) * 6);
+  border: var(--px) solid var(--ink-0);
+  background: var(--felt-1);
+  box-shadow: inset 0 var(--px) 0 var(--felt-2);
+}
+
+.sg-panel {
+  display: grid;
+  gap: calc(var(--px) * 2);
+  max-width: 420px;
+  padding: calc(var(--px) * 5);
+  border: var(--px) solid var(--ink-0);
+  background: var(--ink-1);
+  box-shadow:
+    inset 0 var(--px) 0 var(--ink-2),
+    calc(var(--px) * 2) calc(var(--px) * 2) 0 var(--ink-0);
+}
+
+.sg-scale {
+  width: 3ch;
+  color: var(--smoke-1);
+}
+
+/* The lit sample: a lamp over a railed patch of felt. */
+.sg-lit {
+  display: grid;
+  justify-items: center;
+  width: calc(var(--px) * 96);
+  max-width: 100%;
+  padding-top: calc(var(--px) * 2);
+  overflow: hidden;
+}
+
+.sg-lit-lamp {
+  margin-bottom: calc(var(--px) * 5);
+}
+
+.sg-lit-rail {
+  display: flex;
+}
+
+.sg-lit-felt {
+  position: relative;
+  border: solid var(--ink-0);
+  border-width: 0 0 var(--px);
+}
+
+.sg-light {
+  display: block;
+  width: calc(var(--px) * 96);
+  height: calc(var(--px) * 44);
+  image-rendering: pixelated;
+}
+
+.sg-lit-felt .sg-stack {
+  position: absolute;
+  top: calc(var(--px) * 20);
+  left: calc(var(--px) * 62);
+}

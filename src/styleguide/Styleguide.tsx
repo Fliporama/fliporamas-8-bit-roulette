@@ -1,13 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
-import '@fontsource/pixelify-sans/latin-400.css'
-import '@fontsource/jersey-10/latin-400.css'
-import '@fontsource/silkscreen/latin-400.css'
 import '../tokens.css'
 import './styleguide.css'
 import Sprite from '../components/Sprite'
-import { styleguideHref } from './options'
-import type { StyleguideOptions } from './options'
 import { CHIP_SHADOW, LAMP, RAIL, chip } from './sprites'
 import type { ChipValue } from './sprites'
 
@@ -28,20 +23,6 @@ const SAMPLE = 'FLIPORAMA ROULETTE 0123456789'
 const CHIPS: ChipValue[] = [1, 5, 10, 25, 100]
 const BUTTON_STATES = ['rest', 'hover', 'pressed', 'disabled']
 const SCALES = [1, 2, 4]
-const PALETTE_CHOICES = [
-  { value: 'a', label: 'A: Lamp-lit' },
-  { value: 'b', label: 'B: Smoke and oxblood' },
-] as const
-const PIXEL_CHOICES = [
-  { value: 2, label: '2 px: fine' },
-  { value: 3, label: '3 px: medium' },
-  { value: 4, label: '4 px: chunky' },
-] as const
-const TYPE_CHOICES = [
-  { value: 1, label: '1: Press Start 2P + VT323' },
-  { value: 2, label: '2: Pixelify Sans + VT323' },
-  { value: 3, label: '3: Jersey 10 + Silkscreen' },
-] as const
 
 // The lit sample, in art pixels.
 const FELT = { cols: 96, rows: 44 }
@@ -63,14 +44,13 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   )
 }
 
-/** `look` changes whenever the palette or fonts do, so labels read from the page are re-read. */
-function Swatch({ token, look }: { token: string; look: string }) {
+function Swatch({ token }: { token: string }) {
   const chip = useRef<HTMLDivElement>(null)
   const [hex, setHex] = useState('')
   // Read back from the page, so the label can never disagree with tokens.css.
   useLayoutEffect(() => {
     if (chip.current) setHex(getComputedStyle(chip.current).getPropertyValue(`--${token}`).trim())
-  }, [token, look])
+  }, [token])
   return (
     <div className="sg-swatch">
       <div className="sg-swatch-chip" ref={chip} style={{ background: `var(--${token})` }} />
@@ -80,12 +60,12 @@ function Swatch({ token, look }: { token: string; look: string }) {
   )
 }
 
-function TypeFace({ label, font, steps, look }: { label: string; font: string; steps: number[]; look: string }) {
+function TypeFace({ label, font, steps }: { label: string; font: string; steps: number[] }) {
   const sample = useRef<HTMLParagraphElement>(null)
   const [family, setFamily] = useState('')
   useLayoutEffect(() => {
     if (sample.current) setFamily(getComputedStyle(sample.current).fontFamily.split(',')[0].replaceAll('"', ''))
-  }, [font, look])
+  }, [font])
   return (
     <div className="sg-face">
       <h3>
@@ -105,7 +85,7 @@ function TypeFace({ label, font, steps, look }: { label: string; font: string; s
  * Lamp light on felt, one canvas pixel per art pixel. Light falls off in four flat steps of the
  * felt ramp; where two steps meet, an ordered dither blends them. Never a smooth gradient.
  */
-function LightPool({ look }: { look: string }) {
+function LightPool() {
   const canvas = useRef<HTMLCanvasElement>(null)
   useEffect(() => {
     const context = canvas.current?.getContext('2d')
@@ -127,7 +107,7 @@ function LightPool({ look }: { look: string }) {
         context.fillRect(x, y, 1, 1)
       }
     }
-  }, [look])
+  }, [])
   return <canvas className="sg-light" ref={canvas} width={FELT.cols} height={FELT.rows} />
 }
 
@@ -143,7 +123,7 @@ function ChipStack() {
 }
 
 /** One small scene drawn with the lighting rules: the proof that the look works in the DOM. */
-export function LitSample({ look }: { look: string }) {
+function LitSample() {
   return (
     <div className="sg-lit">
       <Sprite className="sg-lit-lamp" data={LAMP} />
@@ -153,79 +133,20 @@ export function LitSample({ look }: { look: string }) {
         ))}
       </div>
       <div className="sg-lit-felt">
-        <LightPool look={look} />
+        <LightPool />
         <ChipStack />
       </div>
     </div>
   )
 }
 
-/** One option in a choice: the same sample every time, so only the option itself differs. */
-function Option({ label, to, current, children }: { label: string; to: StyleguideOptions; current: StyleguideOptions; children?: ReactNode }) {
-  const isCurrent = styleguideHref(to) === styleguideHref(current)
+export default function Styleguide() {
   return (
-    <a
-      className={isCurrent ? 'sg-option is-current' : 'sg-option'}
-      href={styleguideHref(to)}
-      aria-current={isCurrent ? 'true' : undefined}
-      data-palette={to.palette}
-      data-type={to.type}
-      style={{ '--px': `${to.px}px` } as CSSProperties}
-    >
-      <strong>{label}</strong>
-      <LitSample look={to.palette} />
-      <span className="sg-option-display">ROULETTE 17</span>
-      <span className="sg-option-text">Place your bets. No more bets.</span>
-      {children}
-    </a>
-  )
-}
-
-/** Temporary: the three decisions the owner makes by eye. Removed once they are locked. */
-function Choices({ options }: { options: StyleguideOptions }) {
-  return (
-    <Section title="Choices">
-      <p className="sg-note">
-        Click an option to apply it to this whole page. Current pick: palette={options.palette} px={options.px} type=
-        {options.type}
-      </p>
-      <h3>Palette</h3>
-      <div className="sg-options">
-        {PALETTE_CHOICES.map(({ value, label }) => (
-          <Option key={value} label={label} to={{ ...options, palette: value }} current={options} />
-        ))}
-      </div>
-      <h3>Pixel size</h3>
-      <div className="sg-options">
-        {PIXEL_CHOICES.map(({ value, label }) => (
-          <Option key={value} label={label} to={{ ...options, px: value }} current={options} />
-        ))}
-      </div>
-      <h3>Type pairing</h3>
-      <div className="sg-options">
-        {TYPE_CHOICES.map(({ value, label }) => (
-          <Option key={value} label={label} to={{ ...options, type: value }} current={options} />
-        ))}
-      </div>
-    </Section>
-  )
-}
-
-export default function Styleguide({ options }: { options: StyleguideOptions }) {
-  const look = `${options.palette}-${options.type}`
-  return (
-    <main
-      className="styleguide"
-      data-palette={options.palette}
-      data-type={options.type}
-      style={{ '--px': `${options.px}px` } as CSSProperties}
-    >
+    <main className="styleguide">
       <header className="sg-header">
         <h1>Art bible</h1>
         <p>Fliporama Roulette: a back-room speakeasy, one lamp over the felt. The rules are in docs/art-bible.md.</p>
       </header>
-
-      <Choices options={options} />
 
       <Section title="Palette">
         {RAMPS.map((ramp) => (
@@ -235,14 +156,14 @@ export default function Styleguide({ options }: { options: StyleguideOptions }) 
               <p>{ramp.job}</p>
             </div>
             {Array.from({ length: ramp.steps }, (_, step) => (
-              <Swatch key={step} token={`${ramp.name}-${step}`} look={look} />
+              <Swatch key={step} token={`${ramp.name}-${step}`} />
             ))}
           </div>
         ))}
       </Section>
 
       <Section title="Lit sample">
-        <LitSample look={look} />
+        <LitSample />
       </Section>
 
       <Section title="Components">
@@ -291,8 +212,8 @@ export default function Styleguide({ options }: { options: StyleguideOptions }) 
       </Section>
 
       <Section title="Type">
-        <TypeFace label="Display" font="--font-display" steps={DISPLAY_STEPS} look={look} />
-        <TypeFace label="Text" font="--font-text" steps={TEXT_STEPS} look={look} />
+        <TypeFace label="Display" font="--font-display" steps={DISPLAY_STEPS} />
+        <TypeFace label="Text" font="--font-text" steps={TEXT_STEPS} />
       </Section>
     </main>
   )

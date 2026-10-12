@@ -36,14 +36,9 @@ function contrast(first: string, second: string): number {
   return (light + 0.05) / (dark + 0.05)
 }
 
-const css = readFileSync('src/tokens.css', 'utf8')
-const PALETTES: Record<string, Record<string, string>> = {
-  a: block(css, ':root'),
-  b: { ...block(css, ':root'), ...block(css, "[data-palette='b']") },
-}
+const palette = block(readFileSync('src/tokens.css', 'utf8'), ':root')
 
-describe.each(['a', 'b'])('palette %s', (name) => {
-  const palette = PALETTES[name]
+describe('palette', () => {
   const steps = Object.entries(RAMPS).map(([ramp, count]) =>
     Array.from({ length: count }, (_, step) => palette[`${ramp}-${step}`]),
   )

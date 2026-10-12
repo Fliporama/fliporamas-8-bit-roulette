@@ -27,7 +27,18 @@ Twenty-four colours in eight ramps. Step 0 is the darkest of each ramp. A materi
 
 Tokens are named `--<ramp>-<step>`, for example `--felt-2`.
 
-**Values: pending the owner's choice** between palette A (lamp-lit) and palette B (smoke and oxblood).
+| Ramp | 0 | 1 | 2 | 3 |
+|---|---|---|---|---|
+| `ink` | `#0a0f0e` | `#121c19` | `#1c2a26` | |
+| `felt` | `#0c3a2e` | `#135242` | `#1c6d55` | `#2f8f6c` |
+| `wood` | `#2a1a12` | `#4a2e1c` | `#6e4628` | |
+| `brass` | `#6b4a1e` | `#a87a2c` | `#dab04a` | `#f4dc8a` |
+| `oxblood` | `#5c1a1c` | `#96302e` | `#c8504a` | |
+| `smoke` | `#4a5a54` | `#7f9289` | `#aebdb3` | |
+| `paper` | `#d9d2ba` | `#f5efdc` | | |
+| `lamp` | `#ffd27a` | `#fff3c4` | | |
+
+This is the "lamp-lit" palette, chosen by the owner on 2026-10-13 over a cooler "smoke and oxblood" candidate: its warmer, more saturated felt gives the pool of lamp light more contrast against the shadow.
 
 Rules:
 
@@ -81,7 +92,7 @@ To use a new combination, add it to `PAIRS` in that test first. Disabled control
 
 ## Pixel grid
 
-- The site has one art-pixel size, the token `--px`. **Value: pending the owner's choice** of 2, 3 or 4 screen pixels.
+- The site has one art-pixel size, the token `--px`: 3 screen pixels. Chosen over 2 and 4: pixels stay clearly visible while a 390 px phone still has room for the table.
 - Every sprite, border, shadow offset and spacing step is a whole multiple of `--px`.
 - Sprites scale by whole numbers only and are never smoothed.
 - Anything that needs per-pixel shading, such as a pool of light, is drawn on a canvas with one canvas pixel per art pixel and scaled up unsmoothed. A CSS gradient is not a substitute: its curves are smoothed at screen resolution.
@@ -91,7 +102,7 @@ To use a new combination, add it to `PAIRS` in that test first. Disabled control
 
 ## Type
 
-- Two faces: a display face (`--font-display`) for titles and numbers that matter, and a text face (`--font-text`) for everything else. **Faces: pending the owner's choice.**
+- Two faces: a display face (`--font-display`) for titles and numbers that matter, and a text face (`--font-text`) for everything else. The display face is Press Start 2P and the text face is VT323: the strongest arcade title face of the three pairs tried, with mixed-case body text that stays readable, and the game already loads both.
 - Five sizes, `--type-1` to `--type-5`: 10, 14, 18, 28 and 44 px. No other sizes are used.
 - The text face is never set smaller than `--type-3`. The display face may use all five.
 

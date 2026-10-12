@@ -3,8 +3,7 @@
 //   npm run capture                      play one round: screenshots and a video
 //   npm run capture -- styleguide        one full-page screenshot of /?styleguide
 //
-// Add `phone` for a 390 px wide phone, a URL to capture a deployed preview, and (styleguide only)
-// key=value pairs to pass as extra query parameters.
+// Add `phone` for a 390 px wide phone, or a URL to capture a deployed preview.
 // Needs the dev server running (npm run dev) unless a URL is given. Uses the installed Edge
 // (set CAPTURE_BROWSER=chrome to use Chrome), so there is no browser download.
 import { mkdir, readdir, rename, rm } from 'node:fs/promises'
@@ -41,8 +40,7 @@ if (errors.length > 0) {
 }
 
 async function captureStyleguide() {
-  const extras = args.filter((arg) => /^\w+=/.test(arg))
-  await page.goto(`${url}?${['styleguide', ...extras].join('&')}`)
+  await page.goto(`${url}?styleguide`)
   await page.waitForTimeout(800)
   await page.screenshot({ path: `${out}/${name}-styleguide.png`, fullPage: true })
   const [scrollWidth, innerWidth] = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth])

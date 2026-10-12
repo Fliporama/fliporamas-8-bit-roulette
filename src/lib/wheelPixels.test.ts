@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs'
 import { expect, it } from 'vitest'
 import { POCKET_ARC } from './wheel'
-import { RADII, WHEEL_TOKENS, wheelPixel } from './wheelPixels'
+import { RADII, WHEEL_TOKENS, wheelPainter, wheelPixel } from './wheelPixels'
 import type { WheelView } from './wheelPixels'
 
 const SIZE = 96
@@ -60,6 +60,31 @@ it('only uses tokens that exist', () => {
   for (const token of used) {
     expect(css).toContain(`--${token}:`)
     expect(WHEEL_TOKENS).toContain(token)
+  }
+})
+
+it('paints exactly what wheelPixel says, at every pixel', () => {
+  const codes = Uint32Array.from({ length: WHEEL_TOKENS.length + 1 }, (_, code) => code)
+  const balls = [undefined, { angle: 40, radius: 96 }, { angle: -310.5, radius: RADII.ballRest }, { angle: 200, radius: 10 }]
+  const landings = [undefined, { winner: 7, lit: true }, { winner: 7, lit: false }]
+  for (const size of [0, 2, 96, 100, 172]) {
+    const painter = wheelPainter(size)
+    const out = new Uint32Array(size * size)
+    let run = 0
+    for (const turn of [0, 13, -200.25, -POCKET_ARC, 725.5, 3600 + POCKET_ARC / 2]) {
+      const rest = { turn, hubTurn: -turn / 3, ball: balls[run % balls.length], landed: landings[run % landings.length] }
+      run++
+      painter(rest, codes, out)
+      const wrong: string[] = []
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          const token = wheelPixel(x, y, { size, ...rest })
+          const painted = out[y * size + x]
+          if (painted !== (token ? WHEEL_TOKENS.indexOf(token) + 1 : 0)) wrong.push(`${x},${y}: ${token} not ${WHEEL_TOKENS[painted - 1]}`)
+        }
+      }
+      expect(wrong.slice(0, 5), `size ${size}, turn ${turn}`).toEqual([])
+    }
   }
 })
 

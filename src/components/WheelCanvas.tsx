@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
-import { useReducedMotion } from 'motion/react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { cancelFrame, frame, useReducedMotion } from 'motion/react'
 import type { MotionValue } from 'motion/react'
-import { artPixel, paint, paletteOf } from '../lib/palette'
-import { WHEEL_TOKENS, wheelPixel } from '../lib/wheelPixels'
+import { artPixel, paletteOf } from '../lib/palette'
+import { WHEEL_TOKENS, wheelPainter } from '../lib/wheelPixels'
 
 const BLINK_MS = 250
 
@@ -41,36 +41,43 @@ export default function WheelCanvas({ turn, hubTurn, ballAngle, ballRadius, winn
     return () => window.clearInterval(blink)
   }, [winner, reducedMotion])
 
+  const painter = useMemo(() => wheelPainter(size), [size])
+
   useEffect(() => {
     const target = canvas.current
     if (!target || size === 0) return
+    target.width = target.height = size
+    const context = target.getContext('2d')
+    if (!context) return
+    // One picture, rewritten in place every frame, a whole pixel at a time.
+    // ponytail: packs red first, which is right on little-endian machines, as every browser's host is today.
+    const image = context.createImageData(size, size)
+    const pixels = new Uint32Array(image.data.buffer)
     const palette = paletteOf(target, WHEEL_TOKENS)
-    let frame = 0
+    const colours = Uint32Array.from([0, ...WHEEL_TOKENS.map((token) => (255 << 24) | (palette[token][2] << 16) | (palette[token][1] << 8) | palette[token][0])])
     const draw = () => {
-      frame = 0
-      const view = {
-        size,
-        turn: turn?.get() ?? 0,
-        hubTurn: hubTurn?.get() ?? 0,
-        ball: ballAngle && ballRadius ? { angle: ballAngle.get(), radius: ballRadius.get() } : undefined,
-        landed: winner === undefined ? undefined : { winner, lit },
-      }
-      paint(target, size, size, (x, y) => {
-        const token = wheelPixel(x, y, view)
-        return token ? palette[token] : undefined
-      })
+      painter(
+        {
+          turn: turn?.get() ?? 0,
+          hubTurn: hubTurn?.get() ?? 0,
+          ball: ballAngle && ballRadius ? { angle: ballAngle.get(), radius: ballRadius.get() } : undefined,
+          landed: winner === undefined ? undefined : { winner, lit },
+        },
+        colours,
+        pixels,
+      )
+      context.putImageData(image, 0, 0)
     }
-    // However many values change in a frame, the wheel is drawn once.
-    const schedule = () => {
-      frame ||= requestAnimationFrame(draw)
-    }
+    // Drawn in motion's own render step, so the wheel and the numbers over it move in the same frame;
+    // however many values change in a frame, it is drawn once.
+    const schedule = () => frame.render(draw)
     draw()
     const stops = [turn, hubTurn, ballAngle, ballRadius].map((value) => value?.on('change', schedule))
     return () => {
-      cancelAnimationFrame(frame)
+      cancelFrame(draw)
       stops.forEach((stop) => stop?.())
     }
-  }, [size, turn, hubTurn, ballAngle, ballRadius, winner, lit])
+  }, [painter, size, turn, hubTurn, ballAngle, ballRadius, winner, lit])
 
   return (
     <canvas

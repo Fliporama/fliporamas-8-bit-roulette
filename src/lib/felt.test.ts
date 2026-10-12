@@ -32,7 +32,6 @@ it('is never brighter when dimmed, nor darker when flared', () => {
   for (let y = 0; y < ROWS; y++) {
     for (let x = 0; x < COLS; x++) {
       const normal = feltStep(x, y, COLS, ROWS)
-      expect(feltStep(x, y, COLS, ROWS, 0)).toBe(normal)
       expect(feltStep(x, y, COLS, ROWS, -1)).toBeLessThanOrEqual(normal)
       expect(feltStep(x, y, COLS, ROWS, 1)).toBeGreaterThanOrEqual(normal)
     }

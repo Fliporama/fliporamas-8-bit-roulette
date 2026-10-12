@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import { readFileSync } from 'node:fs'
 import { expect, it } from 'vitest'
-import { POCKET_ARC } from './wheel'
+import { POCKET_ARC, WHEEL_ORDER, pocketAngle } from './wheel'
 import { RADII, WHEEL_TOKENS, wheelPainter, wheelPixel } from './wheelPixels'
 import type { WheelView } from './wheelPixels'
 
@@ -84,6 +84,24 @@ it('paints exactly what wheelPixel says, at every pixel', () => {
         }
       }
       expect(wrong.slice(0, 5), `size ${size}, turn ${turn}`).toEqual([])
+    }
+  }
+})
+
+it('rests the ball in the winning pocket, wherever the wheel stops', () => {
+  for (const size of [96, 172]) {
+    const half = size / 2
+    const reach = (half * RADII.ballRest) / 100
+    for (const number of WHEEL_ORDER) {
+      for (const [turn, laps] of [[540, 5], [723.4, 6], [899.9, 7]]) {
+        // As RouletteWheel leaves it: the ball's arm has run back `laps` times and stopped over the pocket.
+        const angle = ((turn + pocketAngle(number) - 360 * laps) * Math.PI) / 180
+        const x = Math.floor(half + reach * Math.sin(angle))
+        const y = Math.floor(half - reach * Math.cos(angle))
+        const under = (lit: boolean) => wheelPixel(x, y, { size, turn, hubTurn: 0, landed: { winner: number, lit } })
+        expect(under(true), `${number} at ${turn}`).toBe('brass-2')
+        expect(under(false), `${number} at ${turn}`).toMatch(/^(oxblood|ink|felt)-/)
+      }
     }
   }
 })

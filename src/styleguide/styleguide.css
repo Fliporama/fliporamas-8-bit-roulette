@@ -128,3 +128,189 @@
     gap: 0;
   }
 }
+
+.sg-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--px) * 6);
+}
+
+/* Buttons: a lit top edge, a shadowed bottom edge and a hard drop shadow that pressing removes. */
+.sg-button {
+  --face: var(--ink-2);
+  --lit: var(--smoke-0);
+  --shade: var(--ink-1);
+  --drop: calc(var(--px) * 2);
+  padding: calc(var(--px) * 4) calc(var(--px) * 6);
+  border: var(--px) solid var(--ink-0);
+  background: var(--face);
+  box-shadow:
+    inset 0 var(--px) 0 var(--lit),
+    inset 0 calc(var(--px) * -1) 0 var(--shade),
+    0 var(--drop) 0 var(--ink-0);
+  color: var(--paper-1);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: var(--type-1);
+  text-transform: uppercase;
+}
+
+.sg-button.is-primary {
+  --face: var(--brass-2);
+  --lit: var(--brass-3);
+  --shade: var(--brass-1);
+  color: var(--ink-0);
+}
+
+.sg-button:hover:not(:disabled),
+.sg-button.is-hover {
+  --face: var(--smoke-0);
+  --lit: var(--smoke-1);
+}
+
+.sg-button.is-primary:hover:not(:disabled),
+.sg-button.is-primary.is-hover {
+  --face: var(--brass-3);
+  --lit: var(--lamp-1);
+}
+
+.sg-button:active:not(:disabled),
+.sg-button.is-pressed {
+  box-shadow:
+    inset 0 var(--px) 0 var(--shade),
+    inset 0 calc(var(--px) * -1) 0 var(--lit);
+  translate: 0 var(--drop);
+}
+
+.sg-button:disabled {
+  --face: var(--smoke-0);
+  --lit: var(--smoke-0);
+  --shade: var(--smoke-0);
+  color: var(--ink-0);
+  box-shadow: 0 var(--drop) 0 var(--ink-0);
+}
+
+.sg-tile {
+  --face: var(--ink-1);
+  --lit: var(--ink-2);
+  --shade: var(--ink-0);
+  display: grid;
+  place-items: center;
+  width: calc(var(--px) * 18);
+  height: calc(var(--px) * 18);
+  border: var(--px) solid var(--ink-0);
+  background: var(--face);
+  box-shadow:
+    inset 0 var(--px) 0 var(--lit),
+    inset 0 calc(var(--px) * -1) 0 var(--shade);
+  color: var(--paper-1);
+  font-family: var(--font-display);
+  font-size: var(--type-2);
+}
+
+.sg-tile.is-red {
+  --face: var(--oxblood-1);
+  --lit: var(--oxblood-2);
+  --shade: var(--oxblood-0);
+}
+
+.sg-tile.is-zero {
+  --face: var(--felt-2);
+  --lit: var(--felt-3);
+  --shade: var(--felt-1);
+}
+
+/* A stack: each chip sits two art pixels above the one beneath it. */
+.sg-stack {
+  position: relative;
+  width: calc(var(--px) * 12);
+  height: calc(var(--px) * 11);
+}
+
+.sg-stack-chip,
+.sg-stack-shadow {
+  position: absolute;
+  left: 0;
+}
+
+.sg-stack-chip {
+  top: calc(var(--px) * -2 * var(--level));
+}
+
+.sg-stack-shadow {
+  top: calc(var(--px) * 9);
+  left: calc(var(--px) * -1);
+}
+
+.sg-stack-stage {
+  display: grid;
+  place-items: end center;
+  width: calc(var(--px) * 24);
+  height: calc(var(--px) * 22);
+  padding-bottom: calc(var(--px) * 2);
+}
+
+/* Chips are only ever seen on the table, so they are shown on it. */
+.sg-felt {
+  align-self: start;
+  justify-self: start;
+  padding: calc(var(--px) * 5) calc(var(--px) * 6);
+  border: var(--px) solid var(--ink-0);
+  background: var(--felt-1);
+  box-shadow: inset 0 var(--px) 0 var(--felt-2);
+}
+
+.sg-panel {
+  display: grid;
+  gap: calc(var(--px) * 2);
+  max-width: 420px;
+  padding: calc(var(--px) * 5);
+  border: var(--px) solid var(--ink-0);
+  background: var(--ink-1);
+  box-shadow:
+    inset 0 var(--px) 0 var(--ink-2),
+    calc(var(--px) * 2) calc(var(--px) * 2) 0 var(--ink-0);
+}
+
+.sg-scale {
+  width: 3ch;
+  color: var(--smoke-1);
+}
+
+/* The lit sample: a lamp over a railed patch of felt. */
+.sg-lit {
+  display: grid;
+  justify-items: center;
+  width: calc(var(--px) * 96);
+  max-width: 100%;
+  padding-top: calc(var(--px) * 2);
+  overflow: hidden;
+}
+
+.sg-lit-lamp {
+  margin-bottom: calc(var(--px) * 5);
+}
+
+.sg-lit-rail {
+  display: flex;
+}
+
+.sg-lit-felt {
+  position: relative;
+  border: solid var(--ink-0);
+  border-width: 0 0 var(--px);
+}
+
+.sg-light {
+  display: block;
+  width: calc(var(--px) * 96);
+  height: calc(var(--px) * 44);
+  image-rendering: pixelated;
+}
+
+.sg-lit-felt .sg-stack {
+  position: absolute;
+  top: calc(var(--px) * 20);
+  left: calc(var(--px) * 62);
+}

@@ -37,13 +37,33 @@
   --type-3: 18px;
   --type-4: 28px;
   --type-5: 44px;
+}
 
-  /* Real casino colours: white, red, blue, green, black. */
+/* Chips in real casino colours: white, red, blue, green, black. Each takes its face, its lit and
+   shadowed rims and its edge stripes from the ramps. Declared wherever a palette is set, because
+   a var() is resolved where it is declared, not where it is used. */
+:root,
+[data-palette] {
   --chip-1: var(--paper-0);
+  --chip-1-light: var(--paper-1);
+  --chip-1-dark: var(--smoke-2);
+  --chip-1-stripe: var(--smoke-0);
   --chip-5: var(--oxblood-1);
+  --chip-5-light: var(--oxblood-2);
+  --chip-5-dark: var(--oxblood-0);
+  --chip-5-stripe: var(--paper-1);
   --chip-10: var(--smoke-1);
-  --chip-25: var(--felt-3);
+  --chip-10-light: var(--smoke-2);
+  --chip-10-dark: var(--smoke-0);
+  --chip-10-stripe: var(--paper-1);
+  --chip-25: var(--felt-2);
+  --chip-25-light: var(--felt-3);
+  --chip-25-dark: var(--felt-1);
+  --chip-25-stripe: var(--paper-1);
   --chip-100: var(--ink-2);
+  --chip-100-light: var(--smoke-0);
+  --chip-100-dark: var(--ink-1);
+  --chip-100-stripe: var(--brass-2);
 }
 
 /* Palette B: smoke and oxblood */

@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type { SpriteData } from '../lib/sprite'
 
 interface SpriteProps {
@@ -5,9 +6,10 @@ interface SpriteProps {
   /** Whole-number multiple of the site's art pixel. */
   scale?: number
   className?: string
+  style?: CSSProperties
 }
 
-export default function Sprite({ data, scale = 1, className }: SpriteProps) {
+export default function Sprite({ data, scale = 1, className, style }: SpriteProps) {
   return (
     <svg
       className={className}
@@ -18,6 +20,7 @@ export default function Sprite({ data, scale = 1, className }: SpriteProps) {
         display: 'block',
         width: `calc(var(--px) * ${data.width * scale})`,
         height: `calc(var(--px) * ${data.height * scale})`,
+        ...style,
       }}
     >
       {data.rects.map((rect) => (

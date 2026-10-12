@@ -7,7 +7,7 @@ const RAMPS = { ink: 3, felt: 4, wood: 3, brass: 4, oxblood: 3, smoke: 3, paper:
 // [text, background]: the only pairs the art bible permits for text.
 const PAIRS = [
   ['paper-1', 'ink-0'], ['paper-1', 'ink-1'], ['paper-1', 'ink-2'],
-  ['paper-1', 'felt-0'], ['paper-1', 'felt-1'], ['paper-1', 'wood-0'],
+  ['paper-1', 'felt-0'], ['paper-1', 'felt-1'], ['paper-1', 'felt-2'], ['paper-1', 'wood-0'],
   ['paper-1', 'oxblood-0'], ['paper-1', 'oxblood-1'],
   ['paper-0', 'ink-1'], ['smoke-1', 'ink-1'], ['smoke-2', 'ink-1'],
   ['brass-2', 'ink-0'], ['brass-2', 'ink-1'], ['brass-2', 'felt-0'], ['brass-3', 'felt-1'],

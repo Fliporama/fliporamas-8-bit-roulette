@@ -261,3 +261,9 @@
   background: var(--ink-0);
   color: var(--paper-1);
 }
+
+.sg-furniture {
+  align-items: end;
+  padding: calc(var(--px) * 4);
+  background: var(--smoke-0);
+}

@@ -14,6 +14,7 @@
   /* Parallax, set by the scene: whole art pixels of drift, and the wall's share of the page's scroll. */
   --drift-x: 0;
   --drift-y: 0;
+  --drift-near: 0;
   --scroll-y: 0px;
 }
 
@@ -381,6 +382,102 @@ h1 {
   position: absolute;
 }
 
+/* Furniture against the back wall. Each piece is placed from the nearer edge of the stage,
+   or from its centre, so nothing needs measuring when the stage changes width. */
+.fixture {
+  translate: calc(var(--drift-near) * var(--px)) 0;
+}
+
+.fixture svg {
+  position: absolute;
+}
+
+.fixture-door {
+  bottom: 0;
+  left: calc(var(--px) * 20);
+  width: calc(var(--px) * 44);
+  height: calc(var(--px) * 52);
+}
+
+/* Frosted glass, set behind the hole in the door. */
+.door-glass {
+  position: absolute;
+  top: calc(var(--px) * 6);
+  left: calc(var(--px) * 8);
+  width: calc(var(--px) * 28);
+  height: calc(var(--px) * 24);
+  overflow: hidden;
+  background: var(--smoke-0);
+}
+
+.door-glass svg {
+  bottom: 0;
+}
+
+.fixture-fan {
+  top: 0;
+  right: calc(var(--px) * 10);
+  width: calc(var(--px) * 60);
+  height: calc(var(--px) * 8);
+  --cycle: 1.2s;
+}
+
+.fixture-clock {
+  top: calc(var(--px) * 4);
+  left: calc(50% + var(--px) * 54);
+  width: calc(var(--px) * 17);
+  height: calc(var(--px) * 36);
+}
+
+.clock-hands {
+  top: calc(var(--px) * 4);
+  left: calc(var(--px) * 3);
+}
+
+.clock-pendulum {
+  top: calc(var(--px) * 19);
+  left: calc(var(--px) * 7);
+  animation: swing 2s steps(1, end) infinite;
+}
+
+.fixture-gramophone {
+  top: calc(var(--px) * 42);
+  left: calc(50% + var(--px) * 48);
+  width: calc(var(--px) * 34);
+  height: calc(var(--px) * 31);
+  --cycle: 0.8s;
+}
+
+.fixture-gramophone > svg:first-child {
+  left: calc(var(--px) * 3);
+}
+
+.gramophone-record {
+  position: absolute;
+  top: calc(var(--px) * 14);
+  left: calc(var(--px) * 11);
+}
+
+.gramophone-shelf {
+  bottom: 0;
+  left: 0;
+}
+
+/* A flip-book: the frames are stacked and each is shown for its quarter of the cycle. Held still,
+   or with animation reduced, only the first shows. */
+.frames > svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  animation: frame-of-four var(--cycle) steps(1, end) infinite;
+  animation-delay: calc(var(--cycle) * (var(--frame) / 4 - 1));
+}
+
+.frames > svg:first-child {
+  visibility: visible;
+}
+
 .scene-lamp {
   /* Hung high, its cord running up out of sight, so its rim clears the croupier's visor. */
   top: calc(var(--px) * -7);
@@ -435,6 +532,21 @@ h1 {
     position: static;
     display: inline-block;
     margin: 0 0 calc(var(--px) * 4) var(--px);
+  }
+}
+
+/* Narrower still, the furniture goes piece by piece rather than crowd the croupier. */
+@container (max-width: 750px) {
+  .fixture-clock,
+  .fixture-gramophone {
+    display: none;
+  }
+}
+
+@container (max-width: 640px) {
+  .fixture-door,
+  .fixture-fan {
+    display: none;
   }
 }
 
@@ -1255,6 +1367,19 @@ button.pocket:disabled {
 
 @keyframes winner {
   50% { filter: brightness(1.7); }
+}
+
+@keyframes frame-of-four {
+  0% { visibility: visible; }
+  25%, 100% { visibility: hidden; }
+}
+
+/* The pendulum: one art pixel either way. */
+@keyframes swing {
+  0% { translate: calc(var(--px) * -1) 0; }
+  25% { translate: 0 0; }
+  50% { translate: var(--px) 0; }
+  75% { translate: 0 0; }
 }
 
 /* A breath: the chest and head rise one art pixel while the hands stay on the rail. */

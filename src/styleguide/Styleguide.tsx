@@ -7,11 +7,12 @@ import Sprite from '../components/Sprite'
 import Wall from '../components/Wall'
 import WheelCanvas from '../components/WheelCanvas'
 import { CHIP_VALUES } from '../lib/chips'
+import { clockHands } from '../lib/clock'
 import { CHIP_SHADOW, CHIP_SPRITES } from '../sprites/chips'
 import { ARMS } from '../sprites/croupier'
 import type { Arms } from '../sprites/croupier'
 import { ICONS } from '../sprites/icons'
-import { LAMPS } from '../sprites/room'
+import { CLOCK, DOOR, FAN, GRAMOPHONE, LAMPS, PATRONS, RECORD, SHELF, WHEEL_STAND } from '../sprites/room'
 import { RAIL } from '../sprites/table'
 
 const RAMPS = [
@@ -150,6 +151,16 @@ export default function Styleguide() {
               <figcaption>{pose}</figcaption>
             </figure>
           ))}
+        </div>
+      </Section>
+
+      <Section title="Room">
+        <div className="sg-row sg-furniture">
+          {[DOOR, CLOCK, clockHands(10, 10), GRAMOPHONE, SHELF, WHEEL_STAND, ...PATRONS, ...FAN, ...RECORD, LAMPS.dim, LAMPS.normal, LAMPS.flare].map(
+            (piece, index) => (
+              <Sprite key={index} data={piece} />
+            ),
+          )}
         </div>
       </Section>
 

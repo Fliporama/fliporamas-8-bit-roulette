@@ -4,6 +4,7 @@ import type { Light, Look, Reaction } from '../lib/scene'
 import { useLive } from '../lib/useLive'
 import { LAMPS, WHEEL_STAND } from '../sprites/room'
 import Croupier from './Croupier'
+import Fixtures from './Fixtures'
 import Smoke from './Smoke'
 import Sprite from './Sprite'
 import Wall from './Wall'
@@ -39,11 +40,14 @@ export default function Scene({ light, reaction, look, on, children }: SceneProp
     const rest = () => {
       set('--drift-x', '0')
       set('--drift-y', '0')
+      set('--drift-near', '0')
       set('--scroll-y', '0px')
     }
     if (!live) return rest()
     const drift = (event: PointerEvent) => {
-      set('--drift-x', String(Math.round((0.5 - event.clientX / window.innerWidth) * 2 * DRIFT)))
+      const across = (0.5 - event.clientX / window.innerWidth) * 2 * DRIFT
+      set('--drift-x', String(Math.round(across)))
+      set('--drift-near', String(Math.round(across / 2))) // the furniture is nearer than the wall behind the page
       set('--drift-y', String(Math.round((0.5 - event.clientY / window.innerHeight) * 2 * DRIFT)))
     }
     const scroll = () => set('--scroll-y', `${-Math.round(((window.scrollY * SCROLL.share) % SCROLL.repeat) / 3) * 3}px`)
@@ -61,6 +65,7 @@ export default function Scene({ light, reaction, look, on, children }: SceneProp
       <div className="scene-sign">{children}</div>
       <div className="scene-stage" ref={stage} aria-hidden="true">
         <Wall lamp={LAMP_AT} shift={light} skirt={SKIRT} />
+        <Fixtures live={live} />
         <div className="scene-wheel">
           <div className="scene-wheel-box">
             <WheelCanvas />

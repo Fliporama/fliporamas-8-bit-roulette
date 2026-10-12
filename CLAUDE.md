@@ -27,6 +27,10 @@ npm run capture   # play one round in a real browser; screenshots and video land
 
 `npm run capture` needs the dev server running. Add `-- phone` for a 390 px wide phone, or `-- <url>` to capture a deployed preview. It exits non-zero if the page logged a console error.
 
+## Deploying
+
+The repo is linked to the Vercel project `fliporama-roulette` (team `choy-lee`). Pushing a branch deploys a preview; merging to `main` deploys production. There is no Vercel CLI on this machine; use the Vercel MCP tools to inspect deployments. Deployments are behind Vercel login unless the owner has turned that off.
+
 ## Checking visual work
 
 Look at the result before calling visual or animation work done: run `npm run capture` and read the PNGs in `captures/`. The Claude-in-Chrome extension window renders at about one frame a second on this machine, so it cannot judge motion and its screenshots time out; use the capture script instead. The owner judges the feel of motion by eye, so ask them to look at anything that moves.

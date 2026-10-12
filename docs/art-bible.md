@@ -90,6 +90,7 @@ To use a new combination, add it to `PAIRS` in that test first. Disabled control
 - Shadows are hard-edged, fall straight down, and are one ramp step darker than the surface they land on.
 - There are no smooth gradients. Light falls off in flat steps of a ramp, and where two steps meet an ordered dither blends them.
 - Outlines are one art pixel wide, in `ink-0`.
+- The page behind everything is `ink-1`, one step above the darkest ink, so those outlines and hard shadows show against it.
 
 *Why:* consistent light direction is the cheapest way to make flat sprites feel like objects in one room. Stepped, dithered light is what separates pixel art from a blurred photo of it.
 

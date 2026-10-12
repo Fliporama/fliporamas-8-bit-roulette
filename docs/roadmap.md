@@ -1,6 +1,6 @@
 # Roadmap: Fliporama Roulette to an award-grade site
 
-**Current phase:** 2 (The table, restyled), not started
+**Current phase:** 3 (A living scene), not started
 **To resume in a new session:** say "continue the roadmap". The session protocol is in `CLAUDE.md`.
 
 ## Brief
@@ -42,7 +42,7 @@ One phase is one session. Each gets its own brainstorm, spec (`docs/superpowers/
   - A hidden `/styleguide` page showing palette, type, buttons, chips and tiles in the new style.
   - Done when: the owner approves the styleguide page. Nothing else is restyled yet.
 
-- [ ] **Phase 2. The table, restyled**
+- [x] **Phase 2. The table, restyled** (done 2026-10-13)
   - Apply the bible to what exists: felt with texture and worn edges, embossed tiles, chips with edge stripes, a wheel with wood grain, metal and depth, a console that looks like a machine rather than a web sidebar.
   - Done when: a screenshot of the idle table is worth posting on its own.
 
@@ -106,11 +106,30 @@ One phase is one session. Each gets its own brainstorm, spec (`docs/superpowers/
 
 Update this section at the end of every session: what was finished, what was left half-done, and anything the next session must know.
 
-- **2026-10-13, Phase 1 done.** The owner approved the styleguide at `/?styleguide`. The rules are in `docs/art-bible.md` and the values in `src/tokens.css`; read the bible before any visual work.
-- **The picks:** the lamp-lit palette (24 colours in eight ramps), a 3 px art pixel (`--px`), Press Start 2P for display and VT323 for text.
-- **Rendering approach:** DOM and CSS, with sprites as inline SVG (`sprite` in `src/lib/sprite.ts`, `Sprite` in `src/components/`) and a small canvas wherever per-pixel shading is needed, as the lit sample on the styleguide does.
-- **Phase 2 starts here:** `src/game.css` still holds about 40 untokenised hex colours and does not import `src/tokens.css`; the game was deliberately left untouched. Migrate it to the tokens as the table is restyled. The sample sprites (chips, lamp, rail) live in `src/styleguide/sprites.ts`; move them out of the styleguide when the game starts using them.
-- A chip on a straight bet covers the tile's number. Fix it when the tiles are redrawn.
-- **First load:** the game's JavaScript is 127.3 kB gzipped in two files, against the 200 kB budget.
+- **2026-10-13, Phase 2 done.** The owner approved the restyled game. Every colour in `src/` now comes from `src/tokens.css` (a test, `src/lib/colours.test.ts`, fails otherwise), and `/?styleguide` uses the game's real `.button`, `.pocket` and `.panel` classes. Read `docs/art-bible.md` before any visual work.
+
+### What Phase 3 builds on
+
+- **The page background is `--ink-1`, not `--ink-0`**, so ink outlines and hard shadows show against it. The room goes behind `.app-shell`; anything drawn there should stay dark enough that the table and cabinet outlines still read.
+- **The lamp is drawn but not hung.** `LAMP` is in `src/styleguide/sprites.ts`; move it to `src/sprites/` when the game uses it. The felt is already lit as if it hangs above the table's top centre.
+- **Where the light is decided.** The felt's pool of light is `feltStep` in `src/lib/felt.ts` (`POOL` sets its centre and reach). The wheel's lighting is the last few lines of `wheelPixel` in `src/lib/wheelPixels.ts` (`LIGHT`). To dim the room during a spin and flare it on a win, give both a brightness input and redraw; `Felt` only redraws on resize today, and `WheelCanvas` redraws when a motion value changes.
+- **Canvases:** per-pixel art is a pure function from an art pixel to a palette token, painted by `paint` in `src/lib/palette.ts`, one canvas pixel per art pixel. Smoke and light shafts should be made the same way. Sprites (chips, rail, icons) are in `src/sprites/`.
+- **The heading holds a still wheel** (`.heading-wheel` in `src/App.tsx`) and the spin opens the large one in an overlay. If the croupier or scene needs that space, the heading is the place to rearrange.
+- **Contrast is tested.** Text may only use the pairs in `PAIRS` in `src/lib/tokens.test.ts`. Labels on the felt (the outside bets) are readable only where the felt is `felt-2` or darker, so a brighter or wider light pool can break them: check before changing `POOL`.
+- **Three checks exist for layout:** `npm run capture` (ends with a live resize to 700 px), `-- phone` (ends at 360 px) and `-- reduced`. All fail on sideways scrolling or a console error.
+
+### Left for later phases
+
+- **Phase 4:** the brightness flashes inside animations are still off-palette (`THUNK` in `src/components/ChipLayer.tsx`, the `winner` keyframes in `src/game.css`), and the chip-landing puff is a smooth ring. The win burst is chip sprites flung from the banner and covers it briefly.
+- **Phase 7:**
+  - Painting the wheel allocates on every frame. It measured fine for a phone-sized wheel, but a slow tablet or laptop drawing the full 172-pixel wheel may miss 60 fps: reuse the `ImageData`, write its bytes directly, and profile with CPU throttling.
+  - At peak spin speed the wheel is drawn one frame behind its number overlay.
+  - Below 760 px the console is a single centred column; the phone layout as a whole is still the old one, restyled.
+  - A tile's focus ring may be partly hidden by its neighbours; the active bet-mode button looks like the others while a spin locks them.
+  - Never exercised by hand: resetting the session mid-spin.
+- **Small things, any phase:** the circling ball rides the wood rim and loses two pixels at the wheel's outline; the number overlay's radius is a fixed 11 % in CSS rather than `RADII.numbers`; the colour test does not catch named colours, `hsl()` or `oklch()`; no test pins that the ball comes to rest in the winning pocket.
+
+### Standing facts
+
+- **First load:** 128.5 kB of JavaScript gzipped, in three files, against the 200 kB budget.
 - **Vercel:** project `fliporama-roulette` in team `choy-lee` deploys every push; production is `fliporama-roulette-choy-lee.vercel.app`, built from `main`. Every URL sits behind Vercel login; opening them up is a project setting for the owner (needed by Phase 8 at the latest).
-- Still never exercised from the chip toss and wheel rework: the narrow layout after a live resize, reduced motion, and resetting mid-spin. Check them in Phase 7 at the latest.

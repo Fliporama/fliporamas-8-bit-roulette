@@ -15,6 +15,8 @@ When asked to "continue the roadmap":
 
 One phase per session. If a phase runs long, stop at a commit and record exactly where in the notes.
 
+When asked to "continue the overnight run": read the "Overnight run" block in `docs/roadmap.md` and carry on from its first unticked item, under the rules written there. The owner is not available to answer questions during it.
+
 ## Commands
 
 ```powershell

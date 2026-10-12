@@ -2,6 +2,7 @@
 
 **Current phase:** 4 (Screen effects and juice), not started
 **To resume in a new session:** say "continue the roadmap". The session protocol is in `CLAUDE.md`.
+**An overnight run is in progress:** say "continue the overnight run". Its queue and rules are under "Notes for next session".
 
 ## Brief
 
@@ -108,7 +109,7 @@ Update this section at the end of every session: what was finished, what was lef
 
 ### Overnight run, 2026-10-13 (in progress)
 
-The owner asked for unattended work from about 02:45 until 09:00 local time, and said to follow the assistant's own recommendations without asking. Whoever picks this up, a resumed session or a new one, continues from the first unticked item.
+The owner asked for unattended work until 09:00 local time, and said to follow the assistant's own recommendations without asking. Nothing on the queue has been started: the session that wrote this handed over to a fresh one, to keep usage low. Whoever picks this up continues from the first unticked item.
 
 Rules for the run:
 
@@ -116,11 +117,13 @@ Rules for the run:
 - Never merge and never push to `main`. Every piece of work ends as an open pull request for the owner to judge.
 - Anything that can only be judged by eye or ear is built to the owner gate and left there.
 - Stop starting new work at 09:00. Leave the tree clean and this list accurate.
+- The owner's plan has a tight usage limit. Work in the main session rather than spawning subagents. If the limit stops the run, the next session resumes from this list, so keep it true after every item.
+- When the run ends, replace this block with a short dated note of what was done, and remove the "overnight run is in progress" line at the top of this file.
 
 Queue:
 
-- [ ] **1. Follow-ups branch** (`fix/overnight-followups`): the measurable backlog from "Budgets, as measured" and "Left for later phases" below. Speed up the wheel painter until a round holds 60 fps at 4x slowdown, or as near as it gets, with before and after numbers; fix the deferred review findings that have an objective check; add the missing tests. Open a pull request; do not merge.
-- [ ] **2. Phase 4, Screen effects and juice**, only if item 1 is finished before about 07:00. Branch from the follow-ups branch, not from `main`. Spec, plan and build with the assistant's recommended choices, to the owner gate. Open a pull request; do not merge.
+- [ ] **1. Follow-ups branch** (`fix/overnight-followups`): the measurable backlog from "Budgets, as measured" and "Left for later phases" below. Speed up the wheel painter until a round holds 60 fps at 4x slowdown, or as near as it gets, with before and after numbers; fix the deferred review findings that have an objective check; add the missing tests. The full brief is `docs/superpowers/plans/2026-10-13-overnight-followups.md`. Open a pull request; do not merge.
+- [ ] **2. Phase 4, Screen effects and juice**, only if item 1 is finished before about 07:00. Branch from the follow-ups branch, not from `main`. Follow the roadmap protocol in `CLAUDE.md`, but where it says to brainstorm with the owner, choose what you would recommend and write the choice and its reason into the spec. Build to the owner gate. Open a pull request; do not merge, and do not tick the phase.
 
 - **2026-10-13, Phase 3 done.** The owner approved the room: a lit wall behind the page, and above the table a scene with a hanging lamp, a croupier, smoke, a frosted door with passing silhouettes, a clock, a fan and a gramophone. Read `docs/art-bible.md` before any visual work.
 

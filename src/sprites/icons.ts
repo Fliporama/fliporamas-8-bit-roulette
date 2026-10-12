@@ -9,5 +9,7 @@ export const ICONS = {
   reset: sprite(['.xxxx.x', 'x....xx', 'x...xxx', 'x......', 'x.....x', 'x.....x', '.xxxxx.'], KEY),
   clear: sprite(['..xxx..', 'xxxxxxx', '.x...x.', '.x.x.x.', '.x.x.x.', '.x...x.', '.xxxxx.'], KEY),
   remove: sprite(['x.....x', '.x...x.', '..x.x..', '...x...', '..x.x..', '.x...x.', 'x.....x'], KEY),
+  lampOn: sprite(['...x...', '..xxx..', '.xxxxx.', 'xxxxxxx', '..x.x..', '.x.x.x.', 'x..x..x'], KEY),
+  lampOff: sprite(['...x...', '..xxx..', '.xxxxx.', 'xxxxxxx', '...x...', '.......', '.......'], KEY),
   play: sprite(['.x.....', '.xxx...', '.xxxxx.', '.xxxxxx', '.xxxxx.', '.xxx...', '.x.....'], KEY),
 }

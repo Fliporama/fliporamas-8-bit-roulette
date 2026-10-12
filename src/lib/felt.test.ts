@@ -24,3 +24,18 @@ it('copes with a felt that has no room yet', () => {
   expect([0, 1, 2, 3]).toContain(feltStep(0, 0, 0, 0))
   expect([0, 1, 2, 3]).toContain(feltStep(0, 0, 1, 1))
 })
+
+const lampBlock = (shift: number) =>
+  Array.from({ length: 81 }, (_, index) => feltStep(44 + (index % 9), 5 + Math.floor(index / 9), COLS, ROWS, shift))
+
+it('is never brighter when dimmed, nor darker when flared', () => {
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      const normal = feltStep(x, y, COLS, ROWS)
+      expect(feltStep(x, y, COLS, ROWS, 0)).toBe(normal)
+      expect(feltStep(x, y, COLS, ROWS, -1)).toBeLessThanOrEqual(normal)
+      expect(feltStep(x, y, COLS, ROWS, 1)).toBeGreaterThanOrEqual(normal)
+    }
+  }
+  expect(lampBlock(0).filter((step) => step === 3).length).toBeGreaterThan(lampBlock(-1).filter((step) => step === 3).length)
+})

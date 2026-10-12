@@ -11,6 +11,11 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color-scheme: dark;
+  /* Parallax, set by the scene: whole art pixels of drift, and the wall's share of the page's scroll. */
+  --drift-x: 0;
+  --drift-y: 0;
+  --drift-near: 0;
+  --scroll-y: 0px;
 }
 
 * {
@@ -21,8 +26,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  /* One step above the darkest ink, so ink outlines and hard shadows read against it. */
-  background: var(--ink-1);
+  /* No background of its own: the room's wall is painted behind it, over the root's ink. */
   color: var(--paper-1);
 }
 
@@ -159,13 +163,35 @@ p {
   overflow: hidden;
 }
 
+.wall,
+.smoke {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.smoke {
+  pointer-events: none;
+}
+
 .felt canvas,
+.wall canvas,
+.smoke canvas,
 .wheel-canvas {
   display: block;
   image-rendering: pixelated;
 }
 
 /* Page */
+
+/* The room's back wall, behind everything. It overhangs the screen by one repeat of its pattern,
+   so drifting it never shows an edge. */
+.room-wall {
+  position: fixed;
+  inset: calc(var(--px) * -16);
+  z-index: -1;
+  translate: calc(var(--drift-x) * var(--px)) calc(var(--drift-y) * var(--px) + var(--scroll-y));
+}
 
 .app-shell {
   width: min(1380px, 100%);
@@ -244,16 +270,9 @@ p {
   padding: calc(var(--px) * 2);
 }
 
-.game-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: calc(var(--px) * 4);
-  padding: calc(var(--px) * 4) 0;
-}
 
 .eyebrow {
-  margin: 0 0 calc(var(--px) * 5);
+  margin: 0 0 calc(var(--px) * 2);
   color: var(--brass-2);
 }
 
@@ -266,21 +285,11 @@ h1 {
   margin-bottom: 0;
   color: var(--brass-2);
   font-family: var(--font-display);
-  font-size: var(--type-5);
+  font-size: var(--type-4);
   font-weight: 400;
   line-height: 1.2;
 }
 
-/* The wheel at rest: the page's centrepiece until a spin opens the big one. */
-.heading-wheel {
-  /* Gives way before the title does: the wheel redraws at whatever size it is left. */
-  flex: 0 1 auto;
-  min-width: 0;
-  display: grid;
-  place-items: center;
-  width: calc(var(--px) * 56);
-  height: calc(var(--px) * 56);
-}
 
 .game-layout {
   display: grid;
@@ -336,6 +345,215 @@ h1 {
 .control-label {
   color: var(--brass-2);
   white-space: nowrap;
+}
+
+/* The scene: the room above the table. */
+
+.scene {
+  position: relative;
+  margin-top: calc(var(--px) * 2);
+  container-type: inline-size;
+}
+
+/* The title, as a sign hung on the wall. */
+.scene-sign {
+  position: absolute;
+  top: calc(var(--px) * 5);
+  left: calc(var(--px) * 6);
+  z-index: 1;
+  max-width: calc(var(--px) * 84);
+  padding: calc(var(--px) * 3);
+  border: var(--px) solid var(--brass-2);
+  background: var(--ink-0);
+  box-shadow:
+    0 0 0 var(--px) var(--ink-0),
+    0 calc(var(--px) * 2) 0 var(--px) var(--ink-0);
+}
+
+.scene-stage {
+  position: relative;
+  height: calc(var(--px) * 96);
+  overflow: hidden;
+  /* The same ink line as the table's, so the two read as one piece. */
+  box-shadow: 0 0 0 var(--px) var(--ink-0);
+}
+
+.scene-stage > * {
+  position: absolute;
+}
+
+/* Furniture against the back wall. Each piece is placed from the nearer edge of the stage,
+   or from its centre, so nothing needs measuring when the stage changes width. */
+.fixture {
+  translate: calc(var(--drift-near) * var(--px)) 0;
+}
+
+.fixture svg {
+  position: absolute;
+}
+
+.fixture-door {
+  bottom: 0;
+  left: calc(var(--px) * 20);
+  width: calc(var(--px) * 44);
+  height: calc(var(--px) * 52);
+}
+
+/* Frosted glass, set behind the hole in the door. */
+.door-glass {
+  position: absolute;
+  top: calc(var(--px) * 6);
+  left: calc(var(--px) * 8);
+  width: calc(var(--px) * 28);
+  height: calc(var(--px) * 24);
+  overflow: hidden;
+  background: var(--smoke-0);
+}
+
+.door-glass svg {
+  bottom: 0;
+}
+
+.fixture-fan {
+  top: 0;
+  right: calc(var(--px) * 10);
+  width: calc(var(--px) * 60);
+  height: calc(var(--px) * 8);
+  --cycle: 1.2s;
+}
+
+.fixture-clock {
+  top: calc(var(--px) * 4);
+  left: calc(50% + var(--px) * 54);
+  width: calc(var(--px) * 17);
+  height: calc(var(--px) * 36);
+}
+
+.clock-hands {
+  top: calc(var(--px) * 4);
+  left: calc(var(--px) * 3);
+}
+
+.clock-pendulum {
+  top: calc(var(--px) * 19);
+  left: calc(var(--px) * 7);
+  animation: swing 2s steps(1, end) infinite;
+}
+
+.fixture-gramophone {
+  top: calc(var(--px) * 42);
+  left: calc(50% + var(--px) * 48);
+  width: calc(var(--px) * 34);
+  height: calc(var(--px) * 31);
+  --cycle: 0.8s;
+}
+
+.fixture-gramophone > svg:first-child {
+  left: calc(var(--px) * 3);
+}
+
+.gramophone-record {
+  position: absolute;
+  top: calc(var(--px) * 14);
+  left: calc(var(--px) * 11);
+}
+
+.gramophone-shelf {
+  bottom: 0;
+  left: 0;
+}
+
+/* A flip-book: the frames are stacked and each is shown for its quarter of the cycle. Held still,
+   or with animation reduced, only the first shows. */
+.frames > svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  animation: frame-of-four var(--cycle) steps(1, end) infinite;
+  animation-delay: calc(var(--cycle) * (var(--frame) / 4 - 1));
+}
+
+.frames > svg:first-child {
+  visibility: visible;
+}
+
+.scene-lamp {
+  /* Hung high, its cord running up out of sight, so its rim clears the croupier's visor. */
+  top: calc(var(--px) * -7);
+  left: 50%;
+  margin-left: calc(var(--px) * -24);
+  animation: sway 4s steps(1, end) infinite;
+}
+
+/* The croupier stands behind the rail: the table's top edge meets the waist. */
+.scene-croupier {
+  bottom: 0;
+  left: 50%;
+  margin-left: calc(var(--px) * -40);
+}
+
+.croupier {
+  position: relative;
+}
+
+.croupier svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.croupier-torso {
+  animation: breathe 4s steps(1, end) infinite;
+}
+
+.scene-wheel {
+  right: calc(var(--px) * 6);
+  bottom: 0;
+  display: grid;
+  justify-items: center;
+}
+
+.scene-wheel-box {
+  display: grid;
+  place-items: center;
+  width: calc(var(--px) * 40);
+  height: calc(var(--px) * 40);
+}
+
+/* Switched off, out of view or in a hidden tab, the room holds still. */
+.scene.is-still * {
+  animation-play-state: paused;
+}
+
+/* A narrow room: the sign comes down off the wall and sits above it; the wheel goes. */
+@container (max-width: 680px) {
+  .scene-sign {
+    position: static;
+    display: inline-block;
+    margin: 0 0 calc(var(--px) * 4) var(--px);
+  }
+}
+
+/* Narrower still, the furniture goes piece by piece rather than crowd the croupier. */
+@container (max-width: 850px) {
+  .fixture-clock,
+  .fixture-gramophone {
+    display: none;
+  }
+}
+
+@container (max-width: 640px) {
+  .fixture-door,
+  .fixture-fan {
+    display: none;
+  }
+}
+
+@container (max-width: 550px) {
+  .scene-wheel {
+    display: none;
+  }
 }
 
 /* The table: felt inside a wooden rail, lit from the top. */
@@ -1151,6 +1369,32 @@ button.pocket:disabled {
   50% { filter: brightness(1.7); }
 }
 
+@keyframes frame-of-four {
+  0% { visibility: visible; }
+  25%, 100% { visibility: hidden; }
+}
+
+/* The pendulum: one art pixel either way. */
+@keyframes swing {
+  0% { translate: calc(var(--px) * -1) 0; }
+  25% { translate: 0 0; }
+  50% { translate: var(--px) 0; }
+  75% { translate: 0 0; }
+}
+
+/* A breath: the chest and head rise one art pixel while the hands stay on the rail. */
+@keyframes breathe {
+  50% { translate: 0 calc(var(--px) * -1); }
+}
+
+/* The lamp on its cord: one art pixel either way. */
+@keyframes sway {
+  0% { translate: calc(var(--px) * -1) 0; }
+  25% { translate: 0 0; }
+  50% { translate: var(--px) 0; }
+  75% { translate: 0 0; }
+}
+
 @keyframes signal {
   50% { opacity: 0.35; }
 }
@@ -1158,8 +1402,6 @@ button.pocket:disabled {
 @media (max-width: 980px) {
   .app-shell { padding-inline: calc(var(--px) * 8); }
   .game-layout { gap: calc(var(--px) * 7); }
-  h1 { font-size: var(--type-4); }
-  .heading-wheel { width: calc(var(--px) * 48); height: calc(var(--px) * 48); }
 }
 
 @media (max-width: 760px) {
@@ -1176,9 +1418,6 @@ button.pocket:disabled {
   .brand-name { font-size: var(--type-1); }
   /* Room for the mute button: the second half of the status line goes. */
   .session-status span:nth-of-type(n + 3) { display: none; }
-  .game-heading { padding: calc(var(--px) * 3) 0; }
-  .eyebrow { margin-bottom: calc(var(--px) * 3); }
-  .heading-wheel { width: calc(var(--px) * 40); height: calc(var(--px) * 40); }
   .section-heading h2 { font-size: var(--type-1); }
   .table-felt { padding: calc(var(--px) * 3); }
   .bet-mode-bar { align-items: stretch; flex-direction: column; gap: calc(var(--px) * 2); padding: calc(var(--px) * 2) calc(var(--px) * 2) calc(var(--px) * 4); }

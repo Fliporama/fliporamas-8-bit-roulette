@@ -25,7 +25,7 @@ npm run build     # typecheck and production build
 npm run capture   # play one round in a real browser; screenshots and video land in captures/
 ```
 
-`npm run capture` needs the dev server running. Add `-- phone` for a 390 px wide phone, or `-- <url>` to capture a deployed preview. It exits non-zero if the page logged a console error.
+`npm run capture` needs the dev server running. Add `-- phone` for a 390 px wide phone, `-- reduced` to ask for reduced motion, or `-- <url>` to capture a deployed preview. `npm run capture -- idle` instead leaves the page untouched for 30 seconds, saves stills and a video, and prints frame times at four-times CPU slowdown. Every capture exits non-zero if the page logged a console error or scrolls sideways.
 
 ## Deploying
 

@@ -142,6 +142,8 @@ const GEM = sprite(
 
 Render it with `<Sprite data={GEM} />` from `src/components/Sprite.tsx`; `scale` takes a whole number. `sprite` throws where the sprite is defined if rows differ in length or a character is missing from the key.
 
+Art too large to type out row by row (the lamp, the croupier, the room's furniture) is drawn from shapes with `sketch()` in `src/lib/sketch.ts`: filled rectangles and ellipses, then an outline. It produces the same data as `sprite()` and is rendered the same way.
+
 Rules:
 
 - Sprite keys name tokens, never colours, so a sprite re-lights when the palette changes.

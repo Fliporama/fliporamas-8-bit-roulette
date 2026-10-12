@@ -1,6 +1,6 @@
 # Roadmap: Fliporama Roulette to an award-grade site
 
-**Current phase:** 3 (A living scene), not started
+**Current phase:** 4 (Screen effects and juice), not started
 **To resume in a new session:** say "continue the roadmap". The session protocol is in `CLAUDE.md`.
 
 ## Brief
@@ -46,7 +46,7 @@ One phase is one session. Each gets its own brainstorm, spec (`docs/superpowers/
   - Apply the bible to what exists: felt with texture and worn edges, embossed tiles, chips with edge stripes, a wheel with wood grain, metal and depth, a console that looks like a machine rather than a web sidebar.
   - Done when: a screenshot of the idle table is worth posting on its own.
 
-- [ ] **Phase 3. A living scene**
+- [x] **Phase 3. A living scene** (done 2026-10-13)
   - A casino room around the table in parallax layers: lamp light pooling on the felt, drifting smoke, a croupier who reacts to the game, background life that idles.
   - The room responds: lights dim when the wheel spins and flare on a win.
   - Done when: the page looks alive with no input for 30 seconds.
@@ -106,30 +106,51 @@ One phase is one session. Each gets its own brainstorm, spec (`docs/superpowers/
 
 Update this section at the end of every session: what was finished, what was left half-done, and anything the next session must know.
 
-- **2026-10-13, Phase 2 done.** The owner approved the restyled game. Every colour in `src/` now comes from `src/tokens.css` (a test, `src/lib/colours.test.ts`, fails otherwise), and `/?styleguide` uses the game's real `.button`, `.pocket` and `.panel` classes. Read `docs/art-bible.md` before any visual work.
+- **2026-10-13, Phase 3 done.** The owner approved the room: a lit wall behind the page, and above the table a scene with a hanging lamp, a croupier, smoke, a frosted door with passing silhouettes, a clock, a fan and a gramophone. Read `docs/art-bible.md` before any visual work.
 
-### What Phase 3 builds on
+### What Phase 4 builds on
 
-- **The page background is `--ink-1`, not `--ink-0`**, so ink outlines and hard shadows show against it. The room goes behind `.app-shell`; anything drawn there should stay dark enough that the table and cabinet outlines still read.
-- **The lamp is drawn but not hung.** `LAMP` is in `src/styleguide/sprites.ts`; move it to `src/sprites/` when the game uses it. The felt is already lit as if it hangs above the table's top centre.
-- **Where the light is decided.** The felt's pool of light is `feltStep` in `src/lib/felt.ts` (`POOL` sets its centre and reach). The wheel's lighting is the last few lines of `wheelPixel` in `src/lib/wheelPixels.ts` (`LIGHT`). To dim the room during a spin and flare it on a win, give both a brightness input and redraw; `Felt` only redraws on resize today, and `WheelCanvas` redraws when a motion value changes.
-- **Canvases:** per-pixel art is a pure function from an art pixel to a palette token, painted by `paint` in `src/lib/palette.ts`, one canvas pixel per art pixel. Smoke and light shafts should be made the same way. Sprites (chips, rail, icons) are in `src/sprites/`.
-- **The heading holds a still wheel** (`.heading-wheel` in `src/App.tsx`) and the spin opens the large one in an overlay. If the croupier or scene needs that space, the heading is the place to rearrange.
-- **Contrast is tested.** Text may only use the pairs in `PAIRS` in `src/lib/tokens.test.ts`. Labels on the felt (the outside bets) are readable only where the felt is `felt-2` or darker, so a brighter or wider light pool can break them: check before changing `POOL`.
-- **Three checks exist for layout:** `npm run capture` (ends with a live resize to 700 px), `-- phone` (ends at 360 px) and `-- reduced`. All fail on sideways scrolling or a console error.
+- **The room's light is one number.** `useRoomLight` in `src/lib/useRoomLight.ts` returns a shift in light steps (-1 dim, 0 normal, 1 flare, with a brief -0.5 flicker) derived from game state by `lightFor` in `src/lib/scene.ts`. The felt, the scene's wall and the lamp all read it, and `#game` carries the shown level as `data-light`. A WebGL layer (bloom on a flare, a darker vignette on a dim) should read the same number rather than derive its own.
+- **Settings.** Room animation is one top-bar button, stored as `fliporama-scene` by `src/lib/scene.ts`, beside mute (`fliporama-muted` in `src/lib/sound.ts`). Phase 4's effects toggle and low-power fallback make three settings: that is the point to build a settings panel and move all of them into it.
+- **What "off" means.** With room animation off the room is still drawn but nothing moves and the light stays at normal. It starts off when the system asks for reduced motion. Screen effects should follow the same rule and the same default.
+- **Stop when unseen.** `useLive` in `src/lib/useLive.ts` is true only while the setting is on, the tab is visible and the element is on screen. The scene adds the class `is-still` when it is false. Any effects loop should stop on the same signal; `npm run capture -- idle` fails if the scene keeps animating out of view.
+- **How art is made.** Per-pixel pictures are pure functions painted by `paint` in `src/lib/palette.ts` (`felt.ts`, `wall.ts`, `smoke.ts`, `wheelPixels.ts`). Large sprites are drawn from shapes with `sketch()` in `src/lib/sketch.ts` (`src/sprites/room.ts`, `src/sprites/croupier.ts`); small ones are character grids. `Sprite` is memoised: never mutate sprite data in place.
+- **Particles replace three stopgaps** from Phase 2: the win burst in `src/components/WinTally.tsx` (chip sprites flung from the banner, briefly covering it), the chip-landing puff (`.chip-puff`, a smooth ring), and the off-palette brightness flashes (`THUNK` in `src/components/ChipLayer.tsx`, the `winner` keyframes in `src/game.css`).
+- **Furniture is not relit.** Only the wall, felt and lamp change with the light; the door, clock, fan, gramophone and croupier keep their colours. A post-processing pass is the natural place to dim or flare them together.
+- **Captures:** `npm run capture` (round, then a 700 px resize), `-- phone` (390 px, then 360 px), `-- reduced`, `-- idle` (30 untouched seconds, the out-of-view check, and frame times at 4x CPU slowdown) and `-- styleguide`. The round capture also asserts the light is dim during a spin and normal afterwards.
+
+### Budgets, as measured
+
+Production build, 4x CPU slowdown, on the owner's machine:
+
+| | Desktop size | Phone size |
+|---|---|---|
+| Room idle, animation on | 16.7 ms average, no frame over 20 ms | 16.7 ms average, no frame over 20 ms |
+| A full round | about 23 ms average; about 160 of 650 frames over 20 ms | about 18 ms average; about 25 of 800 frames over 20 ms |
+
+- **The spin misses 60 fps, and it is the wheel, not the room.** A round measures the same with room animation off. In a profile of the spin, `wheelPixel` in `src/lib/wheelPixels.ts` is the largest single cost (about a fifth of the time): it works out each pixel's radius, angle and lighting from scratch on every frame. The owner chose to leave this for Phase 7. The fix is to precompute per-pixel geometry once per wheel size and reuse one `ImageData`.
+- **Phase 4 adds a full-screen effect on top of this.** Measure a round before and after, the same way, and do not accept a result that hides behind the wheel's existing cost. The two scripts used here were throwaway; the method is: Playwright, `Emulation.setCPUThrottlingRate` at 4, collect the gaps between animation frames while bets are placed and the wheel spins, against `vite preview` rather than the dev server (the dev build is slower and noisier).
+- **First load:** 133.8 kB of JavaScript gzipped, in three files, against the 200 kB budget.
 
 ### Left for later phases
 
-- **Phase 4:** the brightness flashes inside animations are still off-palette (`THUNK` in `src/components/ChipLayer.tsx`, the `winner` keyframes in `src/game.css`), and the chip-landing puff is a smooth ring. The win burst is chip sprites flung from the banner and covers it briefly.
-- **Phase 7:**
-  - Painting the wheel allocates on every frame. It measured fine for a phone-sized wheel, but a slow tablet or laptop drawing the full 172-pixel wheel may miss 60 fps: reuse the `ImageData`, write its bytes directly, and profile with CPU throttling.
-  - At peak spin speed the wheel is drawn one frame behind its number overlay.
-  - Below 760 px the console is a single centred column; the phone layout as a whole is still the old one, restyled.
-  - A tile's focus ring may be partly hidden by its neighbours; the active bet-mode button looks like the others while a spin locks them.
-  - Never exercised by hand: resetting the session mid-spin.
-- **Small things, any phase:** the circling ball rides the wood rim and loses two pixels at the wheel's outline; the number overlay's radius is a fixed 11 % in CSS rather than `RADII.numbers`; the colour test does not catch named colours, `hsl()` or `oklch()`; no test pins that the ball comes to rest in the winning pocket.
+- **Phase 7 (phone, accessibility, performance):**
+  - The wheel painter, as above. Also at peak spin speed the wheel is drawn one frame behind its number overlay.
+  - On a phone the title sign and the scene put about 490 px above the table, so a player scrolled down to the felt sees little of the croupier or the wall's dim and flare. The scene is 288 px tall at every width because the croupier is drawn 204 px tall.
+  - Reading order: the "PLACE YOUR BETS" heading now comes before the page's main "ROULETTE" heading, and the scene is a named region whose only exposed content is its own label.
+  - With the system's reduced motion on and room animation turned on by hand, the CSS cycles (sway, breathing, fan, record, pendulum) stay off while smoke, blinks, silhouettes and light changes run.
+  - A tile's focus ring may be partly hidden by its neighbours; the active bet-mode button looks like the others while a spin locks them. Below 760 px the console is a single centred column.
+  - Never exercised by hand: resetting the session mid-spin (traced in review as clean, not played).
+- **Small things, any phase:**
+  - The croupier's eyes, or a silhouette half-way across the glass, can stay frozen across a pause; each resume glances again at the last chip. An idle glance and a look at a chip share one state and can cut each other short.
+  - The clock can run up to a minute behind, and is stale after a pause or with animation off.
+  - Centred sprites (lamp, croupier, clock, gramophone) can land on half pixels at odd scene widths; pausing holds CSS cycles mid-frame rather than resetting them.
+  - Several fixture offsets are repeated between `src/game.css` and `src/sprites/room.ts`; `RECORD_AT` is unused. The parallax hard-codes 3 and 48 where `--px` and the wall's repeat are meant.
+  - Smoke allocates an `ImageData` per frame and its top edge is not faded.
+  - No tests for `useRoomLight`, `useLive`, or the croupier's and fixtures' timers; that is where this phase's review found its bugs. The colour test does not catch named colours, `hsl()` or `oklch()`; no test pins that the ball rests in the winning pocket.
+  - From Phase 2: the circling ball rides the wood rim and loses two pixels at the wheel's outline; the number overlay's radius is a fixed 11 % in CSS rather than `RADII.numbers`.
 
 ### Standing facts
 
-- **First load:** 128.5 kB of JavaScript gzipped, in three files, against the 200 kB budget.
 - **Vercel:** project `fliporama-roulette` in team `choy-lee` deploys every push; production is `fliporama-roulette-choy-lee.vercel.app`, built from `main`. Every URL sits behind Vercel login; opening them up is a project setting for the owner (needed by Phase 8 at the latest).
+- **Sessions:** `CLAUDE.md` says one phase per session. Phases 1 to 3 were done in a single session at the owner's request.

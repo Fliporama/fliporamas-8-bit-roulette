@@ -1,14 +1,22 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import './styleguide.css'
+import { Figure } from '../components/Croupier'
 import Felt from '../components/Felt'
+import Smoke from '../components/Smoke'
 import Sprite from '../components/Sprite'
+import Wall from '../components/Wall'
 import WheelCanvas from '../components/WheelCanvas'
 import { CHIP_VALUES } from '../lib/chips'
+import { clockHands } from '../lib/clock'
+import { LIGHT_SHIFT } from '../lib/scene'
+import type { Light } from '../lib/scene'
 import { CHIP_SHADOW, CHIP_SPRITES } from '../sprites/chips'
+import { ARMS } from '../sprites/croupier'
+import type { Arms } from '../sprites/croupier'
 import { ICONS } from '../sprites/icons'
+import { CLOCK, DOOR, FAN, GRAMOPHONE, LAMPS, PATRONS, RECORD, SHELF, WHEEL_STAND } from '../sprites/room'
 import { RAIL } from '../sprites/table'
-import { LAMP } from './sprites'
 
 const RAMPS = [
   { name: 'ink', steps: 3, job: 'outlines, deepest shadow, background' },
@@ -91,7 +99,7 @@ function ChipStack() {
 function LitSample() {
   return (
     <div className="sg-lit">
-      <Sprite className="sg-lit-lamp" data={LAMP} />
+      <Sprite className="sg-lit-lamp" data={LAMPS.normal} />
       <div className="sg-lit-rail">
         {Array.from({ length: FELT.cols / RAIL.width }, (_, index) => (
           <Sprite key={index} data={RAIL} />
@@ -137,6 +145,41 @@ export default function Styleguide() {
         </div>
       </Section>
 
+      <Section title="Croupier">
+        <div className="sg-room">
+          <Wall lamp={{ x: 0.5, y: 0 }} skirt={0.75} />
+          {(Object.keys(ARMS) as Arms[]).map((pose) => (
+            <figure key={pose}>
+              <Figure arms={pose} />
+              <figcaption>{pose}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="Light">
+        <div className="sg-row">
+          {(Object.keys(LIGHT_SHIFT) as Light[]).map((level) => (
+            <figure className="sg-light-level" key={level}>
+              <Wall lamp={{ x: 0.5, y: 0.4 }} shift={LIGHT_SHIFT[level]} skirt={0.75} />
+              {level === 'normal' && <Smoke live />}
+              <Sprite data={LAMPS[level]} />
+              <figcaption>{level}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="Room">
+        <div className="sg-row sg-furniture">
+          {[DOOR, CLOCK, clockHands(10, 10), GRAMOPHONE, SHELF, WHEEL_STAND, ...PATRONS, ...FAN, ...RECORD, LAMPS.dim, LAMPS.normal, LAMPS.flare].map(
+            (piece, index) => (
+              <Sprite key={index} data={piece} />
+            ),
+          )}
+        </div>
+      </Section>
+
       <Section title="Components">
         <div className="sg-row">
           {BUTTON_STATES.map((state) => (
@@ -175,7 +218,6 @@ export default function Styleguide() {
         {SCALES.map((scale) => (
           <div className="sg-row" key={scale}>
             <small className="sg-scale">{scale}x</small>
-            <Sprite data={LAMP} scale={scale} />
             <Sprite data={RAIL} scale={scale} />
             <Sprite data={CHIP_SPRITES[25]} scale={scale} />
           </div>

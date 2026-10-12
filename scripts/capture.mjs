@@ -2,18 +2,20 @@
 //
 //   npm run capture                      play one round: screenshots and a video
 //   npm run capture -- styleguide        one full-page screenshot of /?styleguide
+//   npm run capture -- idle              leave the page alone for 30 seconds: stills, a video and frame times
 //
 // Add `phone` for a 390 px wide phone, `reduced` to ask for reduced motion, or a URL to capture
 // a deployed preview. Fails if the page logs an error or scrolls sideways.
 // Needs the dev server running (npm run dev) unless a URL is given. Uses the installed Edge
 // (set CAPTURE_BROWSER=chrome to use Chrome), so there is no browser download.
-import { mkdir, readdir, rename, rm } from 'node:fs/promises'
+import { mkdir, readFile, readdir, rename, rm } from 'node:fs/promises'
 import { chromium } from 'playwright-core'
 
 const args = process.argv.slice(2)
 const phone = args.includes('phone')
 const styleguide = args.includes('styleguide')
 const reduced = args.includes('reduced')
+const idle = args.includes('idle')
 const url = args.find((arg) => arg.startsWith('http')) ?? 'http://localhost:5173/'
 const viewport = phone ? { width: 390, height: 844 } : { width: 1440, height: 900 }
 const out = 'captures'
@@ -35,6 +37,7 @@ page.on('console', (message) => message.type() === 'error' && errors.push(messag
 page.on('pageerror', (error) => errors.push(error.message))
 
 if (styleguide) await captureStyleguide()
+else if (idle) await captureIdle()
 else await captureRound()
 
 if (errors.length > 0) {
@@ -47,6 +50,11 @@ async function checkOverflow() {
   if (scrollWidth > innerWidth) errors.push(`Horizontal overflow: ${scrollWidth} > ${innerWidth}`)
 }
 
+async function checkLight(expected, when) {
+  const light = await page.evaluate(() => document.getElementById('game')?.dataset.light)
+  if (light !== expected) errors.push(`Light ${when}: ${light}`)
+}
+
 async function captureStyleguide() {
   await page.goto(`${url}?styleguide`)
   await page.waitForTimeout(800)
@@ -54,6 +62,66 @@ async function captureStyleguide() {
   await checkOverflow()
   await browser.close()
   console.log(`Saved ${out}/${name}-styleguide.png`)
+}
+
+async function saveVideo(file) {
+  const [video] = await readdir(`${out}/video-tmp`)
+  await rename(`${out}/video-tmp/${video}`, `${out}/${file}`)
+  await rm(`${out}/video-tmp`, { recursive: true })
+}
+
+// The roadmap's test of a living scene: with no input at all, the page must keep moving.
+async function captureIdle() {
+  const prefix = phone ? 'phone-idle' : 'idle'
+  const still = () => page.evaluate(() => document.querySelector('.scene')?.classList.contains('is-still'))
+  await page.goto(url)
+  await page.waitForTimeout(800)
+
+  const stills = []
+  for (const seconds of [0, 10, 20, 30]) {
+    if (seconds > 0) await page.waitForTimeout(10_000)
+    const path = `${out}/${prefix}-${seconds}s.png`
+    await page.screenshot({ path })
+    stills.push(await readFile(path))
+  }
+  if (stills.every((image) => image.equals(stills[0]))) errors.push('The page did not move in 30 seconds')
+  await checkOverflow()
+
+  // Out of view, the scene must stop; back in view, it must start again.
+  await page.setViewportSize({ width: viewport.width, height: 300 })
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+  await page.waitForTimeout(500)
+  if (!(await still())) errors.push('The scene kept animating out of view')
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await page.setViewportSize(viewport)
+  await page.waitForTimeout(500)
+  if (await still()) errors.push('The scene did not resume')
+
+  // Frame cost on a slower machine: the gaps between animation frames, with the CPU held to a quarter speed.
+  const devtools = await context.newCDPSession(page)
+  await devtools.send('Emulation.setCPUThrottlingRate', { rate: 4 })
+  await page.waitForTimeout(1500) // let the redraw after the resize finish: this measures the room at rest
+  const frames = await page.evaluate(
+    () =>
+      new Promise((resolve) => {
+        const gaps = []
+        let last = performance.now()
+        const began = last
+        const tick = (now) => {
+          gaps.push(now - last)
+          last = now
+          if (now - began < 5000) requestAnimationFrame(tick)
+          else resolve({ average: gaps.reduce((total, gap) => total + gap, 0) / gaps.length, worst: Math.max(...gaps) })
+        }
+        requestAnimationFrame(tick)
+      }),
+  )
+  console.log(`Frames at 4x slowdown: average ${frames.average.toFixed(1)} ms, worst ${frames.worst.toFixed(1)} ms`)
+
+  await context.close()
+  await browser.close()
+  await saveVideo(`${prefix}.webm`)
+  console.log(`Saved ${prefix} stills and ${prefix}.webm to ${out}/`)
 }
 
 async function captureRound() {
@@ -82,12 +150,15 @@ async function captureRound() {
   await page.getByRole('button', { name: /spin the wheel/i }).click()
   await page.waitForTimeout(2200)
   await shot('4-spinning')
+  // The room dims for the spin and must come back: see the check after the round.
+  if (!reduced) await checkLight('dim', 'while spinning')
   await page.waitForTimeout(3000)
   await shot('5-landed')
   await page.waitForTimeout(1500)
   await shot('6-tally')
   await page.waitForTimeout(4000)
   await shot('7-settled')
+  await checkLight('normal', 'after the round')
 
   // A live resize: the canvases must redraw at the new size, and nothing may overflow.
   // Desktop narrows to a tablet; a phone narrows to the smallest common phone.
@@ -99,8 +170,6 @@ async function captureRound() {
   await context.close()
   await browser.close()
 
-  const [video] = await readdir(`${out}/video-tmp`)
-  await rename(`${out}/video-tmp/${video}`, `${out}/${name}-round.webm`)
-  await rm(`${out}/video-tmp`, { recursive: true })
+  await saveVideo(`${name}-round.webm`)
   console.log(`Saved ${name} screenshots and ${name}-round.webm to ${out}/`)
 }

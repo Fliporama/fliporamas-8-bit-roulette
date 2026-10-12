@@ -106,6 +106,22 @@ One phase is one session. Each gets its own brainstorm, spec (`docs/superpowers/
 
 Update this section at the end of every session: what was finished, what was left half-done, and anything the next session must know.
 
+### Overnight run, 2026-10-13 (in progress)
+
+The owner asked for unattended work from about 02:45 until 09:00 local time, and said to follow the assistant's own recommendations without asking. Whoever picks this up, a resumed session or a new one, continues from the first unticked item.
+
+Rules for the run:
+
+- Decide instead of asking; record each decision where the owner will read it (the pull request description, and here).
+- Never merge and never push to `main`. Every piece of work ends as an open pull request for the owner to judge.
+- Anything that can only be judged by eye or ear is built to the owner gate and left there.
+- Stop starting new work at 09:00. Leave the tree clean and this list accurate.
+
+Queue:
+
+- [ ] **1. Follow-ups branch** (`fix/overnight-followups`): the measurable backlog from "Budgets, as measured" and "Left for later phases" below. Speed up the wheel painter until a round holds 60 fps at 4x slowdown, or as near as it gets, with before and after numbers; fix the deferred review findings that have an objective check; add the missing tests. Open a pull request; do not merge.
+- [ ] **2. Phase 4, Screen effects and juice**, only if item 1 is finished before about 07:00. Branch from the follow-ups branch, not from `main`. Spec, plan and build with the assistant's recommended choices, to the owner gate. Open a pull request; do not merge.
+
 - **2026-10-13, Phase 3 done.** The owner approved the room: a lit wall behind the page, and above the table a scene with a hanging lamp, a croupier, smoke, a frosted door with passing silhouettes, a clock, a fan and a gramophone. Read `docs/art-bible.md` before any visual work.
 
 ### What Phase 4 builds on

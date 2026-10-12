@@ -1,4 +1,4 @@
-// usage (from the project root): node scripts/perf/profile.mjs [width] [height]
+// usage (from the project root): node scripts/perf/profile.mjs [width] [height]. SPIN=1 profiles a spin instead of the idle page.
 import { chromium } from 'playwright-core'
 
 const width = Number(process.argv[2] ?? 390)
@@ -13,6 +13,10 @@ await devtools.send('Emulation.setCPUThrottlingRate', { rate: 4 })
 await devtools.send('Profiler.enable')
 await devtools.send('Profiler.setSamplingInterval', { interval: 500 })
 await devtools.send('Profiler.start')
+if (process.env.SPIN) {
+  await page.locator('[data-spot^="n17"]').first().click()
+  await page.getByRole('button', { name: /spin the wheel/i }).click()
+}
 await page.waitForTimeout(8000)
 const { profile } = await devtools.send('Profiler.stop')
 

@@ -126,6 +126,8 @@ interface ScreenEffectsProps {
   light: number
   /** Whether the grain moves. Still, the layer is redrawn only when something changes. */
   moving: boolean
+  /** True while the wheel is spinning: the grain holds still, so the wheel has the frame to itself. */
+  busy: boolean
   /** Called when the moving layer cannot keep its own pace: see `struggling`. */
   onStruggle: () => void
 }
@@ -135,13 +137,13 @@ interface ScreenEffectsProps {
  * when the room dims, and lamp light added round the bulb and the win banner. One WebGL canvas over the page.
  * Without WebGL there is simply no layer.
  */
-export default function ScreenEffects({ light, moving, onStruggle }: ScreenEffectsProps) {
+export default function ScreenEffects({ light, moving, busy, onStruggle }: ScreenEffectsProps) {
   const canvas = useRef<HTMLCanvasElement>(null)
   const [px] = useState(() => artPixel(document.documentElement))
   const redraw = useRef(() => {})
-  const latest = useRef({ light, onStruggle })
+  const latest = useRef({ light, busy, onStruggle })
   useEffect(() => {
-    latest.current = { light, onStruggle }
+    latest.current = { light, busy, onStruggle }
   })
   // The light changes with the game: the lamp's glow and the vignette follow it, and the win banner comes and goes with it.
   useEffect(() => redraw.current(), [light])
@@ -205,6 +207,7 @@ export default function ScreenEffects({ light, moving, onStruggle }: ScreenEffec
         last = now
         if (gaps.length > STRUGGLE_GAPS) gaps.shift()
         if (struggling(gaps, GRAIN_MS)) latest.current.onStruggle()
+        if (latest.current.busy) return
         tick = (tick % 240) + 1
         draw()
       }, GRAIN_MS)

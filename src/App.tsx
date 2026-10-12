@@ -398,7 +398,7 @@ function App() {
 
         {/* If the moving layer cannot keep pace it steps down for this visit; the stored choice is left alone. */}
         {effects !== 'off' && (
-          <ScreenEffects light={light} moving={effects === 'full' && !reducedMotion} onStruggle={() => setEffectsState('low')} />
+          <ScreenEffects light={light} moving={effects === 'full' && !reducedMotion} busy={phase === 'spinning'} onStruggle={() => setEffectsState('low')} />
         )}
 
         <footer className="site-footer">

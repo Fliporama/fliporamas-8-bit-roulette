@@ -40,7 +40,7 @@ Three settings now exist, so they move into one panel behind a single top-bar bu
 
 **Decided: effects start "off" when the system asks for reduced motion, otherwise "full".** *Why:* the same rule and default as room animation, as the Phase 3 notes asked. With reduced motion on and effects switched on by hand, the still parts of the layer show; grain, the split and particles stay off.
 
-**Decided: an automatic step down.** If the layer's own frames average more than 24 ms over two seconds at "full", it drops to "low" for the rest of the visit without changing the stored choice. If WebGL is missing, the layer is simply absent. *Why:* the roadmap asks for a low-power fallback, and a player should not need to find a setting to stop a stutter.
+**Decided: an automatic step down.** At "full" the grain is redrawn twelve times a second. If those redraws arrive more than half late on average for two two-second stretches in a row, the layer drops to "low" for the rest of the visit without changing the stored choice. The settings panel then shows "Low". If WebGL is missing, the layer is simply absent. *Why:* the roadmap asks for a low-power fallback, and a player should not need to find a setting to stop a stutter.
 
 **Decided: the panel is a native popover.** *Why:* focus handling, Escape and click-away come from the browser; no library and little code. Browsers from before 2024 without popover support get the three controls inline in the top bar's place, because an unsupported `popover` attribute is ignored and the panel is then just visible.
 
@@ -71,6 +71,8 @@ They replace three stopgaps:
 Measured as in "Budgets, as measured": `node scripts/perf/round.mjs` and `idle.mjs`, twice each, production preview, 4x slowdown, compared with the follow-ups branch this phase starts from.
 
 The layer is one full-screen quad with a short fragment shader, drawn at one canvas pixel per CSS pixel regardless of device pixel ratio, twelve times a second. The particle canvas runs a frame loop only while something is in the air.
+
+**Decided after measuring: the grain holds still while the wheel spins.** With the grain moving through the spin, a round at desktop size averaged 20.4 and 19.3 ms a frame with 81 and 56 frames over 20 ms; with it held still, 18.2 and 18.4 ms with 36 and 37, the same as before this phase. *Why:* the wheel's overlay darkens the page behind it, so moving grain is hardly seen there, and the spin is the one moment with no frame time to spare. Scanlines, corners and vignette stay.
 
 ## Left to the owner's eye
 

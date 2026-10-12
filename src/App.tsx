@@ -4,8 +4,9 @@ import CountUp from './components/CountUp'
 import Felt from './components/Felt'
 import RouletteTable from './components/RouletteTable'
 import RouletteWheel from './components/RouletteWheel'
+import Scene from './components/Scene'
 import Sprite from './components/Sprite'
-import WheelCanvas from './components/WheelCanvas'
+import Wall from './components/Wall'
 import WinTally from './components/WinTally'
 import {
   createInsideTarget,
@@ -16,7 +17,7 @@ import {
 import type { BetTarget, InsideBetKind } from './lib/roulette'
 import { CHIP_VALUES } from './lib/chips'
 import type { ChipValue, PlacedBet } from './lib/chips'
-import { isSceneOn, lightFor } from './lib/scene'
+import { isSceneOn, lightFor, setSceneOn } from './lib/scene'
 import type { Moment } from './lib/scene'
 import { isMuted, setMuted } from './lib/sound'
 import { buildTally } from './lib/tally'
@@ -49,7 +50,7 @@ function App() {
   const [scoring, setScoring] = useState<TallyStep | undefined>()
   const [message, setMessage] = useState('PICK A CHIP, THEN PLACE YOUR BET')
   const [muted, setMutedState] = useState(isMuted)
-  const [sceneOn] = useState(isSceneOn)
+  const [sceneOn, setSceneOnState] = useState(isSceneOn)
 
   const roundCount = useRef(0)
   const chipCount = useRef(0)
@@ -172,6 +173,11 @@ function App() {
     setMutedState(!muted)
   }
 
+  function toggleScene() {
+    setSceneOn(!sceneOn)
+    setSceneOnState(!sceneOn)
+  }
+
   function resetSession() {
     setBalance(STARTING_BANKROLL)
     setBets([])
@@ -184,201 +190,204 @@ function App() {
   }
 
   return (
-    <div className="app-shell">
-      <header className="topbar">
-        <a className="brand" href="#game" aria-label="Fliporama Roulette home">
-          <span className="brand-mark" aria-hidden="true">F</span>
-          <span className="brand-name">FLIPORAMA</span>
-        </a>
-        <div className="session-status">
-          <span className="status-lamp" />
-          <span>FREE PLAY</span>
-          <span className="status-divider">/</span>
-          <span>LOCAL SESSION</span>
-          <button className="button icon-action" type="button" title={muted ? 'Unmute sound' : 'Mute sound'} aria-label={muted ? 'Unmute sound' : 'Mute sound'} aria-pressed={muted} onClick={toggleMute}>
-            <Sprite data={muted ? ICONS.mute : ICONS.sound} />
-          </button>
-        </div>
-      </header>
-
-      <main id="game" data-light={lightFor(moment)}>
-        <section className="game-heading" aria-labelledby="game-title">
-          <div>
-            <p className="eyebrow">ARCADE TABLE 01 <span>/</span> EUROPEAN WHEEL</p>
-            <h1 id="game-title">ROULETTE</h1>
-          </div>
-          <div className="heading-wheel">
-            <WheelCanvas />
-          </div>
-        </section>
-
-        <div className="game-layout">
-          <section className="table-section" aria-label="Roulette betting table">
-            <div className="section-heading">
-              <h2>PLACE YOUR BETS</h2>
-              <span>0-36 <i /> SINGLE ZERO</span>
-            </div>
-
-            <div className="table-frame">
-              <div className="table-rail" aria-hidden="true">
-                {Array.from({ length: RAIL_PIECES }, (_, index) => (
-                  <Sprite key={index} data={RAIL} />
-                ))}
-              </div>
-              <div className="table-felt">
-                <Felt light={light} />
-                <div className="bet-mode-bar">
-                  <span className="control-label">INSIDE BET</span>
-                  <div className="mode-switch" role="group" aria-label="Inside bet type">
-                    {INSIDE_MODES.map((item) => (
-                      <button
-                        className={mode === item.kind ? 'button mode-button is-primary' : 'button mode-button'}
-                        type="button"
-                        aria-pressed={mode === item.kind}
-                        key={item.kind}
-                        disabled={isLocked}
-                        onClick={() => chooseMode(item.kind, item.label)}
-                      >
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <RouletteTable
-                  mode={mode}
-                  bets={bets}
-                  numberStakes={numberStakes}
-                  stakes={betStakeById}
-                  selectedNumbers={pendingSplit}
-                  winner={phase === 'tallying' && round ? round.result : lastSpin?.number}
-                  scoring={scoring}
-                  result={phase === 'tallying' ? round?.result : undefined}
-                  collecting={Boolean(lastSpin)}
-                  losing={phase === 'tallying' && round?.tally.tier === 'none'}
-                  disabled={isLocked}
-                  onPocketClick={placeInsideBet}
-                  onBet={placeBet}
-                />
-              </div>
-            </div>
-            <div className="table-note" aria-live="polite">
-              <span className="note-marker" />
-              <span>{message}</span>
-            </div>
-          </section>
-
-          <aside className="console" aria-label="Game controls">
-            <section className="bankroll-panel" aria-label="Chip balance">
-              <div className="panel-kicker"><span>YOUR BANK</span><span>CHIPS</span></div>
-              <div className="bankroll-value" aria-live="polite">
-                <CountUp value={shownBalance} />
-                {phase === 'betting' && lastSpin && lastSpin.returned > 0 && (
-                  <motion.span className="bank-flash" layoutId="win-total" aria-hidden="true">
-                    +{formatChips(lastSpin.returned)}
-                  </motion.span>
-                )}
-              </div>
-              <div className="bankroll-footer">
-                <span>ON TABLE <b>{formatChips(totalStake)}</b></span>
-                <button className="button icon-action" type="button" title="Start a new chip session" aria-label="Start a new chip session" onClick={resetSession}>
-                  <Sprite data={ICONS.reset} />
-                </button>
-              </div>
-            </section>
-
-            <section className="chip-section" aria-labelledby="chip-title">
-              <div className="section-heading compact">
-                <h2 id="chip-title">CHOOSE CHIP</h2>
-                <span>{chipValue} PER CLICK</span>
-              </div>
-              <div className="chip-picker" role="group" aria-label="Chip denomination">
-                {CHIP_VALUES.map((value) => (
-                  <button
-                    type="button"
-                    className={chipValue === value ? 'chip-choice is-selected' : 'chip-choice'}
-                    aria-label={`${value} chips`}
-                    aria-pressed={chipValue === value}
-                    key={value}
-                    data-chip={value}
-                    disabled={isLocked}
-                    onClick={() => setChipValue(value)}
-                  >
-                    <Sprite data={CHIP_SPRITES[value]} />
-                    <span className="chip-value">{value}</span>
-                  </button>
-                ))}
-              </div>
-            </section>
-
-            <section className="bets-section" aria-labelledby="bets-title">
-              <div className="section-heading compact">
-                <h2 id="bets-title">BET SLIP</h2>
-                <button className="button icon-action" type="button" title="Clear all bets and return chips" aria-label="Clear all bets and return chips" disabled={isLocked || bets.length === 0} onClick={clearBets}>
-                  <Sprite data={ICONS.clear} />
-                </button>
-              </div>
-              {bets.length === 0 ? (
-                <p className="empty-slip">NO BETS PLACED</p>
-              ) : (
-                <ul className="bet-list">
-                  {bets.map(({ target, stake }) => (
-                    <li className="bet-line" key={target.id}>
-                      <span className="bet-line-label">{target.label}</span>
-                      <span className="bet-line-stake">{formatChips(stake)}</span>
-                      <button
-                        className="remove-bet"
-                        type="button"
-                        title={`Remove ${target.label} bet`}
-                        aria-label={`Remove ${target.label} bet`}
-                        disabled={isLocked}
-                        onClick={() => removeBet(target.id)}
-                      >
-                        <Sprite data={ICONS.remove} />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <div className="slip-total"><span>TOTAL STAKE</span><b>{formatChips(totalStake)}</b></div>
-            </section>
-
-            <button className={`button is-primary spin-button${isLocked ? ' is-spinning' : ''}`} type="button" disabled={isLocked || bets.length === 0} onClick={spin}>
-              <Sprite data={ICONS.play} />
-              <span>{isLocked ? 'SPINNING...' : 'SPIN THE WHEEL'}</span>
+    <>
+      <div className="room-wall" aria-hidden="true">
+        <Wall />
+      </div>
+      <div className="app-shell">
+        <header className="topbar">
+          <a className="brand" href="#game" aria-label="Fliporama Roulette home">
+            <span className="brand-mark" aria-hidden="true">F</span>
+            <span className="brand-name">FLIPORAMA</span>
+          </a>
+          <div className="session-status">
+            <span className="status-lamp" />
+            <span>FREE PLAY</span>
+            <span className="status-divider">/</span>
+            <span>LOCAL SESSION</span>
+            <button className="button icon-action" type="button" title="Room animation" aria-label="Room animation" aria-pressed={sceneOn} onClick={toggleScene}>
+              <Sprite data={sceneOn ? ICONS.lampOn : ICONS.lampOff} />
             </button>
+            <button className="button icon-action" type="button" title={muted ? 'Unmute sound' : 'Mute sound'} aria-label={muted ? 'Unmute sound' : 'Mute sound'} aria-pressed={muted} onClick={toggleMute}>
+              <Sprite data={muted ? ICONS.mute : ICONS.sound} />
+            </button>
+          </div>
+        </header>
 
-            <section className="result-panel" aria-live="polite" aria-label="Last spin result">
-              <span className="control-label">LAST SPIN</span>
-              {lastSpin ? (
-                <div className="result-content">
-                  <span className={`result-number pocket pocket-${getPocketColor(lastSpin.number)}`}>{lastSpin.number}</span>
-                  <div>
-                    <strong>{getPocketColor(lastSpin.number).toUpperCase()}</strong>
-                    <span className={lastSpin.change >= 0 ? 'result-change is-positive' : 'result-change'}>
-                      {lastSpin.change >= 0 ? '+' : ''}{formatChips(lastSpin.change)} CHIPS
-                    </span>
-                  </div>
+        <main id="game" data-light={lightFor(moment)}>
+          <div className="game-layout">
+            <section className="table-section" aria-label="Roulette betting table">
+              <div className="section-heading">
+                <h2>PLACE YOUR BETS</h2>
+                <span>0-36 <i /> SINGLE ZERO</span>
+              </div>
+
+              <Scene light={light} on={sceneOn}>
+                <p className="eyebrow">ARCADE TABLE 01 <span>/</span> EUROPEAN WHEEL</p>
+                <h1 id="game-title">ROULETTE</h1>
+              </Scene>
+
+              <div className="table-frame">
+                <div className="table-rail" aria-hidden="true">
+                  {Array.from({ length: RAIL_PIECES }, (_, index) => (
+                    <Sprite key={index} data={RAIL} />
+                  ))}
                 </div>
-              ) : (
-                <p className="result-placeholder">WAITING FOR THE FIRST SPIN</p>
-              )}
+                <div className="table-felt">
+                  <Felt light={light} />
+                  <div className="bet-mode-bar">
+                    <span className="control-label">INSIDE BET</span>
+                    <div className="mode-switch" role="group" aria-label="Inside bet type">
+                      {INSIDE_MODES.map((item) => (
+                        <button
+                          className={mode === item.kind ? 'button mode-button is-primary' : 'button mode-button'}
+                          type="button"
+                          aria-pressed={mode === item.kind}
+                          key={item.kind}
+                          disabled={isLocked}
+                          onClick={() => chooseMode(item.kind, item.label)}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <RouletteTable
+                    mode={mode}
+                    bets={bets}
+                    numberStakes={numberStakes}
+                    stakes={betStakeById}
+                    selectedNumbers={pendingSplit}
+                    winner={phase === 'tallying' && round ? round.result : lastSpin?.number}
+                    scoring={scoring}
+                    result={phase === 'tallying' ? round?.result : undefined}
+                    collecting={Boolean(lastSpin)}
+                    losing={phase === 'tallying' && round?.tally.tier === 'none'}
+                    disabled={isLocked}
+                    onPocketClick={placeInsideBet}
+                    onBet={placeBet}
+                  />
+                </div>
+              </div>
+              <div className="table-note" aria-live="polite">
+                <span className="note-marker" />
+                <span>{message}</span>
+              </div>
             </section>
-          </aside>
-        </div>
-      </main>
 
-      <AnimatePresence>
-        {/* Keyed per round: a wheel still fading out must not be reused by the next spin. */}
-        {phase === 'spinning' && round && <RouletteWheel key={round.id} result={round.result} onLanded={startTally} />}
-      </AnimatePresence>
-      {phase === 'tallying' && round && <WinTally tally={round.tally} onStep={setScoring} onDone={finishRound} />}
+            <aside className="console" aria-label="Game controls">
+              <section className="bankroll-panel" aria-label="Chip balance">
+                <div className="panel-kicker"><span>YOUR BANK</span><span>CHIPS</span></div>
+                <div className="bankroll-value" aria-live="polite">
+                  <CountUp value={shownBalance} />
+                  {phase === 'betting' && lastSpin && lastSpin.returned > 0 && (
+                    <motion.span className="bank-flash" layoutId="win-total" aria-hidden="true">
+                      +{formatChips(lastSpin.returned)}
+                    </motion.span>
+                  )}
+                </div>
+                <div className="bankroll-footer">
+                  <span>ON TABLE <b>{formatChips(totalStake)}</b></span>
+                  <button className="button icon-action" type="button" title="Start a new chip session" aria-label="Start a new chip session" onClick={resetSession}>
+                    <Sprite data={ICONS.reset} />
+                  </button>
+                </div>
+              </section>
 
-      <footer className="site-footer">
-        <span>FLIPORAMA <i /> FREE-PLAY TABLE</span>
-        <span>NO CASH VALUE <i /> CHIPS RESET EACH SESSION</span>
-      </footer>
-    </div>
+              <section className="chip-section" aria-labelledby="chip-title">
+                <div className="section-heading compact">
+                  <h2 id="chip-title">CHOOSE CHIP</h2>
+                  <span>{chipValue} PER CLICK</span>
+                </div>
+                <div className="chip-picker" role="group" aria-label="Chip denomination">
+                  {CHIP_VALUES.map((value) => (
+                    <button
+                      type="button"
+                      className={chipValue === value ? 'chip-choice is-selected' : 'chip-choice'}
+                      aria-label={`${value} chips`}
+                      aria-pressed={chipValue === value}
+                      key={value}
+                      data-chip={value}
+                      disabled={isLocked}
+                      onClick={() => setChipValue(value)}
+                    >
+                      <Sprite data={CHIP_SPRITES[value]} />
+                      <span className="chip-value">{value}</span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+
+              <section className="bets-section" aria-labelledby="bets-title">
+                <div className="section-heading compact">
+                  <h2 id="bets-title">BET SLIP</h2>
+                  <button className="button icon-action" type="button" title="Clear all bets and return chips" aria-label="Clear all bets and return chips" disabled={isLocked || bets.length === 0} onClick={clearBets}>
+                    <Sprite data={ICONS.clear} />
+                  </button>
+                </div>
+                {bets.length === 0 ? (
+                  <p className="empty-slip">NO BETS PLACED</p>
+                ) : (
+                  <ul className="bet-list">
+                    {bets.map(({ target, stake }) => (
+                      <li className="bet-line" key={target.id}>
+                        <span className="bet-line-label">{target.label}</span>
+                        <span className="bet-line-stake">{formatChips(stake)}</span>
+                        <button
+                          className="remove-bet"
+                          type="button"
+                          title={`Remove ${target.label} bet`}
+                          aria-label={`Remove ${target.label} bet`}
+                          disabled={isLocked}
+                          onClick={() => removeBet(target.id)}
+                        >
+                          <Sprite data={ICONS.remove} />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <div className="slip-total"><span>TOTAL STAKE</span><b>{formatChips(totalStake)}</b></div>
+              </section>
+
+              <button className={`button is-primary spin-button${isLocked ? ' is-spinning' : ''}`} type="button" disabled={isLocked || bets.length === 0} onClick={spin}>
+                <Sprite data={ICONS.play} />
+                <span>{isLocked ? 'SPINNING...' : 'SPIN THE WHEEL'}</span>
+              </button>
+
+              <section className="result-panel" aria-live="polite" aria-label="Last spin result">
+                <span className="control-label">LAST SPIN</span>
+                {lastSpin ? (
+                  <div className="result-content">
+                    <span className={`result-number pocket pocket-${getPocketColor(lastSpin.number)}`}>{lastSpin.number}</span>
+                    <div>
+                      <strong>{getPocketColor(lastSpin.number).toUpperCase()}</strong>
+                      <span className={lastSpin.change >= 0 ? 'result-change is-positive' : 'result-change'}>
+                        {lastSpin.change >= 0 ? '+' : ''}{formatChips(lastSpin.change)} CHIPS
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="result-placeholder">WAITING FOR THE FIRST SPIN</p>
+                )}
+              </section>
+            </aside>
+          </div>
+        </main>
+
+        <AnimatePresence>
+          {/* Keyed per round: a wheel still fading out must not be reused by the next spin. */}
+          {phase === 'spinning' && round && <RouletteWheel key={round.id} result={round.result} onLanded={startTally} />}
+        </AnimatePresence>
+        {phase === 'tallying' && round && <WinTally tally={round.tally} onStep={setScoring} onDone={finishRound} />}
+
+        <footer className="site-footer">
+          <span>FLIPORAMA <i /> FREE-PLAY TABLE</span>
+          <span>NO CASH VALUE <i /> CHIPS RESET EACH SESSION</span>
+        </footer>
+      </div>
+    </>
   )
 }
 

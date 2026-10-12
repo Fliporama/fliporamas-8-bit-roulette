@@ -7,8 +7,8 @@ import WheelCanvas from '../components/WheelCanvas'
 import { CHIP_VALUES } from '../lib/chips'
 import { CHIP_SHADOW, CHIP_SPRITES } from '../sprites/chips'
 import { ICONS } from '../sprites/icons'
+import { LAMPS } from '../sprites/room'
 import { RAIL } from '../sprites/table'
-import { LAMP } from './sprites'
 
 const RAMPS = [
   { name: 'ink', steps: 3, job: 'outlines, deepest shadow, background' },
@@ -91,7 +91,7 @@ function ChipStack() {
 function LitSample() {
   return (
     <div className="sg-lit">
-      <Sprite className="sg-lit-lamp" data={LAMP} />
+      <Sprite className="sg-lit-lamp" data={LAMPS.normal} />
       <div className="sg-lit-rail">
         {Array.from({ length: FELT.cols / RAIL.width }, (_, index) => (
           <Sprite key={index} data={RAIL} />
@@ -175,7 +175,7 @@ export default function Styleguide() {
         {SCALES.map((scale) => (
           <div className="sg-row" key={scale}>
             <small className="sg-scale">{scale}x</small>
-            <Sprite data={LAMP} scale={scale} />
+            <Sprite data={LAMPS.normal} scale={scale} />
             <Sprite data={RAIL} scale={scale} />
             <Sprite data={CHIP_SPRITES[25]} scale={scale} />
           </div>

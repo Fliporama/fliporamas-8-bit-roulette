@@ -109,7 +109,7 @@ Update this section at the end of every session: what was finished, what was lef
 
 ### Overnight run, 2026-10-13 (in progress)
 
-The owner asked for unattended work until 09:00 local time, and said to follow the assistant's own recommendations without asking. Nothing on the queue has been started: the session that wrote this handed over to a fresh one, to keep usage low. Whoever picks this up continues from the first unticked item.
+The owner asked for unattended work until 09:00 local time, and said to follow the assistant's own recommendations without asking. Whoever picks this up continues from the first unticked item.
 
 Rules for the run:
 
@@ -122,7 +122,7 @@ Rules for the run:
 
 Queue:
 
-- [ ] **1. Follow-ups branch** (`fix/overnight-followups`): the measurable backlog from "Budgets, as measured" and "Left for later phases" below. Speed up the wheel painter until a round holds 60 fps at 4x slowdown, or as near as it gets, with before and after numbers; fix the deferred review findings that have an objective check; add the missing tests. The full brief is `docs/superpowers/plans/2026-10-13-overnight-followups.md`. Open a pull request; do not merge.
+- [x] **1. Follow-ups branch** (`fix/overnight-followups`), done 03:10, pull request open and not merged: the measurable backlog from "Budgets, as measured" and "Left for later phases" below. Speed up the wheel painter until a round holds 60 fps at 4x slowdown, or as near as it gets, with before and after numbers; fix the deferred review findings that have an objective check; add the missing tests. The full brief is `docs/superpowers/plans/2026-10-13-overnight-followups.md`. Open a pull request; do not merge.
 - [ ] **2. Phase 4, Screen effects and juice**, only if item 1 is finished before about 07:00. Branch from the follow-ups branch, not from `main`. Follow the roadmap protocol in `CLAUDE.md`, but where it says to brainstorm with the owner, choose what you would recommend and write the choice and its reason into the spec. Build to the owner gate. Open a pull request; do not merge, and do not tick the phase.
 
 - **2026-10-13, Phase 3 done.** The owner approved the room: a lit wall behind the page, and above the table a scene with a hanging lamp, a croupier, smoke, a frosted door with passing silhouettes, a clock, a fan and a gramophone. Read `docs/art-bible.md` before any visual work.
@@ -144,30 +144,31 @@ Production build, 4x CPU slowdown, on the owner's machine:
 
 | | Desktop size | Phone size |
 |---|---|---|
-| Room idle, animation on | 16.7 ms average, no frame over 20 ms | 16.7 ms average, no frame over 20 ms |
-| A full round | about 23 ms average; about 160 of 650 frames over 20 ms | about 18 ms average; about 25 of 800 frames over 20 ms |
+| Room idle, animation on or off | 16.7 ms average, no frame over 20 ms | 16.7 ms average, no frame over 20 ms |
+| A full round, before the overnight run | 26.5 and 23.5 ms average; 139 of 572 and 175 of 626 frames over 20 ms | 18.3 and 18.3 ms; 46 of 778 and 36 of 782 |
+| A full round, now | 18.4 and 19.0 ms average; 34 of 816 and 44 of 782 frames over 20 ms | 18.4 and 18.2 ms; 28 of 795 and 22 of 803 |
 
-- **The spin misses 60 fps, and it is the wheel, not the room.** A round measures the same with room animation off. In a profile of the spin, `wheelPixel` in `src/lib/wheelPixels.ts` is the largest single cost (about a fifth of the time): it works out each pixel's radius, angle and lighting from scratch on every frame. The owner chose to leave this for Phase 7. The fix is to precompute per-pixel geometry once per wheel size and reuse one `ImageData`.
-- **Phase 4 adds a full-screen effect on top of this.** Measure a round before and after, the same way, and do not accept a result that hides behind the wheel's existing cost. The two scripts used here were throwaway; the method is: Playwright, `Emulation.setCPUThrottlingRate` at 4, collect the gaps between animation frames while bets are placed and the wheel spins, against `vite preview` rather than the dev server (the dev build is slower and noisier).
-- **First load:** 133.8 kB of JavaScript gzipped, in three files, against the 200 kB budget.
+Each cell gives two runs of `node scripts/perf/round.mjs` against the production preview.
+
+- **The spin is close to 60 fps but does not hold it.** The wheel is now painted by `wheelPainter` in `src/lib/wheelPixels.ts`, which works out each pixel's geometry once per size; a test holds it to `wheelPixel` at every pixel. What is left is a handful of long frames (the worst is 130 to 200 ms) and about one frame in twenty-five over 20 ms. In a profile of a spin (`SPIN=1 node scripts/perf/profile.mjs 1440 900`, dev build) the painter is still the largest script cost at about a seventh of the time, and the browser's own work (style, paint, compositing) is twice that. The long single frames have not been traced; the likely places are the overlay opening and React re-rendering the table when a bet is placed or the tally starts.
+- **Phase 4 adds a full-screen effect on top of this.** Measure a round before and after with `scripts/perf/round.mjs`, twice each, against `vite preview` rather than the dev server (the dev build is slower and noisier).
+- **First load:** 135.0 kB of JavaScript gzipped, in three files, against the 200 kB budget.
 
 ### Left for later phases
 
 - **Phase 7 (phone, accessibility, performance):**
-  - The wheel painter, as above. Also at peak spin speed the wheel is drawn one frame behind its number overlay.
+  - The long frames in a round, as above.
   - On a phone the title sign and the scene put about 490 px above the table, so a player scrolled down to the felt sees little of the croupier or the wall's dim and flare. The scene is 288 px tall at every width because the croupier is drawn 204 px tall.
   - Reading order: the "PLACE YOUR BETS" heading now comes before the page's main "ROULETTE" heading, and the scene is a named region whose only exposed content is its own label.
   - With the system's reduced motion on and room animation turned on by hand, the CSS cycles (sway, breathing, fan, record, pendulum) stay off while smoke, blinks, silhouettes and light changes run.
-  - A tile's focus ring may be partly hidden by its neighbours; the active bet-mode button looks like the others while a spin locks them. Below 760 px the console is a single centred column.
+  - A tile's focus ring may be partly hidden by its neighbours. Below 760 px the console is a single centred column.
   - Never exercised by hand: resetting the session mid-spin (traced in review as clean, not played).
 - **Small things, any phase:**
-  - The croupier's eyes, or a silhouette half-way across the glass, can stay frozen across a pause; each resume glances again at the last chip. An idle glance and a look at a chip share one state and can cut each other short.
-  - The clock can run up to a minute behind, and is stale after a pause or with animation off.
-  - Centred sprites (lamp, croupier, clock, gramophone) can land on half pixels at odd scene widths; pausing holds CSS cycles mid-frame rather than resetting them.
-  - Several fixture offsets are repeated between `src/game.css` and `src/sprites/room.ts`; `RECORD_AT` is unused. The parallax hard-codes 3 and 48 where `--px` and the wall's repeat are meant.
-  - Smoke allocates an `ImageData` per frame and its top edge is not faded.
-  - No tests for `useRoomLight`, `useLive`, or the croupier's and fixtures' timers; that is where this phase's review found its bugs. The colour test does not catch named colours, `hsl()` or `oklch()`; no test pins that the ball rests in the winning pocket.
-  - From Phase 2: the circling ball rides the wood rim and loses two pixels at the wheel's outline; the number overlay's radius is a fixed 11 % in CSS rather than `RADII.numbers`.
+  - Pausing holds CSS cycles (sway, breathing, fan, record, pendulum) mid-frame rather than resetting them; the comments in `src/game.css` now say so. With room animation off the clock shows the time the page loaded.
+  - Pieces placed from the right edge of the stage (the fan, the wheel on its stand) can still sit off the art-pixel grid when the stage is not a whole number of art pixels wide. The centred pieces are snapped; `node scripts/perf/grid.mjs` checks them.
+  - The fixtures' sizes (door, fan, clock, gramophone boxes) are still stated in `src/game.css` as well as by their sprites.
+  - No tests for `useLive`, or for the timers in `Croupier.tsx` and `Fixtures.tsx` themselves; the decisions they make are tested in `src/lib/gaze.ts`, `runLight` in `src/lib/scene.ts` and `untilNextMinute` in `src/lib/clock.ts`. The colour test does not catch named colours.
+  - From Phase 2: the circling ball rides the wood rim and loses two pixels at the wheel's outline.
 
 ### Standing facts
 

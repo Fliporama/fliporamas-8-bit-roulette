@@ -12,6 +12,13 @@ export function dither(x: number, y: number): number {
   return (BAYER[y & 3][x & 3] + 0.5) / 16
 }
 
+/** A fixed scramble of a pixel's position, so texture never moves between redraws. */
+export function hash(x: number, y: number): number {
+  let mixed = Math.imul(x, 73856093) ^ Math.imul(y, 19349663)
+  mixed = Math.imul(mixed ^ (mixed >>> 13), 1274126177)
+  return (mixed ^ (mixed >>> 16)) >>> 0
+}
+
 export function rgb(hex: string): Rgb {
   return [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16)) as unknown as Rgb
 }

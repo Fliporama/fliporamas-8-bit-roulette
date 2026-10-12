@@ -3,6 +3,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import './styleguide.css'
 import Felt from '../components/Felt'
 import Sprite from '../components/Sprite'
+import WheelCanvas from '../components/WheelCanvas'
 import { CHIP_VALUES } from '../lib/chips'
 import { CHIP_SHADOW, CHIP_SPRITES } from '../sprites/chips'
 import { ICONS } from '../sprites/icons'
@@ -128,6 +129,12 @@ export default function Styleguide() {
 
       <Section title="Lit sample">
         <LitSample />
+      </Section>
+
+      <Section title="Wheel">
+        <div className="sg-wheel">
+          <WheelCanvas />
+        </div>
       </Section>
 
       <Section title="Components">

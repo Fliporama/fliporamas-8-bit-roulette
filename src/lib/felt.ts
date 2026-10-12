@@ -1,4 +1,4 @@
-import { dither } from './palette'
+import { dither, hash } from './palette'
 
 export type FeltStep = 0 | 1 | 2 | 3
 
@@ -6,13 +6,6 @@ const POOL = { x: 0.5, y: 0.2, reachX: 0.66, reachY: 1.05 } // the lamp's centre
 const BAND = 0.3 // share of each light step given to the dithered band at its bright edge
 const WEAR = 5 // art pixels from the rail over which the felt is worn darker
 const FLECK_ONE_IN = 61 // how sparse the single-pixel flecks of texture are
-
-/** A fixed scramble of a pixel's position, so texture never moves between redraws. */
-function hash(x: number, y: number): number {
-  let mixed = Math.imul(x, 73856093) ^ Math.imul(y, 19349663)
-  mixed = Math.imul(mixed ^ (mixed >>> 13), 1274126177)
-  return (mixed ^ (mixed >>> 16)) >>> 0
-}
 
 /**
  * The step of the felt ramp at one art pixel of a `cols` × `rows` felt lit from top centre.

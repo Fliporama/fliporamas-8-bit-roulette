@@ -314,3 +314,11 @@
 .sg-icons {
   --icon: var(--paper-1);
 }
+
+.sg-wheel {
+  display: grid;
+  place-items: center;
+  width: calc(var(--px) * 96);
+  height: calc(var(--px) * 96);
+  max-width: 100%;
+}

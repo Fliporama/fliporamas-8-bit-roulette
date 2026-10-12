@@ -1,10 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
-import '../tokens.css'
 import './styleguide.css'
 import Sprite from '../components/Sprite'
-import { CHIP_SHADOW, LAMP, RAIL, chip } from './sprites'
-import type { ChipValue } from './sprites'
+import { CHIP_VALUES } from '../lib/chips'
+import { CHIP_SHADOW, CHIP_SPRITES } from '../sprites/chips'
+import { ICONS } from '../sprites/icons'
+import { RAIL } from '../sprites/table'
+import { LAMP } from './sprites'
 
 const RAMPS = [
   { name: 'ink', steps: 3, job: 'outlines, deepest shadow, background' },
@@ -20,7 +22,6 @@ const RAMPS = [
 const DISPLAY_STEPS = [1, 2, 3, 4, 5]
 const TEXT_STEPS = [3, 4, 5]
 const SAMPLE = 'FLIPORAMA ROULETTE 0123456789'
-const CHIPS: ChipValue[] = [1, 5, 10, 25, 100]
 const BUTTON_STATES = ['rest', 'hover', 'pressed', 'disabled']
 const SCALES = [1, 2, 4]
 
@@ -115,8 +116,8 @@ function ChipStack() {
   return (
     <div className="sg-stack">
       <Sprite className="sg-stack-shadow" data={CHIP_SHADOW} />
-      {CHIPS.map((value, index) => (
-        <Sprite key={value} className="sg-stack-chip" data={chip(value)} style={{ '--level': index } as CSSProperties} />
+      {CHIP_VALUES.map((value, index) => (
+        <Sprite key={value} className="sg-stack-chip" data={CHIP_SPRITES[value]} style={{ '--level': index } as CSSProperties} />
       ))}
     </div>
   )
@@ -187,8 +188,8 @@ export default function Styleguide() {
           <span className="sg-tile is-zero">0</span>
         </div>
         <div className="sg-row sg-felt">
-          {CHIPS.map((value) => (
-            <Sprite key={value} data={chip(value)} scale={2} />
+          {CHIP_VALUES.map((value) => (
+            <Sprite key={value} data={CHIP_SPRITES[value]} scale={2} />
           ))}
           <div className="sg-stack-stage">
             <ChipStack />
@@ -206,9 +207,14 @@ export default function Styleguide() {
             <small className="sg-scale">{scale}x</small>
             <Sprite data={LAMP} scale={scale} />
             <Sprite data={RAIL} scale={scale} />
-            <Sprite data={chip(25)} scale={scale} />
+            <Sprite data={CHIP_SPRITES[25]} scale={scale} />
           </div>
         ))}
+        <div className="sg-row sg-icons">
+          {Object.entries(ICONS).map(([name, icon]) => (
+            <Sprite key={name} data={icon} scale={2} />
+          ))}
+        </div>
       </Section>
 
       <Section title="Type">

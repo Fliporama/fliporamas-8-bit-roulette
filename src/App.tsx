@@ -13,7 +13,7 @@ import {
 } from './lib/roulette'
 import type { BetTarget, InsideBetKind } from './lib/roulette'
 import { CHIP_VALUES } from './lib/chips'
-import type { PlacedBet } from './lib/chips'
+import type { ChipValue, PlacedBet } from './lib/chips'
 import { isMuted, setMuted } from './lib/sound'
 import { buildTally } from './lib/tally'
 import type { Tally, TallyStep } from './lib/tally'
@@ -30,7 +30,7 @@ type Phase = 'betting' | 'spinning' | 'tallying'
 
 function App() {
   const [balance, setBalance] = useState(STARTING_BANKROLL)
-  const [chipValue, setChipValue] = useState(5)
+  const [chipValue, setChipValue] = useState<ChipValue>(5)
   const [mode, setMode] = useState<InsideBetKind>('straight')
   const [bets, setBets] = useState<PlacedBet[]>([])
   const [pendingSplit, setPendingSplit] = useState<number[]>([])

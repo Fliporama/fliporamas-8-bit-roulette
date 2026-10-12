@@ -69,12 +69,15 @@ Text may only be set in these combinations. Each reaches a contrast ratio of at 
 
 | Text | On |
 |---|---|
-| `paper-1` | `ink-0`, `ink-1`, `ink-2`, `felt-0`, `felt-1`, `felt-2`, `wood-0`, `oxblood-0`, `oxblood-1` |
+| `paper-1` | `ink-0`, `ink-1`, `ink-2`, `felt-0`, `felt-1`, `felt-2`, `wood-0`, `wood-1`, `oxblood-0`, `oxblood-1` |
 | `paper-0` | `ink-1` |
-| `smoke-1`, `smoke-2` | `ink-1` |
-| `brass-2` | `ink-0`, `ink-1`, `felt-0` |
-| `brass-3` | `felt-1` |
-| `ink-0` | `brass-2`, `brass-3`, `paper-1`, `lamp-0` |
+| `smoke-1` | `ink-1` |
+| `smoke-2` | `ink-0`, `ink-1` |
+| `brass-2` | `ink-0`, `ink-1`, `felt-0`, `wood-0` |
+| `brass-3` | `ink-0`, `ink-1`, `felt-0`, `felt-1`, `wood-0`, `wood-1` |
+| `lamp-0` | `ink-0` |
+| `ink-0` | `brass-2`, `brass-3`, `paper-0`, `paper-1`, `lamp-0` |
+| `oxblood-1`, `smoke-0` | `paper-1` |
 
 To use a new combination, add it to `PAIRS` in that test first. Disabled controls are the one exception: they are deliberately low in contrast.
 

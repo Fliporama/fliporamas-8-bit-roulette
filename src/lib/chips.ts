@@ -1,6 +1,7 @@
 import type { BetKind, BetPlacement } from './roulette'
 
-export const CHIP_VALUES = [1, 5, 10, 25, 100]
+export const CHIP_VALUES = [1, 5, 10, 25, 100] as const
+export type ChipValue = (typeof CHIP_VALUES)[number]
 
 export interface Point {
   x: number
@@ -9,7 +10,7 @@ export interface Point {
 
 export interface Chip {
   id: number
-  value: number
+  value: ChipValue
 }
 
 /** A bet plus the physical chips that were tossed onto it, oldest first. */

@@ -314,3 +314,7 @@
   top: calc(var(--px) * 20);
   left: calc(var(--px) * 62);
 }
+
+.sg-icons {
+  --icon: var(--paper-1);
+}

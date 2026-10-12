@@ -1,0 +1,85 @@
+/* The art bible's tokens: see docs/art-bible.md. Step 0 is the darkest of each ramp. */
+
+/* Palette A: lamp-lit */
+:root {
+  --ink-0: #0a0f0e;
+  --ink-1: #121c19;
+  --ink-2: #1c2a26;
+  --felt-0: #0c3a2e;
+  --felt-1: #135242;
+  --felt-2: #1c6d55;
+  --felt-3: #2f8f6c;
+  --wood-0: #2a1a12;
+  --wood-1: #4a2e1c;
+  --wood-2: #6e4628;
+  --brass-0: #6b4a1e;
+  --brass-1: #a87a2c;
+  --brass-2: #dab04a;
+  --brass-3: #f4dc8a;
+  --oxblood-0: #5c1a1c;
+  --oxblood-1: #96302e;
+  --oxblood-2: #c8504a;
+  --smoke-0: #4a5a54;
+  --smoke-1: #7f9289;
+  --smoke-2: #aebdb3;
+  --paper-0: #d9d2ba;
+  --paper-1: #f5efdc;
+  --lamp-0: #ffd27a;
+  --lamp-1: #fff3c4;
+
+  /* One art pixel. Every size, border and offset is a whole multiple of it. */
+  --px: 3px;
+
+  --font-display: 'Press Start 2P', monospace;
+  --font-text: 'VT323', monospace;
+  --type-1: 10px;
+  --type-2: 14px;
+  --type-3: 18px;
+  --type-4: 28px;
+  --type-5: 44px;
+
+  /* Real casino colours: white, red, blue, green, black. */
+  --chip-1: var(--paper-0);
+  --chip-5: var(--oxblood-1);
+  --chip-10: var(--smoke-1);
+  --chip-25: var(--felt-3);
+  --chip-100: var(--ink-2);
+}
+
+/* Palette B: smoke and oxblood */
+[data-palette='b'] {
+  --ink-0: #0b0c12;
+  --ink-1: #14161f;
+  --ink-2: #1f2230;
+  --felt-0: #10362f;
+  --felt-1: #1a4d44;
+  --felt-2: #2a6a5b;
+  --felt-3: #4a8c78;
+  --wood-0: #2b1614;
+  --wood-1: #4d2620;
+  --wood-2: #753c2c;
+  --brass-0: #5e4526;
+  --brass-1: #997238;
+  --brass-2: #c9a25a;
+  --brass-3: #ecd79c;
+  --oxblood-0: #4f1524;
+  --oxblood-1: #842238;
+  --oxblood-2: #b8404e;
+  --smoke-0: #4c5266;
+  --smoke-1: #80879c;
+  --smoke-2: #b0b6c6;
+  --paper-0: #d4cfc4;
+  --paper-1: #f1ece2;
+  --lamp-0: #ffc98a;
+  --lamp-1: #ffeccc;
+}
+
+[data-type='2'] {
+  --font-display: 'Pixelify Sans', monospace;
+  --font-text: 'VT323', monospace;
+}
+
+[data-type='3'] {
+  --font-display: 'Jersey 10', monospace;
+  --font-text: 'Silkscreen', monospace;
+}

@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { lightFor, lookFor, reactionFor, sceneDefault } from './scene'
+import { levelOf, lightFor, lookFor, reactionFor, sceneDefault, startsOn } from './scene'
 import type { Moment } from './scene'
 
 const at = (phase: Moment['phase'], won = false): Moment => ({ phase, won })
@@ -39,4 +39,22 @@ it('starts on unless motion is reduced, and a stored choice wins', () => {
 it('ignores a stored value it did not write', () => {
   expect(sceneDefault('yes', false)).toBe(true)
   expect(sceneDefault('', true)).toBe(false)
+})
+
+it('still honours reduced motion when the stored setting cannot be read', () => {
+  const broken = () => {
+    throw new Error('storage is blocked')
+  }
+  expect(startsOn(broken, () => true)).toBe(false)
+  expect(startsOn(broken, () => false)).toBe(true)
+  expect(startsOn(() => '0', broken)).toBe(false)
+  expect(startsOn(() => null, broken)).toBe(true)
+})
+
+it('names the level a light shift shows as', () => {
+  expect(levelOf(-1)).toBe('dim')
+  expect(levelOf(-0.5)).toBe('dim') // a flicker, or half-way down: the lamp is already dimmer
+  expect(levelOf(0)).toBe('normal')
+  expect(levelOf(0.5)).toBe('normal')
+  expect(levelOf(1)).toBe('flare')
 })

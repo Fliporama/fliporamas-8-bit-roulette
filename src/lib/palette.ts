@@ -34,15 +34,23 @@ export function artPixel(element: Element): number {
   return parseFloat(getComputedStyle(element).getPropertyValue('--px')) || 1
 }
 
-/** Fills a `cols` × `rows` canvas, one canvas pixel per art pixel. `colour` returns nothing for a clear pixel. */
-export function paint(canvas: HTMLCanvasElement, cols: number, rows: number, colour: (x: number, y: number) => Rgb | undefined) {
+/**
+ * Fills a `cols` × `rows` canvas, one canvas pixel per art pixel. `colour` returns nothing for a clear pixel.
+ * Returns what it painted, for a caller that wants to show the same picture again without working it out.
+ */
+export function paint(
+  canvas: HTMLCanvasElement,
+  cols: number,
+  rows: number,
+  colour: (x: number, y: number) => Rgb | undefined,
+): ImageData | undefined {
   if (cols <= 0 || rows <= 0) return
   if (canvas.width !== cols) canvas.width = cols
   if (canvas.height !== rows) canvas.height = rows
   const context = canvas.getContext('2d')
   if (!context) return
   const image = context.createImageData(cols, rows)
-  // Written a byte at a time: this runs for every pixel of every frame, so it allocates nothing.
+  // Written a byte at a time: this runs for every pixel of every frame, so nothing is allocated per pixel.
   const bytes = image.data
   let at = 0
   for (let y = 0; y < rows; y++) {
@@ -58,4 +66,5 @@ export function paint(canvas: HTMLCanvasElement, cols: number, rows: number, col
     }
   }
   context.putImageData(image, 0, 0)
+  return image
 }

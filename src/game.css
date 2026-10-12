@@ -536,7 +536,7 @@ h1 {
 }
 
 /* Narrower still, the furniture goes piece by piece rather than crowd the croupier. */
-@container (max-width: 750px) {
+@container (max-width: 850px) {
   .fixture-clock,
   .fixture-gramophone {
     display: none;

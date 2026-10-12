@@ -17,7 +17,7 @@ import {
 import type { BetTarget, InsideBetKind } from './lib/roulette'
 import { CHIP_VALUES } from './lib/chips'
 import type { ChipValue, PlacedBet } from './lib/chips'
-import { isSceneOn, lightFor, lookFor, reactionFor, setSceneOn } from './lib/scene'
+import { isSceneOn, levelOf, lightFor, lookFor, reactionFor, setSceneOn } from './lib/scene'
 import type { Look, Moment } from './lib/scene'
 import { isMuted, setMuted } from './lib/sound'
 import { buildTally } from './lib/tally'
@@ -216,7 +216,7 @@ function App() {
           </div>
         </header>
 
-        <main id="game" data-light={lightFor(moment)}>
+        <main id="game" data-light={levelOf(Math.round(light))}>
           <div className="game-layout">
             <section className="table-section" aria-label="Roulette betting table">
               <div className="section-heading">

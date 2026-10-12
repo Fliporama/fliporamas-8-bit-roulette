@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
-import type { Light, Look, Reaction } from '../lib/scene'
+import { levelOf } from '../lib/scene'
+import type { Look, Reaction } from '../lib/scene'
 import { useLive } from '../lib/useLive'
 import { LAMPS, WHEEL_STAND } from '../sprites/room'
 import Croupier from './Croupier'
@@ -31,9 +32,10 @@ interface SceneProps {
 export default function Scene({ light, reaction, look, on, children }: SceneProps) {
   const stage = useRef<HTMLDivElement>(null)
   const live = useLive(stage, on)
-  const level: Light = light < 0 ? 'dim' : light >= 1 ? 'flare' : 'normal'
+  const level = levelOf(light)
 
   // Parallax: the room behind the page drifts against the pointer and lags the scroll, in whole art pixels.
+  // It follows the setting, not `live`: the wall is still on screen after the scene has scrolled away.
   useEffect(() => {
     const root = document.documentElement
     const set = (name: string, value: string) => root.style.setProperty(name, value)
@@ -43,7 +45,7 @@ export default function Scene({ light, reaction, look, on, children }: SceneProp
       set('--drift-near', '0')
       set('--scroll-y', '0px')
     }
-    if (!live) return rest()
+    if (!on) return rest()
     const drift = (event: PointerEvent) => {
       const across = (0.5 - event.clientX / window.innerWidth) * 2 * DRIFT
       set('--drift-x', String(Math.round(across)))
@@ -58,7 +60,7 @@ export default function Scene({ light, reaction, look, on, children }: SceneProp
       window.removeEventListener('scroll', scroll)
       rest()
     }
-  }, [live])
+  }, [on])
 
   return (
     <section className={live ? 'scene' : 'scene is-still'} aria-labelledby="game-title">
@@ -72,8 +74,9 @@ export default function Scene({ light, reaction, look, on, children }: SceneProp
           </div>
           <Sprite data={WHEEL_STAND} />
         </div>
-        {/* Behind the croupier: smoke across the face would hide the eyes, the one thing it shows. */}
-        <Smoke live={live} />
+        {/* Behind the croupier: smoke across the face would hide the eyes, the one thing it shows.
+            Cleared during a spin: the wheel's overlay covers the room, and the wheel needs the frame time. */}
+        <Smoke live={live && reaction !== 'noMoreBets'} />
         <div className="scene-croupier">
           <Croupier reaction={reaction} look={look} live={live} />
         </div>

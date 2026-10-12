@@ -15,6 +15,12 @@ const STORAGE_KEY = 'fliporama-scene'
 /** Light steps added to the lamp's pool at each level. */
 export const LIGHT_SHIFT: Record<Light, number> = { dim: -1, normal: 0, flare: 1 }
 
+/** The level a light shift shows as: anything below normal already looks dim, and only a full step up is a flare. */
+export function levelOf(shift: number): Light {
+  if (shift < 0) return 'dim'
+  return shift >= 1 ? 'flare' : 'normal'
+}
+
 /** The room dims while the wheel turns and flares when a win is counted out. */
 export function lightFor({ phase, won }: Moment): Light {
   if (phase === 'spinning') return 'dim'
@@ -41,12 +47,30 @@ export function sceneDefault(stored: string | null, reducedMotion: boolean): boo
   return !reducedMotion
 }
 
-let on = true
-try {
-  on = sceneDefault(localStorage.getItem(STORAGE_KEY), matchMedia('(prefers-reduced-motion: reduce)').matches)
-} catch {
-  // No storage or no media queries: the room animates, and the setting just doesn't persist.
+/**
+ * Whether room animation starts on, from two sources that can each be missing or blocked.
+ * They are read apart: a browser that refuses storage must still be asked about reduced motion.
+ */
+export function startsOn(readStored: () => string | null, readReducedMotion: () => boolean): boolean {
+  let stored: string | null = null
+  let reducedMotion = false
+  try {
+    stored = readStored()
+  } catch {
+    // No storage: the setting just doesn't persist.
+  }
+  try {
+    reducedMotion = readReducedMotion()
+  } catch {
+    // No media queries: assume motion is welcome.
+  }
+  return sceneDefault(stored, reducedMotion)
 }
+
+let on = startsOn(
+  () => localStorage.getItem(STORAGE_KEY),
+  () => matchMedia('(prefers-reduced-motion: reduce)').matches,
+)
 
 export function isSceneOn(): boolean {
   return on

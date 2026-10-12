@@ -31,8 +31,11 @@ export function useRoomLight(level: Light, live: boolean): number {
     }
     if (level === 'normal') {
       const flicker = () => {
-        show(FLICKER.shift)
-        later(() => show(0), FLICKER.ms)
+        // Not in a hidden tab: a flicker repaints the felt and the wall for nobody.
+        if (!document.hidden) {
+          show(FLICKER.shift)
+          later(() => show(0), FLICKER.ms)
+        }
         later(flicker, FLICKER.everyMin + Math.random() * (FLICKER.everyMax - FLICKER.everyMin))
       }
       later(flicker, FLICKER.everyMin + Math.random() * (FLICKER.everyMax - FLICKER.everyMin))

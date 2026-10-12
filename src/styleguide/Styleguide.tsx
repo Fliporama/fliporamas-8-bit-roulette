@@ -140,22 +140,22 @@ export default function Styleguide() {
       <Section title="Components">
         <div className="sg-row">
           {BUTTON_STATES.map((state) => (
-            <button key={state} type="button" className={`sg-button is-primary is-${state}`} disabled={state === 'disabled'}>
+            <button key={state} type="button" className={`button is-primary is-${state}`} disabled={state === 'disabled'}>
               {state}
             </button>
           ))}
         </div>
         <div className="sg-row">
           {BUTTON_STATES.map((state) => (
-            <button key={state} type="button" className={`sg-button is-${state}`} disabled={state === 'disabled'}>
+            <button key={state} type="button" className={`button is-${state}`} disabled={state === 'disabled'}>
               {state}
             </button>
           ))}
         </div>
         <div className="sg-row">
-          <span className="sg-tile is-red">7</span>
-          <span className="sg-tile is-black">8</span>
-          <span className="sg-tile is-zero">0</span>
+          <span className="sg-tile pocket pocket-red">7</span>
+          <span className="sg-tile pocket pocket-black">8</span>
+          <span className="sg-tile pocket pocket-green">0</span>
         </div>
         <div className="sg-row sg-felt">
           {CHIP_VALUES.map((value) => (
@@ -165,7 +165,7 @@ export default function Styleguide() {
             <ChipStack />
           </div>
         </div>
-        <div className="sg-panel">
+        <div className="sg-panel panel">
           <h3>Panel</h3>
           <p>A raised surface: lit along its top edge, with a hard shadow below.</p>
         </div>

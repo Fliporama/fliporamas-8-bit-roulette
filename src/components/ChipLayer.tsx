@@ -2,23 +2,26 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import type { TargetAndTransition, ValueTransition } from 'motion/react'
-import { CHIP_VALUES, stackAnchor, tossDuration } from '../lib/chips'
+import { CHIP_VALUES, boxAnchor, stackAnchor, tossDuration } from '../lib/chips'
 import type { Chip, PlacedBet, Point } from '../lib/chips'
 import { formatChips } from '../lib/roulette'
 import type { BetTarget } from '../lib/roulette'
 import { play } from '../lib/sound'
 import type { TallyStep } from '../lib/tally'
+import { CHIP_SHADOW, CHIP_SPRITES } from '../sprites/chips'
+import Sprite from './Sprite'
 
 const WIND_UP_MS = 90 // the picker chip crouches before the throw
 const SETTLE_MS = 220 // squash and recover after landing
 const LIFT = { min: 40, max: 120, perPixel: 0.15 } // height of the arc
-const PICKER_SCALE = 1.7 // a chip leaves the picker at the picker's size...
-const APEX_SCALE = 1.9 // ...swells towards the viewer at the top of the arc...
+const PICKER_SCALE = 1 // a chip leaves the picker at the picker's size...
+const APEX_SCALE = 1.12 // ...swells towards the viewer at the top of the arc...
 const SQUASH = { x: 1.35, y: 0.7 } // ...and flattens on impact
 const HEAVY_SQUASH = { x: 1.5, y: 0.6 } // the top denomination lands harder
-const STACK_RISE = 3
+const STACK_RISE = 6 // the depth of a chip's edge, so a stack reads as a solid column
 const STACK_CAP = 6
-const OUTSIDE_INSET = 16 // outside bets stack at the right of their box, clear of the label
+const BOX_INSET = 21 // outside and straight bets stack at the right of their box, clear of the label
+const SCATTER = 3 // chips land up to one art pixel off-centre, so a stack looks tossed rather than placed
 const STAGGER_MS = 30
 const SWEEP_PX = 90
 
@@ -56,9 +59,9 @@ function tiles(table: HTMLElement, target: BetTarget): HTMLElement[] {
 function anchorOf(table: HTMLElement, target: BetTarget): Point | undefined {
   const found = tiles(table, target)
   if (found.length === 0) return undefined
-  if (!INSIDE_KINDS.includes(target.kind)) {
+  if (found.length === 1) {
     const [box] = found
-    return { x: box.offsetLeft + box.offsetWidth - OUTSIDE_INSET, y: box.offsetTop + box.offsetHeight / 2 }
+    return boxAnchor({ x: box.offsetLeft, y: box.offsetTop, width: box.offsetWidth, height: box.offsetHeight }, BOX_INSET)
   }
   return stackAnchor(
     target.kind,
@@ -74,7 +77,7 @@ function pointAt(layer: HTMLElement | null, selector: string): Point {
   return { x: rect.left + rect.width / 2 - box.left, y: rect.top + rect.height / 2 - box.top }
 }
 
-const pickerChip = (value: number) => `[data-chip="${value}"] .chip-token`
+const pickerChip = (value: number) => `[data-chip="${value}"] svg`
 
 interface ChipLayerProps {
   bets: readonly PlacedBet[]
@@ -178,10 +181,9 @@ function TossedChip({ chip, index, stack, anchor, target, hopping, layer, still 
       ms: tossDuration(distance),
       lift: Math.min(LIFT.max, LIFT.min + distance * LIFT.perPixel),
       spin: (Math.random() < 0.5 ? -1 : 1) * (180 + Math.random() * 180),
-      // Chips land a little off-centre and turned, so a stack looks tossed rather than placed.
-      tilt: (Math.random() - 0.5) * 20,
-      dx: (Math.random() - 0.5) * 4,
-      dy: (Math.random() - 0.5) * 4,
+      // A whole art pixel or none: a chip at rest stays on the grid, and is never left turned.
+      dx: Math.round(Math.random() * 2 - 1) * SCATTER,
+      dy: Math.round(Math.random() * 2 - 1) * SCATTER,
     }
   })
   const landAt = WIND_UP_MS + toss.ms
@@ -256,7 +258,7 @@ function TossedChip({ chip, index, stack, anchor, target, hopping, layer, still 
   return (
     <motion.span
       className="chip-slot"
-      style={{ left: anchor.x + toss.dx, top: anchor.y + toss.dy - rise }}
+      style={{ left: Math.round(anchor.x) + toss.dx, top: Math.round(anchor.y) + toss.dy - rise }}
       initial={still ? false : { x: toss.x, y: toss.y }}
       animate={{ x: 0, y: 0 }}
       exit="leave"
@@ -270,7 +272,9 @@ function TossedChip({ chip, index, stack, anchor, target, hopping, layer, still 
             initial={{ scale: PICKER_SCALE, opacity: 0.15 }}
             animate={{ scale: [PICKER_SCALE, APEX_SCALE + 0.3, 1], opacity: [0.15, 0.1, 0.45] }}
             transition={{ delay, duration: flight, times: [0, 0.5, 1] }}
-          />
+          >
+            <Sprite data={CHIP_SHADOW} />
+          </motion.i>
           <motion.i
             className="chip-puff"
             initial={{ scale: 0.5, opacity: 0 }}
@@ -281,17 +285,17 @@ function TossedChip({ chip, index, stack, anchor, target, hopping, layer, still 
       )}
       <span className="chip-hop" ref={hop}>
         <motion.span
-          className={`chip-body chip-tone-${CHIP_VALUES.indexOf(chip.value)}`}
+          className="chip-body"
           initial={still ? false : { y: 0, scaleX: PICKER_SCALE, scaleY: PICKER_SCALE, rotate: toss.spin }}
           animate={{
             y: [0, -toss.lift, 0, 0, 0],
             scaleX: [PICKER_SCALE, APEX_SCALE, 1, squash.x, 1],
             scaleY: [PICKER_SCALE, APEX_SCALE, 1.15, squash.y, 1],
-            rotate: toss.tilt,
+            rotate: 0,
           }}
           transition={{ y: pose, scaleX: pose, scaleY: pose, rotate: { delay, duration: flight, ease: 'easeOut' } }}
         >
-          <span className="chip-token">{chip.value}</span>
+          <Sprite data={CHIP_SPRITES[chip.value]} />
         </motion.span>
       </span>
     </motion.span>

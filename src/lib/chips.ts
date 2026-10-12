@@ -1,6 +1,7 @@
 import type { BetKind, BetPlacement } from './roulette'
 
-export const CHIP_VALUES = [1, 5, 10, 25, 100]
+export const CHIP_VALUES = [1, 5, 10, 25, 100] as const
+export type ChipValue = (typeof CHIP_VALUES)[number]
 
 export interface Point {
   x: number
@@ -9,7 +10,7 @@ export interface Point {
 
 export interface Chip {
   id: number
-  value: number
+  value: ChipValue
 }
 
 /** A bet plus the physical chips that were tossed onto it, oldest first. */
@@ -43,6 +44,18 @@ export function stackAnchor(kind: BetKind, centres: readonly Point[]): Point {
     default:
       return centres[0]
   }
+}
+
+export interface Box {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+/** Where chips sit in a box that also holds a label: `inset` from its right edge, centred vertically. */
+export function boxAnchor(box: Box, inset: number): Point {
+  return { x: box.x + box.width - inset, y: box.y + box.height / 2 }
 }
 
 /** Milliseconds a chip spends in the air: longer throws take longer, within limits. */

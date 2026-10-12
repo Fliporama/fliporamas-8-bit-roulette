@@ -1,10 +1,14 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
-import '../tokens.css'
 import './styleguide.css'
+import Felt from '../components/Felt'
 import Sprite from '../components/Sprite'
-import { CHIP_SHADOW, LAMP, RAIL, chip } from './sprites'
-import type { ChipValue } from './sprites'
+import WheelCanvas from '../components/WheelCanvas'
+import { CHIP_VALUES } from '../lib/chips'
+import { CHIP_SHADOW, CHIP_SPRITES } from '../sprites/chips'
+import { ICONS } from '../sprites/icons'
+import { RAIL } from '../sprites/table'
+import { LAMP } from './sprites'
 
 const RAMPS = [
   { name: 'ink', steps: 3, job: 'outlines, deepest shadow, background' },
@@ -20,20 +24,11 @@ const RAMPS = [
 const DISPLAY_STEPS = [1, 2, 3, 4, 5]
 const TEXT_STEPS = [3, 4, 5]
 const SAMPLE = 'FLIPORAMA ROULETTE 0123456789'
-const CHIPS: ChipValue[] = [1, 5, 10, 25, 100]
 const BUTTON_STATES = ['rest', 'hover', 'pressed', 'disabled']
 const SCALES = [1, 2, 4]
 
 // The lit sample, in art pixels.
 const FELT = { cols: 96, rows: 44 }
-const POOL = { x: 0.5, y: 0.2, reachX: 0.66, reachY: 1.05 } // centre and reach, as fractions of the felt
-const BAND = 0.3 // share of each light step given to the dithered band at its edge
-const BAYER = [
-  [0, 8, 2, 10],
-  [12, 4, 14, 6],
-  [3, 11, 1, 9],
-  [15, 7, 13, 5],
-]
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -81,42 +76,12 @@ function TypeFace({ label, font, steps }: { label: string; font: string; steps: 
   )
 }
 
-/**
- * Lamp light on felt, one canvas pixel per art pixel. Light falls off in four flat steps of the
- * felt ramp; where two steps meet, an ordered dither blends them. Never a smooth gradient.
- */
-function LightPool() {
-  const canvas = useRef<HTMLCanvasElement>(null)
-  useEffect(() => {
-    const context = canvas.current?.getContext('2d')
-    if (!canvas.current || !context) return
-    const style = getComputedStyle(canvas.current)
-    const felt = [0, 1, 2, 3].map((step) => style.getPropertyValue(`--felt-${step}`).trim())
-    for (let y = 0; y < FELT.rows; y++) {
-      for (let x = 0; x < FELT.cols; x++) {
-        const distance = Math.hypot(
-          ((x + 0.5) / FELT.cols - POOL.x) / POOL.reachX,
-          ((y + 0.5) / FELT.rows - POOL.y) / POOL.reachY,
-        )
-        const light = Math.max(0, Math.min(2.999, (1 - distance) * 3))
-        const step = Math.floor(light)
-        // 0 across the flat part of a step, rising to 1 through the band at its bright edge.
-        const blend = Math.max(0, (light - step - (1 - BAND)) / BAND)
-        const dithered = blend > (BAYER[y % 4][x % 4] + 0.5) / 16
-        context.fillStyle = felt[step + (dithered ? 1 : 0)]
-        context.fillRect(x, y, 1, 1)
-      }
-    }
-  }, [])
-  return <canvas className="sg-light" ref={canvas} width={FELT.cols} height={FELT.rows} />
-}
-
 function ChipStack() {
   return (
     <div className="sg-stack">
       <Sprite className="sg-stack-shadow" data={CHIP_SHADOW} />
-      {CHIPS.map((value, index) => (
-        <Sprite key={value} className="sg-stack-chip" data={chip(value)} style={{ '--level': index } as CSSProperties} />
+      {CHIP_VALUES.map((value, index) => (
+        <Sprite key={value} className="sg-stack-chip" data={CHIP_SPRITES[value]} style={{ '--level': index } as CSSProperties} />
       ))}
     </div>
   )
@@ -133,7 +98,7 @@ function LitSample() {
         ))}
       </div>
       <div className="sg-lit-felt">
-        <LightPool />
+        <Felt />
         <ChipStack />
       </div>
     </div>
@@ -166,35 +131,41 @@ export default function Styleguide() {
         <LitSample />
       </Section>
 
+      <Section title="Wheel">
+        <div className="sg-wheel">
+          <WheelCanvas />
+        </div>
+      </Section>
+
       <Section title="Components">
         <div className="sg-row">
           {BUTTON_STATES.map((state) => (
-            <button key={state} type="button" className={`sg-button is-primary is-${state}`} disabled={state === 'disabled'}>
+            <button key={state} type="button" className={`button is-primary is-${state}`} disabled={state === 'disabled'}>
               {state}
             </button>
           ))}
         </div>
         <div className="sg-row">
           {BUTTON_STATES.map((state) => (
-            <button key={state} type="button" className={`sg-button is-${state}`} disabled={state === 'disabled'}>
+            <button key={state} type="button" className={`button is-${state}`} disabled={state === 'disabled'}>
               {state}
             </button>
           ))}
         </div>
         <div className="sg-row">
-          <span className="sg-tile is-red">7</span>
-          <span className="sg-tile is-black">8</span>
-          <span className="sg-tile is-zero">0</span>
+          <span className="sg-tile pocket pocket-red">7</span>
+          <span className="sg-tile pocket pocket-black">8</span>
+          <span className="sg-tile pocket pocket-green">0</span>
         </div>
         <div className="sg-row sg-felt">
-          {CHIPS.map((value) => (
-            <Sprite key={value} data={chip(value)} scale={2} />
+          {CHIP_VALUES.map((value) => (
+            <Sprite key={value} data={CHIP_SPRITES[value]} scale={2} />
           ))}
           <div className="sg-stack-stage">
             <ChipStack />
           </div>
         </div>
-        <div className="sg-panel">
+        <div className="sg-panel panel">
           <h3>Panel</h3>
           <p>A raised surface: lit along its top edge, with a hard shadow below.</p>
         </div>
@@ -206,9 +177,14 @@ export default function Styleguide() {
             <small className="sg-scale">{scale}x</small>
             <Sprite data={LAMP} scale={scale} />
             <Sprite data={RAIL} scale={scale} />
-            <Sprite data={chip(25)} scale={scale} />
+            <Sprite data={CHIP_SPRITES[25]} scale={scale} />
           </div>
         ))}
+        <div className="sg-row sg-icons">
+          {Object.entries(ICONS).map(([name, icon]) => (
+            <Sprite key={name} data={icon} scale={2} />
+          ))}
+        </div>
       </Section>
 
       <Section title="Type">

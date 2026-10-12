@@ -1,4 +1,4 @@
-export type Rgb = readonly [number, number, number]
+type Rgb = readonly [number, number, number]
 
 const BAYER = [
   [0, 8, 2, 10],

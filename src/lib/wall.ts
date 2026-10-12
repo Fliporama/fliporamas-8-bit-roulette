@@ -13,7 +13,10 @@ export interface WallView {
 
 export const WALL_TOKENS: readonly string[] = ['ink-0', 'ink-1', 'ink-2', 'wood-0', 'wood-1', 'wood-2']
 
-const MOTIF = { every: 16, size: 5 } // the wallpaper's diamond: art pixels between repeats, and its half-width
+/** Art pixels after which the wallpaper repeats. */
+export const WALL_REPEAT = 16
+
+const MOTIF = { every: WALL_REPEAT, size: 5 } // the wallpaper's diamond: art pixels between repeats, and its half-width
 const BOARD = 12 // art pixels from one panelling groove to the next
 const CAP = 2 // the rail along the top of the panelling
 const GRAIN_ONE_IN = 23

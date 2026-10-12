@@ -1,6 +1,6 @@
 import { dither, hash } from './palette'
 
-export type SmokeToken = 'smoke-0' | 'smoke-1'
+type SmokeToken = 'smoke-0' | 'smoke-1'
 
 const CELL = { x: 7, y: 16 } // art pixels across and up one wisp: taller than wide, so smoke reads as rising
 const RISE = 5 // art pixels a second, upward

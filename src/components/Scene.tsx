@@ -2,7 +2,9 @@ import { useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
 import { levelOf } from '../lib/scene'
 import type { Look, Reaction } from '../lib/scene'
+import { artPixel } from '../lib/palette'
 import { useLive } from '../lib/useLive'
+import { WALL_REPEAT } from '../lib/wall'
 import { LAMPS, WHEEL_STAND } from '../sprites/room'
 import Croupier from './Croupier'
 import Fixtures from './Fixtures'
@@ -14,7 +16,7 @@ import WheelCanvas from './WheelCanvas'
 const LAMP_AT = { x: 0.5, y: 0.27 } // the bulb, as fractions of the stage
 const SKIRT = 0.7 // where the wall's panelling begins
 const DRIFT = 2 // art pixels the room shifts as the pointer crosses the screen
-const SCROLL = { share: 0.1, repeat: 48 } // the wall follows a tenth of the page's scroll, wrapped to its pattern
+const SCROLL_SHARE = 0.1 // the wall follows a tenth of the page's scroll, wrapped to its pattern
 
 interface SceneProps {
   /** The room's light, in light steps: see useRoomLight. */
@@ -46,13 +48,14 @@ export default function Scene({ light, reaction, look, on, children }: SceneProp
       set('--scroll-y', '0px')
     }
     if (!on) return rest()
+    const px = artPixel(root)
     const drift = (event: PointerEvent) => {
       const across = (0.5 - event.clientX / window.innerWidth) * 2 * DRIFT
       set('--drift-x', String(Math.round(across)))
       set('--drift-near', String(Math.round(across / 2))) // the furniture is nearer than the wall behind the page
       set('--drift-y', String(Math.round((0.5 - event.clientY / window.innerHeight) * 2 * DRIFT)))
     }
-    const scroll = () => set('--scroll-y', `${-Math.round(((window.scrollY * SCROLL.share) % SCROLL.repeat) / 3) * 3}px`)
+    const scroll = () => set('--scroll-y', `${-Math.round(((window.scrollY * SCROLL_SHARE) % (WALL_REPEAT * px)) / px) * px}px`)
     window.addEventListener('pointermove', drift, { passive: true })
     window.addEventListener('scroll', scroll, { passive: true })
     return () => {

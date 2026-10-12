@@ -142,7 +142,7 @@ const WELL = 5
 const SPOKES = 6
 const BALL_BOX = 4 // art pixels past the ball's edge that its outline and shadow can reach, rounded up
 
-export type WheelPainter = (view: Omit<WheelView, 'size'>, colours: ArrayLike<number>, out: { [at: number]: number }) => void
+type WheelPainter = (view: Omit<WheelView, 'size'>, colours: ArrayLike<number>, out: { [at: number]: number }) => void
 
 /**
  * `wheelPixel` for a whole wheel at once: everything that depends only on where a pixel is gets worked out here, once.

@@ -1,6 +1,6 @@
 import { dither, hash } from './palette'
 
-export type FeltStep = 0 | 1 | 2 | 3
+type FeltStep = 0 | 1 | 2 | 3
 
 const POOL = { x: 0.5, y: 0.2, reachX: 0.66, reachY: 1.05 } // the lamp's centre and reach, as fractions of the felt
 const BAND = 0.3 // share of each light step given to the dithered band at its bright edge

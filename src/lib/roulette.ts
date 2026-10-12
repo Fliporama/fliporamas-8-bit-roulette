@@ -1,7 +1,7 @@
-export type PocketColor = 'green' | 'red' | 'black'
+type PocketColor = 'green' | 'red' | 'black'
 
 export type InsideBetKind = 'straight' | 'split' | 'street' | 'sixLine'
-export type OutsideBetKind =
+type OutsideBetKind =
   | 'red'
   | 'black'
   | 'even'

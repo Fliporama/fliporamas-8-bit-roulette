@@ -1,3 +1,5 @@
+import ChipLayer from './ChipLayer'
+import type { PlacedBet } from '../lib/chips'
 import { createOutsideTarget, formatChips, getPocketColor } from '../lib/roulette'
 import type { BetTarget, InsideBetKind } from '../lib/roulette'
 import type { TallyStep } from '../lib/tally'
@@ -13,11 +15,15 @@ const EVEN_MONEY = (['low', 'even', 'red', 'black', 'odd', 'high'] as const).map
 
 interface RouletteTableProps {
   mode: InsideBetKind
+  bets: readonly PlacedBet[]
   numberStakes: Record<number, number>
   stakes: ReadonlyMap<string, number>
   selectedNumbers: number[]
   winner: number | undefined
   scoring: TallyStep | undefined
+  /** The landed pocket while the round is being tallied. */
+  result: number | undefined
+  collecting: boolean
   losing: boolean
   disabled: boolean
   onPocketClick: (number: number) => void
@@ -26,42 +32,36 @@ interface RouletteTableProps {
 
 export default function RouletteTable({
   mode,
+  bets,
   numberStakes,
   stakes,
   selectedNumbers,
   winner,
   scoring,
+  result,
+  collecting,
   losing,
   disabled,
   onPocketClick,
   onBet,
 }: RouletteTableProps) {
   const scoringInside = scoring && INSIDE_KINDS.includes(scoring.target.kind) ? scoring : undefined
-  const payoutPop = scoring && (
-    <em className="payout-pop" key={scoring.target.id}>
-      <span>
-        {formatChips(scoring.stake)} × {scoring.target.returnMultiplier}
-      </span>
-      <span>+{formatChips(scoring.payout)}</span>
-    </em>
-  )
 
   const pocket = (number: number) => {
     const stake = numberStakes[number] ?? 0
     const selected = selectedNumbers.includes(number)
     return (
       <button
-        className={`pocket pocket-${getPocketColor(number)}${selected ? ' is-pending' : ''}${stake ? ' has-chip' : ''}${number === winner ? ' is-winner' : ''}${scoringInside?.target.numbers.includes(number) ? ' is-scoring' : ''}`}
+        className={`pocket pocket-${getPocketColor(number)}${selected ? ' is-pending' : ''}${number === winner ? ' is-winner' : ''}${scoringInside?.target.numbers.includes(number) ? ' is-scoring' : ''}`}
         type="button"
         aria-label={`${mode} bet on pocket ${number}${stake ? `, ${stake} chips placed` : ''}`}
         aria-pressed={selected}
         key={number}
+        data-spot={`n${number}`}
         disabled={disabled}
         onClick={() => onPocketClick(number)}
       >
         <span>{number}</span>
-        {stake > 0 && <small>{formatChips(stake)}</small>}
-        {scoringInside && number === winner && payoutPop}
       </button>
     )
   }
@@ -76,12 +76,12 @@ export default function RouletteTable({
         type="button"
         aria-label={`${target.label}, pays ${odds.replace(':', ' to ')}${stake ? `, ${stake} chips placed` : ''}`}
         key={target.id}
+        data-spot={target.id}
         disabled={disabled}
         onClick={() => onBet(target)}
       >
         {label && <span>{label}</span>}
         <small>{stake ? formatChips(stake) : odds}</small>
-        {isScoring && payoutPop}
       </button>
     )
   }
@@ -93,6 +93,7 @@ export default function RouletteTable({
       <div className="column-bets">{COLUMNS.map((target) => outside(target, ''))}</div>
       <div className="dozen-bets">{DOZENS.map((target) => outside(target))}</div>
       <div className="even-money-bets">{EVEN_MONEY.map((target) => outside(target))}</div>
+      <ChipLayer bets={bets} scoring={scoring} result={result} collecting={collecting} />
     </div>
   )
 }

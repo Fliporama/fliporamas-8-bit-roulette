@@ -11,13 +11,14 @@ import {
   getPocketColor,
   randomPocket,
 } from './lib/roulette'
-import type { BetPlacement, BetTarget, InsideBetKind } from './lib/roulette'
+import type { BetTarget, InsideBetKind } from './lib/roulette'
+import { CHIP_VALUES } from './lib/chips'
+import type { PlacedBet } from './lib/chips'
 import { isMuted, setMuted } from './lib/sound'
 import { buildTally } from './lib/tally'
 import type { Tally, TallyStep } from './lib/tally'
 
 const STARTING_BANKROLL = 1000
-const CHIP_VALUES = [1, 5, 10, 25, 100]
 const INSIDE_MODES: { kind: InsideBetKind; label: string }[] = [
   { kind: 'straight', label: 'Straight' },
   { kind: 'split', label: 'Split' },
@@ -31,7 +32,7 @@ function App() {
   const [balance, setBalance] = useState(STARTING_BANKROLL)
   const [chipValue, setChipValue] = useState(5)
   const [mode, setMode] = useState<InsideBetKind>('straight')
-  const [bets, setBets] = useState<BetPlacement[]>([])
+  const [bets, setBets] = useState<PlacedBet[]>([])
   const [pendingSplit, setPendingSplit] = useState<number[]>([])
   const [lastSpin, setLastSpin] = useState<{ number: number; returned: number; change: number } | undefined>()
   const [phase, setPhase] = useState<Phase>('betting')
@@ -41,6 +42,7 @@ function App() {
   const [muted, setMutedState] = useState(isMuted)
 
   const roundCount = useRef(0)
+  const chipCount = useRef(0)
   const isLocked = phase !== 'betting'
   // The balance is settled the moment spin is pressed; the display holds the win back until the round ends.
   const shownBalance = balance - (round?.tally.returned ?? 0)
@@ -63,12 +65,16 @@ function App() {
       return
     }
 
+    chipCount.current += 1
+    const chip = { id: chipCount.current, value: chipValue }
     setBalance((current) => current - chipValue)
     setBets((current) => {
       const existing = current.find((bet) => bet.target.id === target.id)
-      if (!existing) return [...current, { target, stake: chipValue }]
+      if (!existing) return [...current, { target, stake: chipValue, chips: [chip] }]
       return current.map((bet) =>
-        bet.target.id === target.id ? { ...bet, stake: bet.stake + chipValue } : bet,
+        bet.target.id === target.id
+          ? { ...bet, stake: bet.stake + chipValue, chips: [...bet.chips, chip] }
+          : bet,
       )
     })
     setLastSpin(undefined)
@@ -223,11 +229,14 @@ function App() {
 
               <RouletteTable
                 mode={mode}
+                bets={bets}
                 numberStakes={numberStakes}
                 stakes={betStakeById}
                 selectedNumbers={pendingSplit}
                 winner={phase === 'tallying' && round ? round.result : lastSpin?.number}
                 scoring={scoring}
+                result={phase === 'tallying' ? round?.result : undefined}
+                collecting={Boolean(lastSpin)}
                 losing={phase === 'tallying' && round?.tally.tier === 'none'}
                 disabled={isLocked}
                 onPocketClick={placeInsideBet}
@@ -272,6 +281,7 @@ function App() {
                     aria-label={`${value} chips`}
                     aria-pressed={chipValue === value}
                     key={value}
+                    data-chip={value}
                     disabled={isLocked}
                     onClick={() => setChipValue(value)}
                   >

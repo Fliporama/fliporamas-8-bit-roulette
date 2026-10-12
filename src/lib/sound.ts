@@ -1,9 +1,10 @@
-export type SoundName = 'ballClick' | 'tick' | 'win' | 'bigWin' | 'loss'
+export type SoundName = 'ballClick' | 'chip' | 'tick' | 'win' | 'bigWin' | 'loss'
 
 const STORAGE_KEY = 'fliporama-muted'
 const GAIN = 0.06
 const NOTES: Record<Exclude<SoundName, 'tick'>, { frequencies: number[]; ms: number }> = {
   ballClick: { frequencies: [1200], ms: 25 },
+  chip: { frequencies: [620, 410], ms: 18 },
   win: { frequencies: [523, 659], ms: 90 },
   bigWin: { frequencies: [523, 659, 784, 1047], ms: 90 },
   loss: { frequencies: [196, 147], ms: 140 },

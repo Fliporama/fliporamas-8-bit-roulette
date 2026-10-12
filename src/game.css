@@ -199,6 +199,9 @@ h1 {
 }
 
 .table-section {
+  /* Above the console, so a chip thrown from the picker flies over it. */
+  position: relative;
+  z-index: 1;
   animation: rise-in 460ms 60ms both;
 }
 
@@ -296,6 +299,7 @@ h1 {
     'zero numbers columns'
     '. dozens .'
     '. even .';
+  position: relative;
   gap: 4px;
   padding-top: 15px;
 }
@@ -411,24 +415,72 @@ h1 {
   animation: winner 700ms steps(2, end) infinite;
 }
 
-.pocket.has-chip::after {
+.chip-layer {
   position: absolute;
-  right: 3px;
-  bottom: 3px;
-  width: 6px;
-  height: 6px;
-  border: 1px solid var(--ink);
-  background: var(--gold);
-  content: '';
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
 }
 
-.pocket small {
+.chip-slot,
+.stack-label {
   position: absolute;
-  right: 4px;
-  top: 3px;
-  color: #fff4b7;
+  width: 0;
+  height: 0;
+}
+
+.chip-hop,
+.chip-body,
+.chip-shadow,
+.chip-puff {
+  position: absolute;
+  top: -11px;
+  left: -11px;
+  width: 22px;
+  height: 22px;
+}
+
+.chip-hop,
+.chip-body {
+  top: 0;
+  left: 0;
+}
+
+.chip-hop {
+  translate: -11px -11px;
+}
+
+.chip-layer .chip-token {
+  width: 22px;
+  height: 22px;
+  border-width: 2px;
+  /* The dark lip is the chip's edge: it is what makes a pile read as a stack. */
+  box-shadow: inset 0 0 0 1px rgb(16 26 24 / 42%), 0 3px 0 #0b1210;
   font-family: 'VT323', monospace;
   font-size: 12px;
+  line-height: 1;
+}
+
+.chip-shadow {
+  top: -7px;
+  border-radius: 50%;
+  background: #050908;
+}
+
+.chip-puff {
+  border: 2px solid var(--paper);
+  border-radius: 50%;
+}
+
+.stack-label b {
+  position: absolute;
+  bottom: 9px;
+  left: 9px;
+  padding: 0 2px;
+  background: var(--ink);
+  color: #fff4b7;
+  font-size: 12px;
+  font-weight: 400;
   line-height: 1;
 }
 
@@ -716,6 +768,10 @@ h1 {
   transition: transform 100ms steps(2, end), box-shadow 100ms steps(2, end);
 }
 
+.spin-button:active:not(:disabled) {
+  scale: 1.05 0.9;
+}
+
 .spin-button:hover:not(:disabled) {
   transform: translate(2px, 2px);
   box-shadow: 2px 2px 0 #080e0d;
@@ -851,9 +907,29 @@ h1 {
   width: 4.5%;
   aspect-ratio: 1;
   border-radius: 50%;
-  background: var(--paper);
-  box-shadow: 0 0 0 2px #080e0d, 0 0 10px rgb(242 237 218 / 60%);
+  background: radial-gradient(circle at 35% 30%, #fff 0 18%, var(--paper) 22% 62%, #b9b39d 66%);
+  box-shadow: 0 0 0 2px #080e0d, 2px 3px 0 2px rgb(8 14 13 / 55%), 0 0 10px rgb(242 237 218 / 60%);
   translate: -50% -50%;
+}
+
+.spokes {
+  fill: var(--gold);
+  stroke: var(--gold);
+  stroke-width: 3;
+  stroke-linecap: square;
+}
+
+.wedge {
+  transition: opacity 200ms;
+}
+
+/* Staging: once the ball is down, everything but the winning pocket steps back. */
+.is-landed .wedge:not(.is-winner) {
+  opacity: 0.4;
+}
+
+.is-landed .wedge.is-winner {
+  animation: winner 500ms steps(2, end) infinite;
 }
 
 .wheel-result {
@@ -901,13 +977,16 @@ h1 {
   animation: pop-in 160ms steps(3, end);
 }
 
+.stack-label .payout-pop {
+  bottom: 22px;
+  left: 0;
+}
+
 .payout-pop span:first-child {
   color: var(--muted);
   font-size: 8px;
 }
 
-.is-losing .pocket small,
-.is-losing .pocket.has-chip::after,
 .is-losing .outside-button.has-bet small {
   opacity: 0;
   transition: opacity 500ms steps(5, end);

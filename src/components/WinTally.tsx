@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import CountUp from './CountUp'
+import Sprite from './Sprite'
+import { CHIP_VALUES } from '../lib/chips'
 import { play } from '../lib/sound'
 import { stepDuration } from '../lib/tally'
 import type { Tally, TallyStep } from '../lib/tally'
 import { useSkip } from '../lib/useSkip'
+import { CHIP_SPRITES } from '../sprites/chips'
 
 const LOSS_MS = 500
 const END_HOLD_MS = 700
 const BURST_MS = 700
 const BURST_REACH = 260
 const BURST_COUNT = { big: 14, huge: 32 }
-const CHIP_COLORS = ['#d5544e', '#438fd0', '#5d9c6a', '#bd8c37', '#8d668f']
 
 interface WinTallyProps {
   tally: Tally
@@ -28,7 +30,7 @@ export default function WinTally({ tally, onStep, onDone }: WinTallyProps) {
     Array.from({ length: BURST_COUNT.huge }, (_, index) => ({
       x: (Math.random() - 0.5) * 2 * BURST_REACH,
       y: (Math.random() - 0.5) * 2 * BURST_REACH,
-      color: CHIP_COLORS[index % CHIP_COLORS.length],
+      chip: CHIP_VALUES[index % CHIP_VALUES.length],
     })),
   )
   const callbacks = useRef({ onStep, onDone })
@@ -97,11 +99,12 @@ export default function WinTally({ tally, onStep, onDone }: WinTallyProps) {
           <motion.i
             className="spark"
             key={index}
-            style={{ background: spark.color }}
             initial={{ x: 0, y: 0, opacity: 1 }}
             animate={{ x: spark.x, y: spark.y, opacity: 0 }}
             transition={{ duration: BURST_MS / 1000, ease: 'easeOut' }}
-          />
+          >
+            <Sprite data={CHIP_SPRITES[spark.chip]} />
+          </motion.i>
         ))}
       {celebrating && tier === 'huge' && <i className="gold-flash" />}
     </div>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { stackAnchor, tossDuration } from './chips'
+import { boxAnchor, stackAnchor, tossDuration } from './chips'
 
 // Tile centres 40 apart. Wide table: a street runs up the screen. Stood on end: it runs leftwards.
 const wide = (number: number) => ({ x: Math.floor((number - 1) / 3) * 40, y: 0 - ((number - 1) % 3) * 40 })
@@ -33,4 +33,8 @@ describe('tossDuration', () => {
     expect(tossDuration(200)).toBeGreaterThan(tossDuration(100))
     expect(tossDuration(5000)).toBe(480)
   })
+})
+
+it('stacks chips at the right of a box, clear of its label', () => {
+  expect(boxAnchor({ x: 100, y: 40, width: 66, height: 58 }, 21)).toEqual({ x: 145, y: 69 })
 })

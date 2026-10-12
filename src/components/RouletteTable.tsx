@@ -45,6 +45,7 @@ export default function RouletteTable({
   onPocketClick,
   onBet,
 }: RouletteTableProps) {
+  const straight = new Set(bets.filter((bet) => bet.target.kind === 'straight').map((bet) => bet.target.numbers[0]))
   const scoringInside = scoring && INSIDE_KINDS.includes(scoring.target.kind) ? scoring : undefined
 
   const pocket = (number: number) => {
@@ -52,7 +53,7 @@ export default function RouletteTable({
     const selected = selectedNumbers.includes(number)
     return (
       <button
-        className={`pocket pocket-${getPocketColor(number)}${selected ? ' is-pending' : ''}${number === winner ? ' is-winner' : ''}${scoringInside?.target.numbers.includes(number) ? ' is-scoring' : ''}`}
+        className={`pocket pocket-${getPocketColor(number)}${straight.has(number) ? ' has-chip' : ''}${selected ? ' is-pending' : ''}${number === winner ? ' is-winner' : ''}${scoringInside?.target.numbers.includes(number) ? ' is-scoring' : ''}`}
         type="button"
         aria-label={`${mode} bet on pocket ${number}${stake ? `, ${stake} chips placed` : ''}`}
         aria-pressed={selected}
@@ -80,7 +81,12 @@ export default function RouletteTable({
         disabled={disabled}
         onClick={() => onBet(target)}
       >
-        {label && <span>{label}</span>}
+        {label && (
+          <span>
+            {(target.kind === 'red' || target.kind === 'black') && <i className={`swatch swatch-${target.kind}`} />}
+            {label}
+          </span>
+        )}
         <small>{stake ? formatChips(stake) : odds}</small>
       </button>
     )

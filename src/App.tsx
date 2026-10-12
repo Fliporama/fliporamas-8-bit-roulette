@@ -1,9 +1,11 @@
 import { useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Play, RotateCcw, Trash2, Volume2, VolumeX, X } from 'lucide-react'
 import CountUp from './components/CountUp'
+import Felt from './components/Felt'
 import RouletteTable from './components/RouletteTable'
 import RouletteWheel from './components/RouletteWheel'
+import Sprite from './components/Sprite'
+import WheelCanvas from './components/WheelCanvas'
 import WinTally from './components/WinTally'
 import {
   createInsideTarget,
@@ -17,8 +19,12 @@ import type { ChipValue, PlacedBet } from './lib/chips'
 import { isMuted, setMuted } from './lib/sound'
 import { buildTally } from './lib/tally'
 import type { Tally, TallyStep } from './lib/tally'
+import { CHIP_SPRITES } from './sprites/chips'
+import { ICONS } from './sprites/icons'
+import { RAIL } from './sprites/table'
 
 const STARTING_BANKROLL = 1000
+const RAIL_PIECES = 24 // more than the widest table needs; the frame clips the rest
 const INSIDE_MODES: { kind: InsideBetKind; label: string }[] = [
   { kind: 'straight', label: 'Straight' },
   { kind: 'split', label: 'Split' },
@@ -183,8 +189,8 @@ function App() {
           <span>FREE PLAY</span>
           <span className="status-divider">/</span>
           <span>LOCAL SESSION</span>
-          <button className="icon-action" type="button" title={muted ? 'Unmute sound' : 'Mute sound'} aria-label={muted ? 'Unmute sound' : 'Mute sound'} aria-pressed={muted} onClick={toggleMute}>
-            {muted ? <VolumeX size={15} aria-hidden="true" /> : <Volume2 size={15} aria-hidden="true" />}
+          <button className="button icon-action" type="button" title={muted ? 'Unmute sound' : 'Mute sound'} aria-label={muted ? 'Unmute sound' : 'Mute sound'} aria-pressed={muted} onClick={toggleMute}>
+            <Sprite data={muted ? ICONS.mute : ICONS.sound} />
           </button>
         </div>
       </header>
@@ -195,9 +201,8 @@ function App() {
             <p className="eyebrow">ARCADE TABLE 01 <span>/</span> EUROPEAN WHEEL</p>
             <h1 id="game-title">ROULETTE</h1>
           </div>
-          <div className="heading-stamp" aria-label="37 pockets, virtual chips only">
-            <span>37</span>
-            <small>POCKETS</small>
+          <div className="heading-wheel">
+            <WheelCanvas />
           </div>
         </section>
 
@@ -209,39 +214,47 @@ function App() {
             </div>
 
             <div className="table-frame">
-              <div className="bet-mode-bar">
-                <span className="control-label">INSIDE BET</span>
-                <div className="mode-switch" role="group" aria-label="Inside bet type">
-                  {INSIDE_MODES.map((item) => (
-                    <button
-                      className={mode === item.kind ? 'mode-button is-active' : 'mode-button'}
-                      type="button"
-                      aria-pressed={mode === item.kind}
-                      key={item.kind}
-                      disabled={isLocked}
-                      onClick={() => chooseMode(item.kind, item.label)}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
+              <div className="table-rail" aria-hidden="true">
+                {Array.from({ length: RAIL_PIECES }, (_, index) => (
+                  <Sprite key={index} data={RAIL} />
+                ))}
               </div>
+              <div className="table-felt">
+                <Felt />
+                <div className="bet-mode-bar">
+                  <span className="control-label">INSIDE BET</span>
+                  <div className="mode-switch" role="group" aria-label="Inside bet type">
+                    {INSIDE_MODES.map((item) => (
+                      <button
+                        className={mode === item.kind ? 'button mode-button is-primary' : 'button mode-button'}
+                        type="button"
+                        aria-pressed={mode === item.kind}
+                        key={item.kind}
+                        disabled={isLocked}
+                        onClick={() => chooseMode(item.kind, item.label)}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-              <RouletteTable
-                mode={mode}
-                bets={bets}
-                numberStakes={numberStakes}
-                stakes={betStakeById}
-                selectedNumbers={pendingSplit}
-                winner={phase === 'tallying' && round ? round.result : lastSpin?.number}
-                scoring={scoring}
-                result={phase === 'tallying' ? round?.result : undefined}
-                collecting={Boolean(lastSpin)}
-                losing={phase === 'tallying' && round?.tally.tier === 'none'}
-                disabled={isLocked}
-                onPocketClick={placeInsideBet}
-                onBet={placeBet}
-              />
+                <RouletteTable
+                  mode={mode}
+                  bets={bets}
+                  numberStakes={numberStakes}
+                  stakes={betStakeById}
+                  selectedNumbers={pendingSplit}
+                  winner={phase === 'tallying' && round ? round.result : lastSpin?.number}
+                  scoring={scoring}
+                  result={phase === 'tallying' ? round?.result : undefined}
+                  collecting={Boolean(lastSpin)}
+                  losing={phase === 'tallying' && round?.tally.tier === 'none'}
+                  disabled={isLocked}
+                  onPocketClick={placeInsideBet}
+                  onBet={placeBet}
+                />
+              </div>
             </div>
             <div className="table-note" aria-live="polite">
               <span className="note-marker" />
@@ -262,8 +275,8 @@ function App() {
               </div>
               <div className="bankroll-footer">
                 <span>ON TABLE <b>{formatChips(totalStake)}</b></span>
-                <button className="icon-action" type="button" title="Start a new chip session" aria-label="Start a new chip session" onClick={resetSession}>
-                  <RotateCcw size={15} aria-hidden="true" />
+                <button className="button icon-action" type="button" title="Start a new chip session" aria-label="Start a new chip session" onClick={resetSession}>
+                  <Sprite data={ICONS.reset} />
                 </button>
               </div>
             </section>
@@ -274,10 +287,10 @@ function App() {
                 <span>{chipValue} PER CLICK</span>
               </div>
               <div className="chip-picker" role="group" aria-label="Chip denomination">
-                {CHIP_VALUES.map((value, index) => (
+                {CHIP_VALUES.map((value) => (
                   <button
                     type="button"
-                    className={`chip-choice chip-tone-${index}${chipValue === value ? ' is-selected' : ''}`}
+                    className={chipValue === value ? 'chip-choice is-selected' : 'chip-choice'}
                     aria-label={`${value} chips`}
                     aria-pressed={chipValue === value}
                     key={value}
@@ -285,7 +298,8 @@ function App() {
                     disabled={isLocked}
                     onClick={() => setChipValue(value)}
                   >
-                    <span className="chip-token">{value}</span>
+                    <Sprite data={CHIP_SPRITES[value]} />
+                    <span className="chip-value">{value}</span>
                   </button>
                 ))}
               </div>
@@ -294,8 +308,8 @@ function App() {
             <section className="bets-section" aria-labelledby="bets-title">
               <div className="section-heading compact">
                 <h2 id="bets-title">BET SLIP</h2>
-                <button className="icon-action" type="button" title="Clear all bets and return chips" aria-label="Clear all bets and return chips" disabled={isLocked || bets.length === 0} onClick={clearBets}>
-                  <Trash2 size={15} aria-hidden="true" />
+                <button className="button icon-action" type="button" title="Clear all bets and return chips" aria-label="Clear all bets and return chips" disabled={isLocked || bets.length === 0} onClick={clearBets}>
+                  <Sprite data={ICONS.clear} />
                 </button>
               </div>
               {bets.length === 0 ? (
@@ -314,7 +328,7 @@ function App() {
                         disabled={isLocked}
                         onClick={() => removeBet(target.id)}
                       >
-                        <X size={13} aria-hidden="true" />
+                        <Sprite data={ICONS.remove} />
                       </button>
                     </li>
                   ))}
@@ -323,8 +337,8 @@ function App() {
               <div className="slip-total"><span>TOTAL STAKE</span><b>{formatChips(totalStake)}</b></div>
             </section>
 
-            <button className={`spin-button${isLocked ? ' is-spinning' : ''}`} type="button" disabled={isLocked || bets.length === 0} onClick={spin}>
-              <Play size={17} fill="currentColor" aria-hidden="true" />
+            <button className={`button is-primary spin-button${isLocked ? ' is-spinning' : ''}`} type="button" disabled={isLocked || bets.length === 0} onClick={spin}>
+              <Sprite data={ICONS.play} />
               <span>{isLocked ? 'SPINNING...' : 'SPIN THE WHEEL'}</span>
             </button>
 
@@ -332,7 +346,7 @@ function App() {
               <span className="control-label">LAST SPIN</span>
               {lastSpin ? (
                 <div className="result-content">
-                  <span className={`result-number pocket-${getPocketColor(lastSpin.number)}`}>{lastSpin.number}</span>
+                  <span className={`result-number pocket pocket-${getPocketColor(lastSpin.number)}`}>{lastSpin.number}</span>
                   <div>
                     <strong>{getPocketColor(lastSpin.number).toUpperCase()}</strong>
                     <span className={lastSpin.change >= 0 ? 'result-change is-positive' : 'result-change'}>

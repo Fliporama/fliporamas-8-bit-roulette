@@ -19,14 +19,14 @@ export function hash(x: number, y: number): number {
   return (mixed ^ (mixed >>> 16)) >>> 0
 }
 
-export function rgb(hex: string): Rgb {
+export function toRgb(hex: string): Rgb {
   return [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16)) as unknown as Rgb
 }
 
 /** The current value of each token on `element`, for painting a canvas. */
 export function paletteOf(element: Element, tokens: readonly string[]): Record<string, Rgb> {
   const style = getComputedStyle(element)
-  return Object.fromEntries(tokens.map((token) => [token, rgb(style.getPropertyValue(`--${token}`).trim())]))
+  return Object.fromEntries(tokens.map((token) => [token, toRgb(style.getPropertyValue(`--${token}`).trim())]))
 }
 
 /** One art pixel in screen pixels, as the page currently has it. */

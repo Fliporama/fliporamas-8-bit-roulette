@@ -4,19 +4,20 @@ import { artPixel, paint, paletteOf } from '../lib/palette'
 
 const TOKENS = ['felt-0', 'felt-1', 'felt-2', 'felt-3']
 
-/** Lamp-lit, worn felt filling its parent, one canvas pixel per art pixel. The parent must clip it. */
-export default function Felt({ className = 'felt' }: { className?: string }) {
+/** Lamp-lit, worn felt filling the nearest positioned ancestor, one canvas pixel per art pixel. */
+export default function Felt() {
+  const box = useRef<HTMLDivElement>(null)
   const canvas = useRef<HTMLCanvasElement>(null)
   const [size, setSize] = useState({ cols: 0, rows: 0 })
 
   useEffect(() => {
-    const parent = canvas.current?.parentElement
-    if (!parent) return
+    const target = box.current
+    if (!target) return
     const observer = new ResizeObserver(() => {
-      const px = artPixel(parent)
-      setSize({ cols: Math.ceil(parent.clientWidth / px), rows: Math.ceil(parent.clientHeight / px) })
+      const px = artPixel(target)
+      setSize({ cols: Math.ceil(target.clientWidth / px), rows: Math.ceil(target.clientHeight / px) })
     })
-    observer.observe(parent)
+    observer.observe(target)
     return () => observer.disconnect()
   }, [])
 
@@ -27,11 +28,8 @@ export default function Felt({ className = 'felt' }: { className?: string }) {
   }, [size])
 
   return (
-    <canvas
-      className={className}
-      ref={canvas}
-      aria-hidden="true"
-      style={{ width: `calc(var(--px) * ${size.cols})`, height: `calc(var(--px) * ${size.rows})` }}
-    />
+    <div className="felt" ref={box} aria-hidden="true">
+      <canvas ref={canvas} style={{ width: `calc(var(--px) * ${size.cols})`, height: `calc(var(--px) * ${size.rows})` }} />
+    </div>
   )
 }

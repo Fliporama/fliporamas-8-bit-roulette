@@ -16,6 +16,7 @@ const PAIRS = [
   ['brass-3', 'ink-0'], ['brass-3', 'ink-1'], ['brass-3', 'wood-0'], ['brass-3', 'wood-1'], ['brass-3', 'felt-0'],
   ['brass-2', 'wood-0'], ['lamp-0', 'ink-0'], ['ink-0', 'paper-0'],
   ['oxblood-1', 'paper-1'], ['smoke-0', 'paper-1'], ['smoke-2', 'ink-0'],
+  ['brass-3', 'felt-2'], ['paper-1', 'smoke-0'],
 ]
 
 /** The custom properties declared in the first block whose selector is `selector`. */

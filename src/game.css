@@ -1,26 +1,16 @@
+/* The game. Colours come only from tokens.css; sizes are multiples of --px. See docs/art-bible.md. */
+
 :root {
-  font-family: 'VT323', monospace;
-  color: #f2edda;
-  background: #101a18;
+  font-family: var(--font-text);
+  font-size: var(--type-3);
+  line-height: 1.25;
+  color: var(--paper-1);
+  background: var(--ink-1);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color-scheme: dark;
-  --ink: #101a18;
-  --panel: #172522;
-  --panel-light: #20332e;
-  --felt: #155d4c;
-  --felt-deep: #104739;
-  --paper: #f2edda;
-  --muted: #9eb2a6;
-  --line: #465a50;
-  --coral: #ee705e;
-  --gold: #e4c764;
-  --mint: #91d7b1;
-  --pixel: 'Press Start 2P', monospace;
-  font-size: 18px;
-  line-height: 1.25;
 }
 
 * {
@@ -31,11 +21,9 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background-color: var(--ink);
-  background-image:
-    repeating-linear-gradient(0deg, transparent 0 5px, rgb(255 255 255 / 1.4%) 5px 6px),
-    repeating-linear-gradient(90deg, transparent 0 38px, rgb(119 168 137 / 3%) 38px 39px);
-  color: var(--paper);
+  /* One step above the darkest ink, so ink outlines and hard shadows read against it. */
+  background: var(--ink-1);
+  color: var(--paper-1);
 }
 
 button {
@@ -45,109 +33,12 @@ button {
 
 button:focus-visible,
 a:focus-visible {
-  outline: 3px solid var(--gold);
-  outline-offset: 3px;
+  outline: var(--px) solid var(--lamp-1);
+  outline-offset: var(--px);
 }
 
 button:disabled {
   cursor: not-allowed;
-}
-
-.app-shell {
-  width: min(1380px, 100%);
-  min-height: 100vh;
-  margin: 0 auto;
-  padding: 0 34px;
-  animation: rise-in 420ms steps(6, end) backwards;
-}
-
-.topbar {
-  height: 76px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--line);
-}
-
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  color: var(--paper);
-  text-decoration: none;
-}
-
-.brand-mark {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border: 2px solid var(--gold);
-  background: var(--coral);
-  color: var(--ink);
-  font-family: var(--pixel);
-  font-size: 15px;
-  box-shadow: 3px 3px 0 #080e0d;
-}
-
-.brand-name,
-.session-status,
-.eyebrow,
-.heading-stamp small,
-.section-heading h2,
-.section-heading > span,
-.control-label,
-.panel-kicker,
-.bankroll-footer,
-.outside-button small,
-.empty-slip,
-.slip-total,
-.result-content strong,
-.result-change,
-.result-placeholder,
-.site-footer {
-  font-family: var(--pixel);
-}
-
-.brand-name {
-  font-size: 11px;
-}
-
-.session-status {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--muted);
-  font-size: 10px;
-}
-
-.status-lamp {
-  width: 8px;
-  height: 8px;
-  background: var(--mint);
-  box-shadow: 0 0 12px rgb(145 215 177 / 75%);
-}
-
-.status-divider {
-  color: var(--coral);
-}
-
-.game-heading {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  padding: 39px 0 31px;
-}
-
-.eyebrow {
-  margin: 0 0 17px;
-  color: var(--gold);
-  font-size: 10px;
-}
-
-.eyebrow span {
-  padding: 0 7px;
-  color: var(--coral);
 }
 
 h1,
@@ -156,41 +47,244 @@ p {
   margin-top: 0;
 }
 
+/* Shared pieces, also shown on the styleguide. */
+
+/* A raised button: lit top edge, shadowed bottom edge, and a hard drop shadow that pressing removes. */
+.button {
+  --face: var(--ink-2);
+  --lit: var(--smoke-0);
+  --shade: var(--ink-1);
+  --drop: calc(var(--px) * 2);
+  --icon: var(--paper-1);
+  padding: calc(var(--px) * 4) calc(var(--px) * 6);
+  border: var(--px) solid var(--ink-0);
+  background: var(--face);
+  box-shadow:
+    inset 0 var(--px) 0 var(--lit),
+    inset 0 calc(var(--px) * -1) 0 var(--shade),
+    0 var(--drop) 0 var(--ink-0);
+  color: var(--paper-1);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: var(--type-1);
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.button.is-primary {
+  --face: var(--brass-2);
+  --lit: var(--brass-3);
+  --shade: var(--brass-1);
+  --icon: var(--ink-0);
+  color: var(--ink-0);
+}
+
+.button:hover:not(:disabled),
+.button.is-hover {
+  --face: var(--smoke-0);
+  --lit: var(--smoke-1);
+}
+
+.button.is-primary:hover:not(:disabled),
+.button.is-primary.is-hover {
+  --face: var(--brass-3);
+  --lit: var(--lamp-1);
+}
+
+.button:active:not(:disabled),
+.button.is-pressed {
+  box-shadow:
+    inset 0 var(--px) 0 var(--shade),
+    inset 0 calc(var(--px) * -1) 0 var(--lit);
+  translate: 0 var(--drop);
+}
+
+.button:disabled {
+  --face: var(--smoke-0);
+  --lit: var(--smoke-0);
+  --shade: var(--smoke-0);
+  --icon: var(--ink-0);
+  box-shadow: 0 var(--drop) 0 var(--ink-0);
+  color: var(--ink-0);
+}
+
+/* A raised surface. */
+.panel {
+  padding: calc(var(--px) * 5);
+  border: var(--px) solid var(--ink-0);
+  background: var(--ink-1);
+  box-shadow:
+    inset 0 var(--px) 0 var(--ink-2),
+    calc(var(--px) * 2) calc(var(--px) * 2) 0 var(--ink-0);
+}
+
+/* A numbered tile, embossed: used on the table, for the last result and for the landed number. */
+.pocket {
+  --face: var(--ink-1);
+  --lit: var(--ink-2);
+  --shade: var(--ink-0);
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: calc(var(--px) * 12);
+  padding: var(--px);
+  border: var(--px) solid var(--ink-0);
+  background: var(--face);
+  box-shadow:
+    inset 0 var(--px) 0 var(--lit),
+    inset 0 calc(var(--px) * -1) 0 var(--shade);
+  color: var(--paper-1);
+  font-family: var(--font-display);
+  font-size: var(--type-2);
+  line-height: 1;
+}
+
+.pocket-red {
+  --face: var(--oxblood-1);
+  --lit: var(--oxblood-2);
+  --shade: var(--oxblood-0);
+}
+
+.pocket-green {
+  --face: var(--felt-2);
+  --lit: var(--felt-3);
+  --shade: var(--felt-1);
+}
+
+/* Canvases drawn one canvas pixel per art pixel. */
+.felt {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.felt canvas,
+.wheel-canvas {
+  display: block;
+  image-rendering: pixelated;
+}
+
+/* Page */
+
+.app-shell {
+  width: min(1380px, 100%);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 0 calc(var(--px) * 12);
+  animation: rise-in 420ms steps(6, end) backwards;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--px) * 4);
+  height: calc(var(--px) * 20);
+  border-bottom: var(--px) solid var(--ink-2);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--px) * 4);
+  color: var(--paper-1);
+  text-decoration: none;
+}
+
+/* A brass plate. */
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: calc(var(--px) * 12);
+  height: calc(var(--px) * 12);
+  border: var(--px) solid var(--ink-0);
+  background: var(--brass-2);
+  box-shadow:
+    inset 0 var(--px) 0 var(--brass-3),
+    inset 0 calc(var(--px) * -1) 0 var(--brass-1);
+  color: var(--ink-0);
+  font-family: var(--font-display);
+  font-size: var(--type-2);
+  line-height: 1;
+}
+
+.brand-name,
+.session-status,
+.eyebrow,
+.section-heading h2,
+.section-heading > span,
+.control-label,
+.site-footer {
+  font-family: var(--font-display);
+  font-size: var(--type-1);
+  line-height: 1.4;
+}
+
+.brand-name {
+  font-size: var(--type-2);
+}
+
+.session-status {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 3);
+  color: var(--smoke-2);
+}
+
+.status-lamp {
+  width: calc(var(--px) * 2);
+  height: calc(var(--px) * 2);
+  background: var(--lamp-0);
+}
+
+.icon-action {
+  display: inline-grid;
+  place-items: center;
+  padding: calc(var(--px) * 2);
+}
+
+.game-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--px) * 4);
+  padding: calc(var(--px) * 4) 0;
+}
+
+.eyebrow {
+  margin: 0 0 calc(var(--px) * 5);
+  color: var(--brass-2);
+}
+
+.eyebrow span {
+  padding: 0 calc(var(--px) * 2);
+  color: var(--smoke-2);
+}
+
 h1 {
   margin-bottom: 0;
-  color: var(--paper);
-  font-family: var(--pixel);
-  font-size: 28px;
-  line-height: 1.35;
+  color: var(--brass-2);
+  font-family: var(--font-display);
+  font-size: var(--type-5);
   font-weight: 400;
+  line-height: 1.2;
 }
 
-.heading-stamp {
-  width: 76px;
-  height: 76px;
+/* The wheel at rest: the page's centrepiece until a spin opens the big one. */
+.heading-wheel {
+  flex: 0 0 auto;
   display: grid;
-  place-content: center;
-  justify-items: center;
-  border: 1px solid var(--gold);
-  color: var(--gold);
-  transform: rotate(3deg);
-}
-
-.heading-stamp > span {
-  font-family: var(--pixel);
-  font-size: 22px;
-  line-height: 1.5;
-}
-
-.heading-stamp small {
-  font-size: 8px;
+  place-items: center;
+  width: calc(var(--px) * 56);
+  height: calc(var(--px) * 56);
 }
 
 .game-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 310px;
+  grid-template-columns: minmax(0, 1fr) calc(var(--px) * 104);
   align-items: start;
-  gap: 32px;
+  gap: calc(var(--px) * 10);
 }
 
 .table-section,
@@ -207,101 +301,107 @@ h1 {
 
 .section-heading {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  min-height: 38px;
-  gap: 12px;
+  gap: calc(var(--px) * 2) calc(var(--px) * 4);
+  min-height: calc(var(--px) * 12);
 }
 
 .section-heading h2 {
   margin: 0;
-  color: var(--paper);
-  font-size: 11px;
+  color: var(--paper-1);
+  font-size: var(--type-2);
   font-weight: 400;
 }
 
 .section-heading > span {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  color: var(--muted);
-  font-size: 9px;
+  gap: calc(var(--px) * 3);
+  color: var(--smoke-2);
   white-space: nowrap;
 }
 
 .section-heading > span i,
 .site-footer i {
   display: inline-block;
-  width: 5px;
-  height: 5px;
-  background: var(--coral);
-}
-
-.table-frame {
-  padding: 17px;
-  border: 1px solid #52715e;
-  background-color: var(--felt-deep);
-  background-image:
-    repeating-linear-gradient(135deg, transparent 0 24px, rgb(255 255 255 / 2.6%) 24px 25px),
-    linear-gradient(90deg, rgb(10 38 31 / 25%), transparent 42%, rgb(10 38 31 / 12%));
-  box-shadow: 5px 5px 0 #080e0d;
-  container-type: inline-size;
-}
-
-.bet-mode-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 0 0 14px;
-  border-bottom: 1px solid rgb(232 239 215 / 18%);
+  width: calc(var(--px) * 2);
+  height: calc(var(--px) * 2);
+  background: var(--brass-2);
 }
 
 .control-label {
-  color: var(--gold);
-  font-size: 9px;
+  color: var(--brass-2);
   white-space: nowrap;
+}
+
+/* The table: felt inside a wooden rail, lit from the top. */
+
+.table-frame {
+  border: solid var(--wood-1);
+  border-width: 0 calc(var(--px) * 3) calc(var(--px) * 3);
+  border-bottom-color: var(--wood-0);
+  background: var(--wood-1);
+  box-shadow:
+    0 0 0 var(--px) var(--ink-0),
+    0 calc(var(--px) * 3) 0 var(--px) var(--ink-0);
+  container-type: inline-size;
+}
+
+.table-rail {
+  display: flex;
+  overflow: hidden;
+  /* Runs over the side rails, so the brass cap spans the whole table. */
+  margin: 0 calc(var(--px) * -3);
+}
+
+.table-rail svg {
+  flex: 0 0 auto;
+}
+
+.table-felt {
+  position: relative;
+  padding: calc(var(--px) * 5);
+  border: solid var(--ink-0);
+  border-width: 0 var(--px) var(--px);
+}
+
+.bet-mode-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--px) * 4);
+  margin-bottom: calc(var(--px) * 5);
+  padding: calc(var(--px) * 2) calc(var(--px) * 2) calc(var(--px) * 4) calc(var(--px) * 4);
+  border: var(--px) solid var(--ink-0);
+  background: var(--ink-1);
+  box-shadow: inset 0 var(--px) 0 var(--ink-0);
 }
 
 .mode-switch {
   display: flex;
-  gap: 3px;
-  padding: 3px;
-  background: rgb(7 32 26 / 58%);
+  gap: calc(var(--px) * 2);
 }
 
 .mode-button {
-  min-height: 31px;
-  padding: 0 11px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: #bfd0c1;
-  cursor: pointer;
-  font-size: 16px;
+  padding: calc(var(--px) * 2) calc(var(--px) * 3);
+  font-family: var(--font-text);
+  font-size: var(--type-3);
   line-height: 1;
-}
-
-.mode-button:hover:not(:disabled),
-.mode-button.is-active {
-  border-color: var(--gold);
-  background: var(--gold);
-  color: var(--ink);
-}
-
-.mode-button:disabled {
-  opacity: 0.55;
+  text-transform: none;
 }
 
 .roulette-table {
   display: grid;
-  grid-template-columns: 54px minmax(0, 1fr) 54px;
+  grid-template-columns: calc(var(--px) * 18) minmax(0, 1fr) calc(var(--px) * 18);
   grid-template-areas:
     'zero numbers columns'
     '. dozens .'
     '. even .';
   position: relative;
-  gap: 4px;
-  padding-top: 15px;
+  gap: var(--px);
 }
 
 .roulette-table > .pocket {
@@ -313,12 +413,12 @@ h1 {
 .dozen-bets,
 .even-money-bets {
   display: grid;
-  gap: 3px;
+  gap: var(--px);
 }
 
 .number-grid {
   grid-area: numbers;
-  grid-template-rows: repeat(3, 58px);
+  grid-template-rows: repeat(3, calc(var(--px) * 19));
   grid-auto-flow: column;
   grid-auto-columns: minmax(0, 1fr);
 }
@@ -342,7 +442,7 @@ h1 {
 /* Narrow felt: stand the table on end, streets as rows. */
 @container (max-width: 620px) {
   .roulette-table {
-    grid-template-columns: 44px minmax(0, 1fr);
+    grid-template-columns: calc(var(--px) * 15) minmax(0, 1fr);
     grid-template-areas:
       'zero numbers'
       '. columns'
@@ -354,7 +454,7 @@ h1 {
     grid-template-rows: none;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     grid-auto-flow: row;
-    grid-auto-rows: 36px;
+    grid-auto-rows: calc(var(--px) * 13);
   }
 
   .column-bets {
@@ -366,56 +466,102 @@ h1 {
   }
 }
 
-.pocket {
-  position: relative;
-  display: grid;
-  place-items: center;
-  min-width: 0;
-  min-height: 34px;
-  padding: 3px;
-  border: 1px solid rgb(242 237 218 / 53%);
-  color: var(--paper);
+button.pocket {
   cursor: pointer;
-  font-family: var(--pixel);
-  font-size: 11px;
-  transition: filter 100ms steps(2, end), transform 100ms steps(2, end);
+  transition: translate 100ms steps(2, end);
 }
 
-.pocket:hover:not(:disabled) {
+/* Hover lifts a tile off the felt; its face keeps its colour so the number stays readable. */
+button.pocket:hover:not(:disabled) {
+  --lit: var(--lamp-0);
   z-index: 1;
-  filter: brightness(1.3);
-  transform: translateY(-2px);
+  box-shadow:
+    inset 0 var(--px) 0 var(--lit),
+    inset 0 calc(var(--px) * -1) 0 var(--shade),
+    0 var(--px) 0 var(--ink-0);
+  translate: 0 calc(var(--px) * -1);
 }
 
-.pocket:disabled {
+button.pocket:disabled {
   cursor: wait;
 }
 
-.pocket-red {
-  background: #b9433e;
-}
-
-.pocket-black {
-  background: #192622;
-}
-
-.pocket-green {
-  background: #21865f;
+/* A tile holding a straight bet: the number steps aside for the chips. */
+.pocket.has-chip {
+  justify-items: start;
+  padding-left: var(--px);
+  font-size: var(--type-1);
 }
 
 .pocket.is-pending {
-  outline: 3px solid var(--gold);
-  outline-offset: -4px;
+  border-color: var(--brass-2);
 }
 
 .pocket.is-winner {
   z-index: 1;
-  outline: 3px solid var(--gold);
-  outline-offset: -3px;
+  border-color: var(--brass-2);
   animation: winner 700ms steps(2, end) infinite;
 }
 
+/* Outside bets are printed on the felt: a painted line and a label, no face of their own. */
+.outside-button {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--px);
+  min-width: 0;
+  min-height: calc(var(--px) * 16);
+  padding: var(--px);
+  border: var(--px) solid var(--paper-0);
+  background: transparent;
+  color: var(--paper-1);
+  cursor: pointer;
+  font-size: var(--type-3);
+  line-height: 1;
+}
+
+.outside-button:hover:not(:disabled),
+.outside-button.has-bet {
+  border-color: var(--brass-2);
+}
+
+/* A box holding a bet: the label steps aside for the chips, as a tile's number does. */
+.outside-button.has-bet {
+  align-items: flex-start;
+  padding-left: calc(var(--px) * 2);
+}
+
+.outside-button:disabled {
+  cursor: wait;
+}
+
+.outside-button small {
+  color: var(--brass-3);
+  font-family: var(--font-display);
+  font-size: var(--type-1);
+  white-space: nowrap;
+}
+
+.swatch {
+  display: inline-block;
+  width: calc(var(--px) * 4);
+  height: calc(var(--px) * 4);
+  margin-right: calc(var(--px) * 2);
+  border: var(--px) solid var(--ink-0);
+  background: var(--ink-1);
+  vertical-align: baseline;
+}
+
+.swatch-red {
+  background: var(--oxblood-1);
+}
+
+/* Chips */
+
 .chip-layer {
+  --chip-shadow: var(--ink-0);
   position: absolute;
   inset: 0;
   z-index: 3;
@@ -429,139 +575,96 @@ h1 {
   height: 0;
 }
 
+/* A chip is 12 × 11 art pixels, hung so that its face is centred on its slot. */
 .chip-hop,
 .chip-body,
-.chip-shadow,
 .chip-puff {
   position: absolute;
-  top: -11px;
-  left: -11px;
-  width: 22px;
-  height: 22px;
+  top: 0;
+  left: 0;
+  width: calc(var(--px) * 12);
+  height: calc(var(--px) * 11);
 }
 
 .chip-hop,
-.chip-body {
-  top: 0;
-  left: 0;
-}
-
-.chip-hop {
-  translate: -11px -11px;
-}
-
-.chip-layer .chip-token {
-  width: 22px;
-  height: 22px;
-  border-width: 2px;
-  /* The dark lip is the chip's edge: it is what makes a pile read as a stack. */
-  box-shadow: inset 0 0 0 1px rgb(16 26 24 / 42%), 0 3px 0 #0b1210;
-  font-family: 'VT323', monospace;
-  font-size: 12px;
-  line-height: 1;
+.chip-puff {
+  translate: calc(var(--px) * -6) calc(var(--px) * -5);
 }
 
 .chip-shadow {
-  top: -7px;
-  border-radius: 50%;
-  background: #050908;
+  position: absolute;
+  top: calc(var(--px) * 4);
+  left: calc(var(--px) * -7);
 }
 
 .chip-puff {
-  border: 2px solid var(--paper);
+  border: var(--px) solid var(--paper-1);
   border-radius: 50%;
 }
 
 .stack-label b {
   position: absolute;
-  bottom: 9px;
-  left: 9px;
-  padding: 0 2px;
-  background: var(--ink);
-  color: #fff4b7;
-  font-size: 12px;
+  bottom: calc(var(--px) * 5);
+  left: calc(var(--px) * 4);
+  padding: 0 var(--px);
+  background: var(--ink-0);
+  color: var(--lamp-0);
+  font-size: var(--type-3);
   font-weight: 400;
   line-height: 1;
-}
-
-.outside-button {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  min-width: 0;
-  min-height: 46px;
-  padding: 4px;
-  border: 1px solid rgb(242 237 218 / 29%);
-  background: rgb(7 32 26 / 40%);
-  color: var(--paper);
-  cursor: pointer;
-  font-size: 17px;
-  line-height: 1;
-}
-
-.outside-button:hover:not(:disabled) {
-  border-color: var(--gold);
-  background: rgb(228 199 100 / 14%);
-}
-
-.outside-button:disabled {
-  opacity: 0.58;
-}
-
-.outside-red > span {
-  color: #ff8978;
-}
-
-.outside-black > span {
-  color: #b6c8bb;
-}
-
-.outside-button.has-bet {
-  border-color: var(--gold);
-  background: rgb(228 199 100 / 17%);
-}
-
-.outside-button small {
-  color: var(--gold);
-  font-size: 8px;
-  white-space: nowrap;
 }
 
 .table-note {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-height: 43px;
-  color: var(--muted);
-  font-size: 17px;
+  gap: calc(var(--px) * 3);
+  min-height: calc(var(--px) * 16);
+  color: var(--smoke-2);
+  font-size: var(--type-3);
   text-transform: uppercase;
 }
 
 .note-marker {
   flex: 0 0 auto;
-  width: 7px;
-  height: 7px;
-  background: var(--coral);
+  width: calc(var(--px) * 2);
+  height: calc(var(--px) * 2);
+  background: var(--oxblood-2);
   animation: signal 1.8s steps(2, end) infinite;
 }
+
+/* The console: a wooden cabinet with brass trim. */
 
 .console {
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  padding-left: 21px;
-  border-left: 1px solid var(--line);
+  gap: calc(var(--px) * 3);
+  padding: calc(var(--px) * 5);
+  border: var(--px) solid var(--ink-0);
+  background: var(--wood-1);
+  box-shadow:
+    inset 0 0 0 var(--px) var(--brass-2),
+    inset 0 calc(var(--px) * 2) 0 var(--wood-2),
+    inset 0 calc(var(--px) * -2) 0 var(--wood-0),
+    calc(var(--px) * 2) calc(var(--px) * 2) 0 var(--ink-0);
   animation: rise-in 460ms 140ms both;
 }
 
-.bankroll-panel {
-  padding: 17px 16px 13px;
-  border-top: 2px solid var(--mint);
-  background: var(--panel-light);
-  box-shadow: 4px 4px 0 #080e0d;
+.console .section-heading h2 {
+  color: var(--brass-3);
+  font-size: var(--type-1);
+}
+
+.console .section-heading > span {
+  color: var(--paper-1);
+}
+
+/* Recessed windows: dark glass set into the wood, with a lit lip beneath. */
+.bankroll-panel,
+.result-panel {
+  padding: calc(var(--px) * 3) calc(var(--px) * 4);
+  border: var(--px) solid var(--ink-0);
+  background: var(--ink-0);
+  box-shadow: 0 var(--px) 0 var(--wood-2);
 }
 
 .panel-kicker,
@@ -569,154 +672,151 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: var(--muted);
-  font-size: 9px;
+  font-family: var(--font-display);
+  font-size: var(--type-1);
 }
 
-.panel-kicker span:last-child {
-  color: var(--mint);
+/* Engraved brass plates. */
+.panel-kicker span {
+  padding: var(--px) calc(var(--px) * 2);
+  background: var(--brass-2);
+  box-shadow:
+    inset 0 var(--px) 0 var(--brass-3),
+    inset 0 calc(var(--px) * -1) 0 var(--brass-1);
+  color: var(--ink-0);
 }
 
 .bankroll-value {
-  margin: 9px 0 6px;
-  color: #c6f2c7;
-  font-family: var(--pixel);
-  font-size: 25px;
-  line-height: 1.45;
-  text-shadow: 0 0 14px rgb(145 215 177 / 16%);
+  position: relative;
+  margin: calc(var(--px) * 3) 0 calc(var(--px) * 2);
+  color: var(--lamp-0);
+  font-family: var(--font-display);
+  font-size: var(--type-4);
+  line-height: 1.3;
 }
 
 .bankroll-footer {
-  min-height: 28px;
-  border-top: 1px solid rgb(242 237 218 / 13%);
-  padding-top: 8px;
+  padding-top: calc(var(--px) * 2);
+  border-top: var(--px) solid var(--ink-2);
+  color: var(--smoke-2);
 }
 
 .bankroll-footer b {
-  margin-left: 5px;
-  color: var(--gold);
+  margin-left: calc(var(--px) * 2);
+  color: var(--brass-2);
   font-weight: 400;
 }
 
-.icon-action,
-.remove-bet {
-  display: inline-grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 1px solid var(--line);
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
+.bank-flash {
+  position: absolute;
+  right: 0;
+  bottom: calc(var(--px) * 2);
+  color: var(--lamp-0);
+  font-size: var(--type-1);
+  opacity: 0;
+  animation: bank-flash 1400ms steps(7, end);
 }
 
-.icon-action:hover:not(:disabled),
-.remove-bet:hover:not(:disabled) {
-  border-color: var(--coral);
-  color: var(--coral);
-}
-
-.icon-action:disabled,
-.remove-bet:disabled {
-  opacity: 0.4;
-}
-
-.compact {
-  min-height: 27px;
-}
-
-.compact h2 {
-  font-size: 10px;
-}
-
-.compact > span {
-  font-size: 8px;
-}
-
+/* The chip tray: a felt-lined recess. The chosen chip sits proud of the rest. */
 .chip-picker {
   display: flex;
   justify-content: space-between;
-  gap: 7px;
-  padding: 7px 2px 2px;
+  margin-top: calc(var(--px) * 2);
+  padding: calc(var(--px) * 4) calc(var(--px) * 2) calc(var(--px) * 2);
+  border: var(--px) solid var(--ink-0);
+  background: var(--felt-0);
+  box-shadow: 0 var(--px) 0 var(--wood-2);
 }
 
 .chip-choice {
   display: grid;
-  place-items: center;
-  width: 51px;
-  height: 51px;
-  padding: 3px;
-  border: 2px dashed transparent;
-  border-radius: 50%;
+  justify-items: center;
+  gap: calc(var(--px) * 2);
+  padding: 0 var(--px);
+  border: 0;
   background: transparent;
   cursor: pointer;
-  transition: transform 120ms steps(2, end);
+  transition: translate 120ms steps(2, end);
 }
 
 .chip-choice:hover:not(:disabled) {
-  transform: translateY(-3px);
+  translate: 0 calc(var(--px) * -1);
 }
 
 .chip-choice.is-selected {
-  border-color: var(--gold);
+  translate: 0 calc(var(--px) * -2);
 }
 
-.chip-token {
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border: 3px dotted #f7ecd0;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 2px rgb(16 26 24 / 42%);
-  color: #fff9e7;
-  font-family: var(--pixel);
-  font-size: 9px;
+.chip-value {
+  padding-bottom: var(--px);
+  border-bottom: var(--px) solid transparent;
+  color: var(--paper-1);
+  font-family: var(--font-display);
+  font-size: var(--type-1);
+  line-height: 1;
 }
 
-.chip-tone-0 .chip-token { background: #d5544e; }
-.chip-tone-1 .chip-token { background: #438fd0; }
-.chip-tone-2 .chip-token { background: #5d9c6a; }
-.chip-tone-3 .chip-token { background: #bd8c37; }
-.chip-tone-4 .chip-token { background: #8d668f; }
+.is-selected .chip-value {
+  border-bottom-color: var(--brass-2);
+}
 
+/* The bet slip: a paper ticket with a perforated edge. */
 .bets-section {
+  position: relative;
   min-width: 0;
-  border-top: 1px solid var(--line);
-  padding-top: 8px;
+  margin-bottom: calc(var(--px) * 2);
+  padding: calc(var(--px) * 3) calc(var(--px) * 3) calc(var(--px) * 2);
+  border: solid var(--ink-0);
+  border-width: var(--px) var(--px) 0;
+  background: var(--paper-1);
+  color: var(--ink-0);
+}
+
+.bets-section::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  height: calc(var(--px) * 2);
+  /* Hard stops, not a blend: square teeth two art pixels wide. */
+  background: linear-gradient(90deg, var(--paper-1) 50%, transparent 50%) 0 0 / calc(var(--px) * 4) 100%;
+}
+
+.console .bets-section .section-heading h2 {
+  color: var(--ink-0);
 }
 
 .empty-slip {
   display: grid;
   place-items: center;
-  min-height: 64px;
-  margin: 0;
-  border-top: 1px dashed rgb(158 178 166 / 22%);
-  color: #70857a;
-  font-size: 9px;
+  min-height: calc(var(--px) * 14);
+  margin: calc(var(--px) * 2) 0 0;
+  border-top: var(--px) dotted var(--smoke-0);
+  color: var(--smoke-0);
+  font-family: var(--font-display);
+  font-size: var(--type-1);
 }
 
 .bet-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  max-height: 168px;
+  max-height: calc(var(--px) * 44);
   overflow-y: auto;
-  margin: 7px 0 0;
-  padding: 0 3px 0 0;
+  margin: calc(var(--px) * 2) 0 0;
+  padding: 0;
+  border-top: var(--px) dotted var(--smoke-0);
   list-style: none;
 }
 
 .bet-line {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto 28px;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 8px;
-  min-height: 32px;
-  border-bottom: 1px solid rgb(158 178 166 / 15%);
-  color: #c7d4c8;
-  font-size: 17px;
+  gap: calc(var(--px) * 2);
+  min-height: calc(var(--px) * 11);
+  border-bottom: var(--px) dotted var(--smoke-0);
+  font-size: var(--type-3);
 }
 
 .bet-line-label {
@@ -726,28 +826,34 @@ h1 {
 }
 
 .bet-line-stake {
-  color: var(--gold);
+  color: var(--oxblood-1);
 }
 
 .remove-bet {
-  width: 24px;
-  height: 24px;
-  border-color: transparent;
+  --icon: var(--oxblood-1);
+  display: inline-grid;
+  place-items: center;
+  padding: var(--px);
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.remove-bet:disabled {
+  --icon: var(--smoke-0);
 }
 
 .slip-total {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 34px;
-  margin-top: 5px;
-  color: var(--muted);
-  font-size: 9px;
+  min-height: calc(var(--px) * 11);
+  font-family: var(--font-display);
+  font-size: var(--type-1);
 }
 
 .slip-total b {
-  color: var(--paper);
-  font-size: 11px;
+  font-size: var(--type-2);
   font-weight: 400;
 }
 
@@ -755,113 +861,92 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  min-height: 52px;
-  padding: 10px;
-  border: 2px solid #f0d982;
-  background: var(--gold);
-  box-shadow: 4px 4px 0 #080e0d;
-  color: #18221d;
-  cursor: pointer;
-  font-family: var(--pixel);
-  font-size: 11px;
-  transition: transform 100ms steps(2, end), box-shadow 100ms steps(2, end);
-}
-
-.spin-button:active:not(:disabled) {
-  scale: 1.05 0.9;
-}
-
-.spin-button:hover:not(:disabled) {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 #080e0d;
-}
-
-.spin-button:disabled {
-  border-color: #59665c;
-  background: #3d4b43;
-  box-shadow: 4px 4px 0 #080e0d;
-  color: #829087;
+  gap: calc(var(--px) * 3);
+  min-height: calc(var(--px) * 17);
+  margin-bottom: calc(var(--px) * 2);
+  font-size: var(--type-2);
 }
 
 .spin-button.is-spinning svg {
-  animation: spin-icon 850ms linear infinite;
+  animation: signal 600ms steps(2, end) infinite;
 }
 
 .result-panel {
-  min-height: 82px;
-  padding-top: 11px;
-  border-top: 1px solid var(--line);
+  min-height: calc(var(--px) * 26);
 }
 
 .result-content {
   display: flex;
   align-items: center;
-  gap: 13px;
-  padding-top: 9px;
+  gap: calc(var(--px) * 4);
+  padding-top: calc(var(--px) * 3);
   animation: result-pop 220ms steps(4, end) both;
 }
 
 .result-number {
-  display: grid;
-  place-items: center;
-  width: 43px;
-  height: 43px;
-  border: 1px solid var(--gold);
-  font-family: var(--pixel);
-  font-size: 13px;
+  flex: 0 0 auto;
+  width: calc(var(--px) * 14);
+  height: calc(var(--px) * 14);
 }
 
 .result-content > div {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: calc(var(--px) * 2);
+  font-family: var(--font-display);
+  font-size: var(--type-1);
 }
 
 .result-content strong {
-  color: var(--paper);
-  font-size: 9px;
+  color: var(--paper-1);
   font-weight: 400;
 }
 
-.result-change {
-  color: var(--coral);
-  font-size: 8px;
+/* A loss is marked in oxblood beside plain text: oxblood text would be too dim to read. */
+.result-change::before {
+  content: '';
+  display: inline-block;
+  width: calc(var(--px) * 2);
+  height: calc(var(--px) * 2);
+  margin-right: calc(var(--px) * 2);
+  background: var(--oxblood-1);
 }
 
 .result-change.is-positive {
-  color: var(--mint);
+  color: var(--lamp-0);
+}
+
+.result-change.is-positive::before {
+  background: var(--lamp-0);
 }
 
 .result-placeholder {
-  margin: 11px 0 0;
-  color: #72857a;
-  font-size: 8px;
+  margin: calc(var(--px) * 3) 0 0;
+  color: var(--smoke-2);
+  font-family: var(--font-display);
+  font-size: var(--type-1);
+  line-height: 1.6;
 }
 
 .site-footer {
   display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 63px;
-  margin-top: 32px;
-  border-top: 1px solid var(--line);
-  color: #77877c;
-  font-size: 8px;
   align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--px) * 3) calc(var(--px) * 5);
+  min-height: calc(var(--px) * 20);
+  margin-top: calc(var(--px) * 10);
+  border-top: var(--px) solid var(--ink-2);
+  color: var(--smoke-2);
 }
 
 .site-footer span {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 9px;
+  gap: calc(var(--px) * 3);
 }
 
-.site-footer i {
-  width: 4px;
-  height: 4px;
-  background: var(--gold);
-}
+/* The spin */
 
 .wheel-overlay {
   position: fixed;
@@ -869,7 +954,7 @@ h1 {
   z-index: 10;
   display: grid;
   place-items: center;
-  background: rgb(8 14 13 / 82%);
+  background: color-mix(in srgb, var(--ink-0) 85%, transparent);
   cursor: pointer;
 }
 
@@ -877,99 +962,66 @@ h1 {
   position: relative;
   display: grid;
   place-items: center;
-  width: min(78vmin, 520px);
+  width: min(78vmin, calc(var(--px) * 172));
   aspect-ratio: 1;
 }
 
 .wheel,
-.ball-arm {
+.wheel-numbers,
+.wheel-numbers span {
   position: absolute;
   inset: 0;
 }
 
-.wheel svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.wheel text {
-  fill: var(--paper);
-  font-family: 'VT323', monospace;
-  font-size: 11px;
-  text-anchor: middle;
-  dominant-baseline: central;
-}
-
-.ball {
-  position: absolute;
-  left: 50%;
-  width: 4.5%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #fff 0 18%, var(--paper) 22% 62%, #b9b39d 66%);
-  box-shadow: 0 0 0 2px #080e0d, 2px 3px 0 2px rgb(8 14 13 / 55%), 0 0 10px rgb(242 237 218 / 60%);
-  translate: -50% -50%;
-}
-
-.spokes {
-  fill: var(--gold);
-  stroke: var(--gold);
-  stroke-width: 3;
-  stroke-linecap: square;
-}
-
-.wedge {
-  transition: opacity 200ms;
-}
-
-/* Staging: once the ball is down, everything but the winning pocket steps back. */
-.is-landed .wedge:not(.is-winner) {
-  opacity: 0.4;
-}
-
-.is-landed .wedge.is-winner {
-  animation: winner 500ms steps(2, end) infinite;
-}
-
-.wheel-result {
-  position: relative;
+.wheel {
   display: grid;
   place-items: center;
-  min-width: 2.2em;
-  padding: 0.35em;
-  border: 3px solid var(--gold);
-  box-shadow: 5px 5px 0 #080e0d;
-  color: var(--paper);
-  font-family: var(--pixel);
-  font-size: 48px;
+}
+
+/* Each number fills the wheel and is turned to its pocket, so its text sits in the number band. */
+.wheel-numbers span {
+  display: flex;
+  justify-content: center;
+  padding-top: calc(11% - var(--type-3) / 2);
+  color: var(--paper-1);
+  font-size: var(--type-3);
   line-height: 1;
 }
 
+.wheel-result {
+  min-width: 2.2em;
+  padding: calc(var(--px) * 5);
+  border-color: var(--brass-2);
+  box-shadow:
+    inset 0 var(--px) 0 var(--lit),
+    inset 0 calc(var(--px) * -1) 0 var(--shade),
+    calc(var(--px) * 2) calc(var(--px) * 2) 0 var(--ink-0);
+  font-size: var(--type-5);
+}
+
+/* The tally */
+
 .is-scoring {
   z-index: 2;
-  outline: 3px solid var(--gold);
-  outline-offset: -3px;
-  opacity: 1 !important;
-  filter: brightness(1.35);
+  border-color: var(--brass-2);
   animation: bounce 300ms steps(3, end);
 }
 
 .payout-pop {
   position: absolute;
-  bottom: calc(100% + 4px);
+  bottom: calc(100% + var(--px));
   left: 50%;
   z-index: 3;
   display: grid;
-  gap: 4px;
+  gap: var(--px);
   justify-items: center;
-  padding: 6px 8px;
-  border: 2px solid var(--gold);
-  background: var(--ink);
-  box-shadow: 3px 3px 0 #080e0d;
-  color: var(--gold);
-  font-family: var(--pixel);
-  font-size: 10px;
+  padding: calc(var(--px) * 2) calc(var(--px) * 3);
+  border: var(--px) solid var(--brass-2);
+  background: var(--ink-0);
+  box-shadow: calc(var(--px) * 2) calc(var(--px) * 2) 0 var(--ink-0);
+  color: var(--lamp-0);
+  font-family: var(--font-display);
+  font-size: var(--type-1);
   font-style: normal;
   line-height: 1.2;
   white-space: nowrap;
@@ -978,13 +1030,12 @@ h1 {
 }
 
 .stack-label .payout-pop {
-  bottom: 22px;
+  bottom: calc(var(--px) * 12);
   left: 0;
 }
 
 .payout-pop span:first-child {
-  color: var(--muted);
-  font-size: 8px;
+  color: var(--smoke-2);
 }
 
 .is-losing .outside-button.has-bet small {
@@ -994,26 +1045,26 @@ h1 {
 
 .tally-banner {
   position: fixed;
-  top: 18px;
+  top: calc(var(--px) * 6);
   left: 50%;
   z-index: 9;
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 14px 22px;
-  border: 3px solid var(--gold);
-  background: var(--ink);
-  box-shadow: 5px 5px 0 #080e0d;
-  color: var(--gold);
-  font-family: var(--pixel);
-  font-size: 12px;
+  gap: calc(var(--px) * 5);
+  padding: calc(var(--px) * 4) calc(var(--px) * 7);
+  border: var(--px) solid var(--brass-2);
+  background: var(--ink-0);
+  box-shadow: calc(var(--px) * 2) calc(var(--px) * 2) 0 var(--ink-0);
+  color: var(--brass-2);
+  font-family: var(--font-display);
+  font-size: var(--type-2);
   pointer-events: none;
   translate: -50% 0;
 }
 
 .tally-banner b {
-  color: var(--mint);
-  font-size: 22px;
+  color: var(--lamp-0);
+  font-size: var(--type-4);
   font-weight: 400;
 }
 
@@ -1021,55 +1072,25 @@ h1 {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 10px;
-  height: 10px;
-  border: 2px solid var(--paper);
 }
 
 .gold-flash {
   position: fixed;
   inset: 0;
-  background: var(--gold);
+  background: var(--lamp-0);
   opacity: 0;
   pointer-events: none;
   animation: gold-flash 500ms steps(5, end);
 }
 
-.bankroll-value {
-  position: relative;
-}
-
-.bank-flash {
-  position: absolute;
-  right: 0;
-  bottom: 6px;
-  color: var(--mint);
-  font-size: 10px;
-  opacity: 0;
-  animation: bank-flash 1400ms steps(7, end);
-}
-
 .shake-big {
   animation: shake 400ms steps(2, end);
-  --shake: 4px;
+  --shake: var(--px);
 }
 
 .shake-huge {
   animation: shake 700ms steps(2, end);
-  --shake: 9px;
-}
-
-/* Canvases drawn one canvas pixel per art pixel. */
-.felt,
-.wheel-canvas {
-  display: block;
-  image-rendering: pixelated;
-}
-
-.felt {
-  position: absolute;
-  top: 0;
-  left: 0;
+  --shake: calc(var(--px) * 3);
 }
 
 .sr-only {
@@ -1082,7 +1103,7 @@ h1 {
 }
 
 @keyframes bounce {
-  50% { translate: 0 -6px; }
+  50% { translate: 0 calc(var(--px) * -2); }
 }
 
 @keyframes pop-in {
@@ -1103,13 +1124,13 @@ h1 {
 }
 
 @keyframes rise-in {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(calc(var(--px) * 3)); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes result-pop {
-  from { opacity: 0; transform: translateY(5px) scale(0.96); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(calc(var(--px) * 2)); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes winner {
@@ -1120,70 +1141,36 @@ h1 {
   50% { opacity: 0.35; }
 }
 
-@keyframes spin-icon {
-  to { transform: rotate(360deg); }
-}
-
 @media (max-width: 980px) {
-  .app-shell { padding-inline: 24px; }
-  .game-layout { grid-template-columns: minmax(0, 1fr) 280px; gap: 22px; }
-  .table-frame { padding: 13px; }
-  .console { padding-left: 16px; }
+  .app-shell { padding-inline: calc(var(--px) * 8); }
+  .game-layout { gap: calc(var(--px) * 7); }
+  h1 { font-size: var(--type-4); }
+  .heading-wheel { width: calc(var(--px) * 48); height: calc(var(--px) * 48); }
 }
 
 @media (max-width: 760px) {
-  .app-shell { padding-inline: 18px; }
-  .game-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; }
-  .console {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 17px 20px;
-    padding: 18px 0 0;
-    border-top: 1px solid var(--line);
-    border-left: 0;
-  }
-  .bankroll-panel,
-  .result-panel { align-self: start; }
-  .bets-section { grid-column: 2; grid-row: 1 / span 2; }
-  .spin-button { grid-column: 1; }
-  .result-panel { grid-column: 1; }
-  .site-footer { margin-top: 22px; }
+  .app-shell { padding-inline: calc(var(--px) * 6); }
+  .game-layout { grid-template-columns: minmax(0, 1fr); gap: calc(var(--px) * 7); }
+  .console { width: 100%; max-width: calc(var(--px) * 130); margin-inline: auto; }
+  .site-footer { margin-top: calc(var(--px) * 8); }
 }
 
 @media (max-width: 520px) {
-  .app-shell { padding-inline: 13px; }
-  .topbar { height: 62px; }
-  .brand { gap: 8px; }
-  .brand-mark { width: 29px; height: 29px; font-size: 12px; }
-  .brand-name { font-size: 8px; }
-  .session-status { gap: 6px; font-size: 6px; }
-  .status-lamp { width: 6px; height: 6px; }
-  .game-heading { padding: 28px 0 23px; }
-  .eyebrow { margin-bottom: 13px; font-size: 6px; }
-  h1 { font-size: 21px; }
-  .heading-stamp { width: 58px; height: 58px; }
-  .heading-stamp > span { font-size: 17px; }
-  .heading-stamp small { font-size: 7px; }
-  .section-heading h2 { font-size: 7px; }
-  .section-heading > span { font-size: 7px; }
-  .table-frame { padding: 9px; }
-  .bet-mode-bar { align-items: flex-start; flex-direction: column; gap: 8px; }
-  .mode-switch { width: 100%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .mode-button { min-height: 30px; padding-inline: 2px; font-size: 14px; }
-  .pocket small { right: 2px; top: 1px; font-size: 10px; }
-  .table-note { font-size: 15px; }
-  .console { gap: 15px 12px; }
-  .bankroll-panel { padding: 13px 11px 10px; }
-  .panel-kicker,
-  .bankroll-footer { font-size: 6px; }
-  .bankroll-value { font-size: 18px; }
-  .chip-picker { gap: 0; }
-  .chip-choice { width: 40px; height: 40px; }
-  .chip-token { width: 31px; height: 31px; font-size: 6px; }
-  .bet-line { grid-template-columns: minmax(0, 1fr) auto 24px; gap: 4px; }
-  .spin-button { min-height: 47px; font-size: 7px; }
-  .result-panel { min-height: 68px; }
-  .site-footer { align-items: flex-start; flex-direction: column; justify-content: center; gap: 8px; font-size: 7px; }
+  .app-shell { padding-inline: calc(var(--px) * 4); }
+  .topbar { height: calc(var(--px) * 18); }
+  .brand { gap: calc(var(--px) * 3); }
+  .brand-name { font-size: var(--type-1); }
+  /* Room for the mute button: the second half of the status line goes. */
+  .session-status span:nth-of-type(n + 3) { display: none; }
+  .game-heading { padding: calc(var(--px) * 3) 0; }
+  .eyebrow { margin-bottom: calc(var(--px) * 3); }
+  .heading-wheel { width: calc(var(--px) * 40); height: calc(var(--px) * 40); }
+  .section-heading h2 { font-size: var(--type-1); }
+  .table-felt { padding: calc(var(--px) * 3); }
+  .bet-mode-bar { align-items: stretch; flex-direction: column; gap: calc(var(--px) * 2); padding: calc(var(--px) * 2) calc(var(--px) * 2) calc(var(--px) * 4); }
+  .mode-switch { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .mode-button { padding-inline: 0; }
+  .site-footer { align-items: flex-start; flex-direction: column; justify-content: center; padding: calc(var(--px) * 4) 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

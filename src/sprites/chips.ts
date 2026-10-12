@@ -29,4 +29,4 @@ function chip(value: ChipValue): SpriteData {
 export const CHIP_SPRITES = Object.fromEntries(CHIP_VALUES.map((value) => [value, chip(value)])) as Record<ChipValue, SpriteData>
 
 /** The pool of shadow a chip stack throws straight down onto the felt. */
-export const CHIP_SHADOW = sprite(['.xxxxxxxxxxxx.', 'xxxxxxxxxxxxxx', '..xxxxxxxxxx..'], { x: 'felt-0' })
+export const CHIP_SHADOW = sprite(['.xxxxxxxxxxxx.', 'xxxxxxxxxxxxxx', '..xxxxxxxxxx..'], { x: 'chip-shadow' })

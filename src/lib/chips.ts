@@ -46,6 +46,18 @@ export function stackAnchor(kind: BetKind, centres: readonly Point[]): Point {
   }
 }
 
+export interface Box {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+/** Where chips sit in a box that also holds a label: `inset` from its right edge, centred vertically. */
+export function boxAnchor(box: Box, inset: number): Point {
+  return { x: box.x + box.width - inset, y: box.y + box.height / 2 }
+}
+
 /** Milliseconds a chip spends in the air: longer throws take longer, within limits. */
 export function tossDuration(distance: number): number {
   return Math.min(TOSS_MS.max, TOSS_MS.min + distance * TOSS_MS.perPixel)

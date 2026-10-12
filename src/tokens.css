@@ -60,4 +60,6 @@
   --chip-100-light: var(--smoke-0);
   --chip-100-dark: var(--ink-1);
   --chip-100-stripe: var(--brass-2);
+  /* What a stack throws onto the surface beneath it. */
+  --chip-shadow: var(--felt-0);
 }

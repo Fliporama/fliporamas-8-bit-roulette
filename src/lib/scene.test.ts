@@ -1,5 +1,5 @@
-import { expect, it } from 'vitest'
-import { levelOf, lightFor, lookFor, reactionFor, sceneDefault, startsOn } from './scene'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { levelOf, lightFor, lookFor, reactionFor, runLight, sceneDefault, startsOn } from './scene'
 import type { Moment } from './scene'
 
 const at = (phase: Moment['phase'], won = false): Moment => ({ phase, won })
@@ -57,4 +57,69 @@ it('names the level a light shift shows as', () => {
   expect(levelOf(0)).toBe('normal')
   expect(levelOf(0.5)).toBe('normal')
   expect(levelOf(1)).toBe('flare')
+})
+
+describe('runLight', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.spyOn(Math, 'random').mockReturnValue(0) // the shortest wait between flickers: six seconds
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
+
+  it('reaches a new level in two hard steps', () => {
+    const shown: number[] = []
+    runLight(0, 'dim', (shift) => shown.push(shift), () => false)
+    expect(shown).toEqual([-0.5])
+    vi.advanceTimersByTime(100)
+    expect(shown).toEqual([-0.5, -1])
+    vi.advanceTimersByTime(60_000)
+    expect(shown).toEqual([-0.5, -1]) // no flicker away from normal
+  })
+
+  it('shows nothing when it is already there', () => {
+    const shown: number[] = []
+    runLight(1, 'flare', (shift) => shown.push(shift), () => false)
+    vi.advanceTimersByTime(60_000)
+    expect(shown).toEqual([])
+  })
+
+  it('drops a change that is interrupted and starts the next from where the light stood', () => {
+    const shown: number[] = []
+    const stop = runLight(0, 'dim', (shift) => shown.push(shift), () => false)
+    vi.advanceTimersByTime(50)
+    stop()
+    runLight(shown.at(-1)!, 'flare', (shift) => shown.push(shift), () => false)
+    vi.advanceTimersByTime(1000)
+    expect(shown).toEqual([-0.5, 0.25, 1])
+  })
+
+  it('flickers now and then at normal, and stops when told to', () => {
+    const shown: number[] = []
+    const stop = runLight(0, 'normal', (shift) => shown.push(shift), () => false)
+    vi.advanceTimersByTime(5999)
+    expect(shown).toEqual([])
+    vi.advanceTimersByTime(1)
+    expect(shown).toEqual([-0.5])
+    vi.advanceTimersByTime(80)
+    expect(shown).toEqual([-0.5, 0])
+    vi.advanceTimersByTime(6000)
+    expect(shown).toEqual([-0.5, 0, -0.5, 0])
+    stop()
+    vi.advanceTimersByTime(60_000)
+    expect(shown).toEqual([-0.5, 0, -0.5, 0])
+  })
+
+  it('skips the flicker while the document is hidden, and picks it up again after', () => {
+    const shown: number[] = []
+    let hidden = true
+    runLight(0, 'normal', (shift) => shown.push(shift), () => hidden)
+    vi.advanceTimersByTime(20_000)
+    expect(shown).toEqual([])
+    hidden = false
+    vi.advanceTimersByTime(6000)
+    expect(shown.slice(0, 2)).toEqual([-0.5, 0])
+  })
 })

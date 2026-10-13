@@ -5,7 +5,7 @@ import type { TargetAndTransition, ValueTransition } from 'motion/react'
 import { CHIP_VALUES, boxAnchor, stackAnchor, tossDuration } from '../lib/chips'
 import type { Chip, PlacedBet, Point } from '../lib/chips'
 import { emit } from '../lib/particles'
-import { formatChips } from '../lib/roulette'
+import { formatChips, isInside } from '../lib/roulette'
 import type { BetTarget } from '../lib/roulette'
 import { play } from '../lib/sound'
 import type { TallyStep } from '../lib/tally'
@@ -26,7 +26,6 @@ const SCATTER = 3 // chips land up to one art pixel off-centre, so a stack looks
 const STAGGER_MS = 30
 const SWEEP_PX = 90
 
-const INSIDE_KINDS = ['straight', 'split', 'street', 'sixLine']
 const CROUCH = [
   { transform: 'none' },
   { transform: 'translateY(4px) scale(1.15, 0.8)' },
@@ -49,7 +48,7 @@ const HOP = [
 type Leaving = 'return' | 'sweep' | 'collect'
 
 function tiles(table: HTMLElement, target: BetTarget): HTMLElement[] {
-  const spots = INSIDE_KINDS.includes(target.kind) ? target.numbers.map((number) => `n${number}`) : [target.id]
+  const spots = isInside(target.kind) ? target.numbers.map((number) => `n${number}`) : [target.id]
   return spots.flatMap((spot) => table.querySelector<HTMLElement>(`[data-spot="${spot}"]`) ?? [])
 }
 

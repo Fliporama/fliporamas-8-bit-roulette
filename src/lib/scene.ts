@@ -1,4 +1,5 @@
 import type { BetTarget } from './roulette'
+import { prefersReducedMotion, stored } from './stored'
 
 export type Light = 'dim' | 'normal' | 'flare'
 export type Reaction = 'idle' | 'noMoreBets' | 'win' | 'loss'
@@ -10,7 +11,7 @@ export interface Moment {
   won: boolean
 }
 
-const STORAGE_KEY = 'fliporama-scene'
+const STORE = stored('fliporama-scene')
 
 /** Light steps added to the lamp's pool at each level. */
 export const LIGHT_SHIFT: Record<Light, number> = { dim: -1, normal: 0, flare: 1 }
@@ -78,30 +79,7 @@ export function sceneDefault(stored: string | null, reducedMotion: boolean): boo
   return !reducedMotion
 }
 
-/**
- * Whether room animation starts on, from two sources that can each be missing or blocked.
- * They are read apart: a browser that refuses storage must still be asked about reduced motion.
- */
-export function startsOn(readStored: () => string | null, readReducedMotion: () => boolean): boolean {
-  let stored: string | null = null
-  let reducedMotion = false
-  try {
-    stored = readStored()
-  } catch {
-    // No storage: the setting just doesn't persist.
-  }
-  try {
-    reducedMotion = readReducedMotion()
-  } catch {
-    // No media queries: assume motion is welcome.
-  }
-  return sceneDefault(stored, reducedMotion)
-}
-
-let on = startsOn(
-  () => localStorage.getItem(STORAGE_KEY),
-  () => matchMedia('(prefers-reduced-motion: reduce)').matches,
-)
+let on = sceneDefault(STORE.get(), prefersReducedMotion())
 
 export function isSceneOn(): boolean {
   return on
@@ -109,9 +87,5 @@ export function isSceneOn(): boolean {
 
 export function setSceneOn(value: boolean): void {
   on = value
-  try {
-    localStorage.setItem(STORAGE_KEY, value ? '1' : '0')
-  } catch {
-    // Nothing to do: see above.
-  }
+  STORE.set(value ? '1' : '0')
 }

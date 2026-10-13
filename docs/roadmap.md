@@ -1,6 +1,6 @@
 # Roadmap: Fliporama Roulette to an award-grade site
 
-**Current phase:** 6 (Sound and music), not started. Do the audit fixes under "Before Phase 6" first.
+**Current phase:** 6 (Sound and music), not started
 **To resume in a new session:** say "continue the roadmap". The session protocol is in `CLAUDE.md`.
 
 ## Brief
@@ -106,16 +106,17 @@ One phase is one session. Each gets its own brainstorm, spec (`docs/superpowers/
 
 Update this section at the end of every session: what was finished, what was left half-done, and anything the next session must know.
 
-### Before Phase 6: the audit fixes
+### The audit fixes (done 2026-10-13, after Phase 5 merged)
 
-The owner asked for these once the Phase 5 pull request has merged, on their own branch off `main`. They come from a whole-tree audit for over-engineering on 2026-10-13; about 125 lines go and no dependency does.
+A whole-tree audit for over-engineering, asked for by the owner. No behaviour changed and no dependency went.
 
-1. Four hand-written copies of "a stored setting that survives blocked storage" (`src/lib/scene.ts`, `effects.ts`, `sound.ts`, `intro.ts`) and three separate reads of the reduced-motion media query (the third is in `src/App.tsx`). One `stored(key)` helper and one `prefersReducedMotion()`.
-2. The frame-gap measuring loop and the browser set-up are written out in `scripts/capture.mjs`, `scripts/perf/idle.mjs` and `scripts/perf/round.mjs`. One shared helper.
-3. `createOutsideTarget` in `src/lib/roulette.ts` is a 40-line switch that picks numbers, a label and a multiplier. A lookup table.
-4. `calculateReturns` in `src/lib/roulette.ts` is called only by tests; the game uses `buildTally().returned`. Delete it and its two tests, and assert the number directly in `tally.test.ts`.
-5. The list of inside bet kinds is declared in `RouletteTable.tsx`, `ChipLayer.tsx` and `App.tsx`. Export one `isInside(kind)` from `roulette.ts`.
-6. `HandStep`, `EyesEvent`, `WallView` and `WheelView` are exported but used only in their own files or tests. Drop the `export`.
+- **Stored settings** go through `stored(key)` in `src/lib/stored.ts`, which reads as null and writes nothing where storage is blocked; `prefersReducedMotion()` is beside it. Sound, room animation, screen effects and the intro flag all use it. A new setting should too.
+- **Outside bets** are a table in `src/lib/roulette.ts`: which pockets each covers and its label. The payout follows from how many pockets a bet covers.
+- **`isInside(kind)`** in `roulette.ts` replaces three separate lists of the inside bet kinds.
+- **`calculateReturns` is gone;** the game's only return sum is `buildTally().returned`.
+- **Frame measuring** is `slowDown` and `recordFrames` in `scripts/perf/frames.mjs`, used by the idle capture and by `idle.mjs` and `round.mjs`.
+- **Left as they were:** `EyesEvent`, `WallView` and `WheelView` stay exported, because their tests import them.
+- **Frame times could not be trusted that day.** Measured within the same half hour against the production build at 4x slowdown, the desktop room at rest read 68 ms a frame on the audit branch, 64 ms on `main` and 262 ms on the commit before Phase 5, where the recorded figure is 16.7 ms. With room animation off every one of them read 16.7 ms. So the machine, not the code, was slow at drawing the room; measure again before relying on any number in "Budgets, as measured".
 
 ### How Phase 5 was run, and how to run Phase 6
 

@@ -19,6 +19,7 @@ import {
   createInsideTarget,
   formatChips,
   getPocketColor,
+  isInside,
   randomPocket,
 } from './lib/roulette'
 import type { BetTarget, InsideBetKind } from './lib/roulette'
@@ -85,7 +86,7 @@ function App() {
   const numberStakes: Record<number, number> = {}
 
   for (const bet of bets) {
-    if (INSIDE_MODES.some((item) => item.kind === bet.target.kind)) {
+    if (isInside(bet.target.kind)) {
       for (const number of bet.target.numbers) {
         numberStakes[number] = (numberStakes[number] ?? 0) + bet.stake
       }

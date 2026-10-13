@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import {
-  calculateReturns,
   createInsideTarget,
   createOutsideTarget,
   getPocketColor,
@@ -38,22 +37,6 @@ describe('bet targets', () => {
     expect(even.numbers).not.toContain(0)
     expect(dozen.numbers).toEqual(Array.from({ length: 12 }, (_, index) => index + 13))
     expect(column.numbers).toContain(36)
-  })
-})
-
-describe('roulette returns', () => {
-  it('returns total winning stakes and nothing for losing bets', () => {
-    const straight = createInsideTarget('straight', [7])!
-    const red = createOutsideTarget('red')
-    const black = createOutsideTarget('black')
-
-    expect(
-      calculateReturns(7, [
-        { target: straight, stake: 5 },
-        { target: red, stake: 10 },
-      ]),
-    ).toBe(200)
-    expect(calculateReturns(0, [{ target: black, stake: 10 }])).toBe(0)
   })
 })
 

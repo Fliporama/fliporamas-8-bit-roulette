@@ -1370,8 +1370,9 @@ button.pocket:disabled {
   font-size: var(--type-3);
 }
 
+/* Opacity, not visibility: a hidden button loses focus. */
 @keyframes title-blink {
-  50% { visibility: hidden; }
+  50% { opacity: 0; }
 }
 
 /* Everything thrown into the air: above the wheel's overlay and the win banner, and never in the way of a click. */

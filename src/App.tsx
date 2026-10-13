@@ -409,9 +409,6 @@ function App() {
         </AnimatePresence>
         {phase === 'tallying' && round && <WinTally tally={round.tally} onStep={setScoring} onDone={finishRound} />}
 
-        {/* Until the boot screen exists, boot shows the title. */}
-        {stage !== 'play' && <Title onStart={start} />}
-
         {/* Reduced motion: nothing is thrown, whatever the setting. */}
         {effects !== 'off' && !reducedMotion && <Particles share={PARTICLE_SHARE[effects]} />}
 
@@ -425,6 +422,10 @@ function App() {
           <span>NO CASH VALUE <i /> CHIPS RESET EACH SESSION</span>
         </footer>
       </div>
+
+      {/* Outside the shell: its rise-in animation would make a fixed card position against the whole page. */}
+      {/* Until the boot screen exists, boot shows the title. */}
+      {stage !== 'play' && <Title onStart={start} />}
     </>
   )
 }

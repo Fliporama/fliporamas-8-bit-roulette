@@ -27,7 +27,9 @@ npm run build     # typecheck and production build
 npm run capture   # play one round in a real browser; screenshots and video land in captures/
 ```
 
-`npm run capture` needs the dev server running. Add `-- phone` for a 390 px wide phone, `-- reduced` to ask for reduced motion, or `-- <url>` to capture a deployed preview. `npm run capture -- idle` instead leaves the page untouched for 30 seconds, saves stills and a video, and prints frame times at four-times CPU slowdown. Every capture exits non-zero if the page logged a console error or scrolls sideways.
+`npm run capture` needs the dev server running. Add `-- phone` for a 390 px wide phone, `-- reduced` to ask for reduced motion, or `-- <url>` to capture a deployed preview. `npm run capture -- idle` instead leaves the page untouched for 30 seconds, saves stills and a video, and prints frame times at four-times CPU slowdown. `npm run capture -- intro` loads the page as a first-time visitor, records the boot, the title, the press and the tutorial hand, and fails if a bet could not be placed within 15 seconds. Every capture exits non-zero if the page logged a console error or scrolls sideways.
+
+The page opens on an intro (a boot on a first visit, then a title card). `/?play` opens the game directly; the round and idle captures and the scripts in `scripts/perf/` use it.
 
 ## Deploying
 

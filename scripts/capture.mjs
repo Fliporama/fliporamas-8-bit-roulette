@@ -19,6 +19,9 @@ const reduced = args.includes('reduced')
 const idle = args.includes('idle')
 const intro = args.includes('intro')
 const url = args.find((arg) => arg.startsWith('http')) ?? 'http://localhost:5173/'
+// Straight to the table, past the intro; a preview URL may already carry a query.
+const playUrl = new URL(url)
+playUrl.searchParams.set('play', '')
 const viewport = phone ? { width: 390, height: 844 } : { width: 1440, height: 900 }
 const out = 'captures'
 const name = reduced ? 'reduced' : phone ? 'phone' : 'desktop'
@@ -77,7 +80,7 @@ async function saveVideo(file) {
 async function captureIdle() {
   const prefix = phone ? 'phone-idle' : 'idle'
   const still = () => page.evaluate(() => document.querySelector('.scene')?.classList.contains('is-still'))
-  await page.goto(`${url}?play`)
+  await page.goto(playUrl.href)
   await page.waitForTimeout(800)
 
   const stills = []
@@ -133,6 +136,8 @@ async function captureIntro() {
   const shot = (step) => page.screenshot({ path: `${out}/${prefix}-${step}.png` })
   const FIRST_BET_LIMIT = 15_000
   const TITLE_GUARD = 400 // the title ignores a press for its first 300 ms
+  // The layer stays mounted while the hand is owed; the hand shows when its visibility is on.
+  const handShown = () => page.evaluate(() => [...document.querySelectorAll('.ghost-hand')].some((hand) => getComputedStyle(hand).visibility === 'visible'))
 
   // 1. The fast path, with empty storage.
   // Under reduced motion the boot must never mount: watch for it from the first node on.
@@ -162,9 +167,19 @@ async function captureIntro() {
   await page.locator('.title-start').click()
   await page.waitForTimeout(150)
   await shot('4-lift')
-  await page.waitForTimeout(2350)
+  await page.waitForTimeout(850)
+  // Start hands the keyboard to the first chip, and must not scroll the page to do it.
+  const begun = await page.evaluate(() => [window.scrollY, document.activeElement === document.querySelector('.chip-choice')])
+  if (begun[0] !== 0) errors.push(`The page was scrolled 1 s after start: ${begun[0]}`)
+  if (!begun[1]) errors.push('The first chip did not have focus 1 s after start')
+  let handSeen = await handShown()
+  await page.waitForTimeout(1500)
   await shot('5-hand')
+  handSeen ||= await handShown()
+  // On a phone the hand's targets may be off screen, so it is not checked there.
+  if (!phone && !handSeen) errors.push('The tutorial hand did not show after start')
   await page.locator('[data-chip="25"]').click()
+  if (!phone && (await handShown())) errors.push('The tutorial hand stayed after the first click')
   await page.locator('[data-spot="n17"]').click()
   const taken = Date.now() - started
   const bets = await page.locator('.bet-line').count()
@@ -177,16 +192,21 @@ async function captureIntro() {
   await checkOverflow()
 
   // 2. A press during the boot skips the boot only; the title's guard keeps it from starting the game.
-  if (!reduced) {
+  // Once by mouse and once by key: the mouse press lands on the boot, which may swallow the click whole.
+  const skips = [
+    ['press', () => page.mouse.click(viewport.width / 2, viewport.height / 2)],
+    ['key', () => page.keyboard.press('Enter')],
+  ]
+  for (const [how, skip] of reduced ? [] : skips) {
     await page.evaluate(() => localStorage.clear())
     await page.reload()
     await page.waitForTimeout(500)
-    await page.mouse.click(viewport.width / 2, viewport.height / 2)
+    await skip()
     await page.waitForTimeout(200)
-    if ((await page.locator('.title-card').count()) === 0) errors.push('No title after the skipping press')
-    if ((await page.locator('.boot').count()) > 0) errors.push('The boot survived the skipping press')
+    if ((await page.locator('.title-card').count()) === 0) errors.push(`No title after the skipping ${how}`)
+    if ((await page.locator('.boot').count()) > 0) errors.push(`The boot survived the skipping ${how}`)
     await page.waitForTimeout(TITLE_GUARD)
-    if ((await page.locator('.title-card').count()) === 0) errors.push('The skipping press started the game')
+    if ((await page.locator('.title-card').count()) === 0) errors.push(`The skipping ${how} started the game`)
   }
 
   // 3. Attract: left alone on the title, the hand shows the loop.
@@ -194,9 +214,7 @@ async function captureIntro() {
   await page.locator('.title-start').waitFor()
   await page.waitForTimeout(10_000)
   await shot('7-attract')
-  // The layer stays mounted while the title is up; the hand shows when its visibility is on.
   // On a phone the hand may have no visible target at this moment, so allow one more loop (about 5 s).
-  const handShown = () => page.evaluate(() => getComputedStyle(document.querySelector('.ghost-hand')).visibility === 'visible')
   let seen = await handShown()
   for (let waited = 0; !seen && waited < 5000; waited += 250) {
     await page.waitForTimeout(250)
@@ -214,7 +232,7 @@ async function captureRound() {
   const shot = (step) => page.screenshot({ path: `${out}/${name}-${step}.png` })
   const spot = (id) => page.locator(`[data-spot^="${id}"]`).first()
 
-  await page.goto(`${url}?play`)
+  await page.goto(playUrl.href)
   await page.waitForTimeout(800)
   await shot('1-idle')
   await checkOverflow()

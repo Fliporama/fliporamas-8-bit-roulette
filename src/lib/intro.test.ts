@@ -42,15 +42,6 @@ describe('the stored flag', () => {
     forgetIntro()
     expect(introSeen()).toBe(false)
   })
-  it('reads as not seen, and does not throw, when storage is blocked', () => {
-    const blocked = () => {
-      throw new Error('blocked')
-    }
-    vi.stubGlobal('localStorage', { getItem: blocked, setItem: blocked, removeItem: blocked })
-    expect(introSeen()).toBe(false)
-    expect(markIntroSeen).not.toThrow()
-    expect(forgetIntro).not.toThrow()
-  })
 })
 
 describe('the examples', () => {

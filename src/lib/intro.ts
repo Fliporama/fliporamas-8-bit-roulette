@@ -1,8 +1,9 @@
 import { createInsideTarget, type InsideBetKind } from './roulette'
+import { stored } from './stored'
 
 export type Stage = 'boot' | 'title' | 'play'
 
-const STORAGE_KEY = 'fliporama-intro'
+const STORE = stored('fliporama-intro')
 
 /** `search` is location.search. `/?play` wins; then reduced motion or a seen intro start at the title. */
 export function firstStage(search: string, seen: boolean, reducedMotion: boolean): Stage {
@@ -16,30 +17,18 @@ export function owesHand(search: string, seen: boolean): boolean {
 }
 
 export function introSeen(): boolean {
-  try {
-    return localStorage.getItem(STORAGE_KEY) === '1'
-  } catch {
-    return false
-  }
+  return STORE.get() === '1'
 }
 
 export function markIntroSeen(): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, '1')
-  } catch {
-    // No storage: the intro just plays again next visit.
-  }
+  STORE.set('1')
 }
 
 export function forgetIntro(): void {
-  try {
-    localStorage.removeItem(STORAGE_KEY)
-  } catch {
-    // No storage: nothing to forget.
-  }
+  STORE.set(null)
 }
 
-export interface HandStep {
+interface HandStep {
   target: string // a CSS selector
   ms: number // how long the hand stays
 }

@@ -1,6 +1,8 @@
+import { stored } from './stored'
+
 type SoundName = 'ballClick' | 'chip' | 'tick' | 'win' | 'bigWin' | 'loss'
 
-const STORAGE_KEY = 'fliporama-muted'
+const STORE = stored('fliporama-muted')
 const GAIN = 0.06
 const NOTES: Record<Exclude<SoundName, 'tick'>, { frequencies: number[]; ms: number }> = {
   ballClick: { frequencies: [1200], ms: 25 },
@@ -10,12 +12,7 @@ const NOTES: Record<Exclude<SoundName, 'tick'>, { frequencies: number[]; ms: num
   loss: { frequencies: [196, 147], ms: 140 },
 }
 
-let muted = false
-try {
-  muted = localStorage.getItem(STORAGE_KEY) === '1'
-} catch {
-  // No storage: the setting just doesn't persist.
-}
+let muted = STORE.get() === '1'
 
 let context: AudioContext | undefined
 
@@ -25,11 +22,7 @@ export function isMuted(): boolean {
 
 export function setMuted(value: boolean): void {
   muted = value
-  try {
-    localStorage.setItem(STORAGE_KEY, value ? '1' : '0')
-  } catch {
-    // No storage: the setting just doesn't persist.
-  }
+  STORE.set(value ? '1' : '0')
 }
 
 /** One semitone up per tally step, capped an octave above A4. */

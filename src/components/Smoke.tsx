@@ -30,12 +30,19 @@ export default function Smoke({ live }: { live: boolean }) {
     }
     const palette = paletteOf(target, ['smoke-0', 'smoke-1'])
     const began = performance.now()
+    let image: ImageData | undefined
     const draw = () => {
       const seconds = (performance.now() - began) / 1000
-      paint(target, size.cols, size.rows, (x, y) => {
-        const token = smokeToken(x, y, seconds, size.cols, size.rows)
-        return token ? palette[token] : undefined
-      })
+      image = paint(
+        target,
+        size.cols,
+        size.rows,
+        (x, y) => {
+          const token = smokeToken(x, y, seconds, size.cols, size.rows)
+          return token ? palette[token] : undefined
+        },
+        image,
+      )
     }
     draw()
     const timer = window.setInterval(draw, FRAME_MS)

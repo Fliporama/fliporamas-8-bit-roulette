@@ -1,18 +1,20 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { CSSProperties } from 'react'
-import { clockHands } from '../lib/clock'
+import { clockHands, untilNextMinute } from '../lib/clock'
 import type { SpriteData } from '../lib/sprite'
-import { CLOCK, DOOR, DOOR_WINDOW, FAN, GRAMOPHONE, PATRONS, PENDULUM, RECORD, SHELF } from '../sprites/room'
+import { CLOCK, CLOCK_FACE, DOOR, DOOR_WINDOW, FAN, GRAMOPHONE, PATRONS, PENDULUM, RECORD, RECORD_AT, SHELF } from '../sprites/room'
 import Sprite from './Sprite'
+
+const GRAMOPHONE_AT = (SHELF.width - GRAMOPHONE.width) / 2 // centred on its shelf
+const px = (artPixels: number) => `calc(var(--px) * ${artPixels})`
 
 // Someone passing behind the frosted glass.
 const PASS = { everyMin: 8000, everyMax: 20000, stepMs: 160, pauseMs: 1800, pauseOneIn: 3 }
-const MINUTE_MS = 60_000
 
 /** A flip-book of sprites, cycled by CSS: see `.frames` in game.css. */
-export function Frames({ frames, className = '' }: { frames: readonly SpriteData[]; className?: string }) {
+function Frames({ frames, className = '', style }: { frames: readonly SpriteData[]; className?: string; style?: CSSProperties }) {
   return (
-    <span className={`frames ${className}`}>
+    <span className={`frames ${className}`} style={style}>
       {frames.map((frame, index) => (
         <Sprite key={index} data={frame} style={{ '--frame': index } as CSSProperties} />
       ))}
@@ -21,7 +23,7 @@ export function Frames({ frames, className = '' }: { frames: readonly SpriteData
 }
 
 /** The hands for the visitor's own time of day. */
-export function Clock({ at }: { at: Date }) {
+function Clock({ at }: { at: Date }) {
   const hours = at.getHours()
   const minutes = at.getMinutes()
   // Redrawn only when the minute changes, not each time a silhouette takes a step.
@@ -29,7 +31,7 @@ export function Clock({ at }: { at: Date }) {
   return (
     <>
       <Sprite data={CLOCK} />
-      <Sprite className="clock-hands" data={hands} />
+      <Sprite data={hands} style={{ top: px(CLOCK_FACE.y), left: px(CLOCK_FACE.x) }} />
       <Sprite className="clock-pendulum" data={PENDULUM} />
     </>
   )
@@ -42,8 +44,12 @@ export default function Fixtures({ live }: { live: boolean }) {
 
   useEffect(() => {
     if (!live) return
-    const tick = window.setInterval(() => setNow(new Date()), MINUTE_MS)
-    return () => window.clearInterval(tick)
+    // Read at once, since the time went stale while the room was still, then again as each minute turns.
+    let timer = window.setTimeout(function tick() {
+      setNow(new Date())
+      timer = window.setTimeout(tick, untilNextMinute(new Date()))
+    }, 0)
+    return () => window.clearTimeout(timer)
   }, [live])
 
   // Now and then a silhouette crosses behind the glass, one art pixel at a time; some stop a while.
@@ -71,14 +77,21 @@ export default function Fixtures({ live }: { live: boolean }) {
       step(from)
     }
     timer = window.setTimeout(start, wait())
-    return () => window.clearTimeout(timer)
+    return () => {
+      window.clearTimeout(timer)
+      // Nobody is left standing half-way across the glass for the next time the room comes to life.
+      setPasser(undefined)
+    }
   }, [live])
 
   return (
     <>
       <div className="fixture fixture-door">
-        <div className="door-glass">
-          {live && passer && <Sprite data={PATRONS[passer.who]} style={{ left: `calc(var(--px) * ${passer.x})` }} />}
+        <div
+          className="door-glass"
+          style={{ top: px(DOOR_WINDOW.y), left: px(DOOR_WINDOW.x), width: px(DOOR_WINDOW.width), height: px(DOOR_WINDOW.height) }}
+        >
+          {live && passer && <Sprite data={PATRONS[passer.who]} style={{ left: px(passer.x) }} />}
         </div>
         <Sprite data={DOOR} />
       </div>
@@ -89,8 +102,12 @@ export default function Fixtures({ live }: { live: boolean }) {
         <Clock at={now} />
       </div>
       <div className="fixture fixture-gramophone">
-        <Sprite data={GRAMOPHONE} />
-        <Frames frames={RECORD} className="gramophone-record" />
+        <Sprite data={GRAMOPHONE} style={{ left: px(GRAMOPHONE_AT) }} />
+        <Frames
+          frames={RECORD}
+          className="gramophone-record"
+          style={{ top: px(RECORD_AT.y), left: px(GRAMOPHONE_AT + RECORD_AT.x) }}
+        />
         <Sprite className="gramophone-shelf" data={SHELF} />
       </div>
     </>

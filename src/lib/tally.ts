@@ -1,6 +1,6 @@
 import type { BetPlacement, BetTarget } from './roulette'
 
-export type WinTier = 'none' | 'small' | 'big' | 'huge'
+type WinTier = 'none' | 'small' | 'big' | 'huge'
 
 export interface TallyStep {
   target: BetTarget

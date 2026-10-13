@@ -8,7 +8,7 @@ import {
   useSpring,
   useTransform,
 } from 'motion/react'
-import type { Easing } from 'motion/react'
+import type { Easing, MotionStyle } from 'motion/react'
 import { getPocketColor } from '../lib/roulette'
 import { play } from '../lib/sound'
 import { useSkip } from '../lib/useSkip'
@@ -33,6 +33,7 @@ const SPOKE_LAG = { stiffness: 40, damping: 9 } // the hub spokes trail the whee
 const JOLT_ABOVE = 0.5 // how hard an impact must be to knock the wheel down one art pixel
 const RUN: [number, number, number, number] = [0.25, 0, 0.1, 1] // quick away, long slow down
 const BADGE_MS = 450
+const NUMBERS_INSET = `${(100 - RADII.numbers) / 2}%` // from the wheel's edge to the middle of the number band, as a share of its width
 
 // The ball is a hard marble: it never deforms. It leaves the rim, takes two short, sharp
 // bounces and comes to rest; each impact jolts the wheel instead.
@@ -179,7 +180,7 @@ export default function RouletteWheel({ result, onLanded }: RouletteWheelProps) 
               ballRadius={ballRadius}
               winner={landed ? result : undefined}
             />
-            <motion.div className="wheel-numbers" style={{ rotate: wheelTurn }}>
+            <motion.div className="wheel-numbers" style={{ rotate: wheelTurn, '--numbers-inset': NUMBERS_INSET } as MotionStyle}>
               {WHEEL_ORDER.map((number, index) => (
                 <span key={number} style={{ rotate: `${index * POCKET_ARC}deg` }}>
                   {number}

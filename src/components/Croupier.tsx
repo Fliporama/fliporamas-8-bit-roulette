@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useReducer, useState } from 'react'
+import { EYES_FORWARD, eyesAfter } from '../lib/gaze'
 import type { Look, Reaction } from '../lib/scene'
 import { ARMS, BODY, EYES, EYES_AT, HEIGHT, WIDTH } from '../sprites/croupier'
 import type { Arms } from '../sprites/croupier'
@@ -57,7 +58,7 @@ interface CroupierProps {
 /** The dealer behind the rail: breathes, blinks and glances while idle, and reacts to the game. */
 export default function Croupier({ reaction, look, live }: CroupierProps) {
   const [arms, setArms] = useState<Arms>('rest')
-  const [gaze, setGaze] = useState<Look>(0)
+  const [{ gaze }, eyes] = useReducer(eyesAfter, EYES_FORWARD)
   const [eyesShut, setEyesShut] = useState(false)
 
   // Hands: a gesture for each turn of the game, and now and then a tug at the bow tie.
@@ -90,11 +91,11 @@ export default function Croupier({ reaction, look, live }: CroupierProps) {
     }
   }, [reaction, live])
 
-  // Eyes: to a chip as it lands, then back.
+  // Eyes: to a chip as it lands, then back. Which wins between this and a glance is decided in lib/gaze.
   useEffect(() => {
     if (!live || look.id === 0) return
-    const turn = window.setTimeout(() => setGaze(look.at), 0)
-    const back = window.setTimeout(() => setGaze(0), LOOK_HOLD_MS)
+    const turn = window.setTimeout(() => eyes({ type: 'chip', ...look }), 0)
+    const back = window.setTimeout(() => eyes({ type: 'lookOver' }), LOOK_HOLD_MS)
     return () => {
       window.clearTimeout(turn)
       window.clearTimeout(back)
@@ -112,13 +113,16 @@ export default function Croupier({ reaction, look, live }: CroupierProps) {
         later(() => setEyesShut(false), BLINK.ms)
       }),
       nowAndThen(GLANCE, () => {
-        setGaze(Math.random() < 0.5 ? -1 : 1)
-        later(() => setGaze(0), GLANCE.ms)
+        eyes({ type: 'glance', at: Math.random() < 0.5 ? -1 : 1 })
+        later(() => eyes({ type: 'glanceOver' }), GLANCE.ms)
       }),
     ]
     return () => {
       timers.forEach((timer) => window.clearTimeout(timer))
       stops.forEach((stop) => stop())
+      // Nothing is left half-done across a pause: the eyes open and face forward.
+      setEyesShut(false)
+      eyes({ type: 'pause' })
     }
   }, [live])
 

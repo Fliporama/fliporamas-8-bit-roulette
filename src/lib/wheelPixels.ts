@@ -125,3 +125,166 @@ export function wheelPixel(x: number, y: number, view: WheelView): string | unde
   else if (light < -LIGHT.edge) token = DARKER[token]
   return shadowed ? DARKER[token] : token
 }
+
+// The fast path. A token is a code: its place in WHEEL_TOKENS plus one, with 0 for a clear pixel.
+const CODE = Object.fromEntries(WHEEL_TOKENS.map((token, at) => [token, at + 1]))
+const stepped = (steps: Record<string, string>) => Uint8Array.from([0, ...WHEEL_TOKENS.map((token) => CODE[steps[token]])])
+const LIGHTER_CODE = stepped(LIGHTER)
+const DARKER_CODE = stepped(DARKER)
+const POCKET_CODE = WHEEL_ORDER.map((number) => CODE[POCKET[getPocketColor(number)]])
+// What a pixel needs each frame. FIXED never changes; the others depend on how far the wheel or the spokes have turned.
+const CLEAR = 0
+const OUTLINE = 1
+const FIXED = 2
+const WOOD = 3
+const BAND = 4
+const WELL = 5
+const SPOKES = 6
+const BALL_BOX = 4 // art pixels past the ball's edge that its outline and shadow can reach, rounded up
+
+type WheelPainter = (view: Omit<WheelView, 'size'>, colours: ArrayLike<number>, out: { [at: number]: number }) => void
+
+/**
+ * `wheelPixel` for a whole wheel at once: everything that depends only on where a pixel is gets worked out here, once.
+ * The painter sets `out[y * size + x]` to `colours[code]`. It must agree with `wheelPixel` at every pixel; a test holds it to that.
+ */
+export function wheelPainter(size: number): WheelPainter {
+  const half = size / 2
+  const count = size * size
+  const kind = new Uint8Array(count)
+  const fixed = new Uint8Array(count)
+  const lights = new Int8Array(count)
+  const dxs = new Float64Array(count)
+  const dys = new Float64Array(count)
+  const distances = new Float64Array(count)
+  const angles = new Float64Array(count)
+
+  for (let y = 0, at = 0; y < size; y++) {
+    for (let x = 0; x < size; x++, at++) {
+      const dx = x + 0.5 - half
+      const dy = y + 0.5 - half
+      const distance = Math.hypot(dx, dy)
+      if (distance > half) continue
+      dxs[at] = dx
+      dys[at] = dy
+      distances[at] = distance
+      angles[at] = Math.atan2(dx, -dy) / RADIANS
+      if (distance > half - 1) {
+        kind[at] = OUTLINE
+        continue
+      }
+      const radius = (distance / half) * 100
+      const light = -dy / distance + (dither(x, y) - 0.5) * LIGHT.band
+      lights[at] = light > LIGHT.edge ? 1 : light < -LIGHT.edge ? -1 : 0
+      let token: string | undefined
+      if (radius > RADII.track) {
+        kind[at] = WOOD
+      } else if (radius > RADII.pocketOuter) {
+        token = 'brass-2'
+      } else if (radius > RADII.pocketInner) {
+        kind[at] = radius >= RADII.well ? BAND : WELL
+      } else if (radius > RADII.turret) {
+        const toPockets = ((RADII.pocketInner - radius) * half) / 100
+        const toTurret = ((radius - RADII.turret) * half) / 100
+        token = toPockets < 1 ? 'wood-0' : toTurret < 1 ? 'brass-0' : 'wood-1'
+      } else if (distance < KNOB) {
+        token = 'brass-3'
+      } else if (radius < RADII.hub) {
+        token = 'brass-2'
+      } else if (radius > RADII.spoke) {
+        token = 'brass-1'
+      } else {
+        kind[at] = SPOKES
+      }
+      if (token) {
+        kind[at] = FIXED
+        fixed[at] = lights[at] > 0 ? LIGHTER_CODE[CODE[token]] : lights[at] < 0 ? DARKER_CODE[CODE[token]] : CODE[token]
+      }
+    }
+  }
+
+  const band = new Uint8Array(WHEEL_ORDER.length)
+  const well = new Uint8Array(WHEEL_ORDER.length)
+  const INK_0 = CODE['ink-0']
+  const BRASS_1 = CODE['brass-1']
+  const BRASS_2 = CODE['brass-2']
+  const WOODS = [CODE['wood-2'], CODE['wood-0'], CODE['wood-1'], CODE['wood-1'], CODE['wood-1']]
+
+  return (view, colours, out) => {
+    const { turn, landed } = view
+    // A pocket's code in the number band and in the well; 0 marks the winner while it is lit.
+    for (let index = 0; index < band.length; index++) {
+      const loser = landed !== undefined && WHEEL_ORDER[index] !== landed.winner
+      const code = POCKET_CODE[index]
+      band[index] = landed?.lit && !loser ? 0 : loser ? DARKER_CODE[code] : code
+      well[index] = landed?.lit && !loser ? 0 : loser ? DARKER_CODE[DARKER_CODE[code]] : DARKER_CODE[code]
+    }
+    const hub = view.hubTurn * RADIANS
+    const hubCos = Math.cos(hub)
+    const hubSin = Math.sin(hub)
+    const ball = view.ball
+    const reach = ball ? (half * ball.radius) / 100 : 0
+    const ballAcross = ball ? reach * Math.sin(ball.angle * RADIANS) : 0
+    const ballDown = ball ? reach * Math.cos(ball.angle * RADIANS) : 0
+    const ballSize = Math.max(BALL_MIN, (half * RADII.ball) / 100)
+    const box = ballSize + BALL_BOX
+
+    for (let at = 0; at < count; at++) {
+      const what = kind[at]
+      if (what === CLEAR || what === OUTLINE) {
+        out[at] = colours[what === CLEAR ? 0 : INK_0]
+        continue
+      }
+      const dx = dxs[at]
+      const dy = dys[at]
+      let shadowed = false
+      if (ball) {
+        const ballX = dx - ballAcross
+        const ballY = dy + ballDown
+        if (ballX < box && ballX > -box && ballY < box && ballY > -box) {
+          const away = Math.hypot(ballX, ballY)
+          if (away <= ballSize) {
+            out[at] = colours[CODE[ballX + ballY < -ballSize * 0.4 ? 'paper-1' : 'paper-0']]
+            continue
+          }
+          if (away <= ballSize + 1) {
+            out[at] = colours[INK_0]
+            continue
+          }
+          shadowed = Math.hypot(ballX, ballY - 2) <= ballSize + 1
+        }
+      }
+
+      let code: number
+      let light = lights[at]
+      if (what === FIXED) {
+        code = fixed[at]
+        light = 0
+      } else if (what === WOOD) {
+        code = WOODS[hash(Math.floor(distances[at]), Math.floor(wrap(angles[at] - turn) / GRAIN.arc)) % GRAIN.oneIn]
+      } else if (what === SPOKES) {
+        const along = Math.abs(dx * hubCos + dy * hubSin)
+        const across = Math.abs(dy * hubCos - dx * hubSin)
+        code = Math.min(along, across) <= SPOKE_HALF ? BRASS_2 : BRASS_1
+      } else {
+        const onWheel = wrap(angles[at] - turn)
+        const index = Math.round(onWheel / POCKET_ARC)
+        const toDivider = (POCKET_ARC / 2 - Math.abs(onWheel - index * POCKET_ARC)) * RADIANS * distances[at]
+        if (toDivider < 0.5) {
+          code = BRASS_1
+        } else {
+          code = (what === BAND ? band : well)[index % WHEEL_ORDER.length]
+          if (code === 0) {
+            out[at] = colours[BRASS_2]
+            continue
+          }
+          // Numbers are printed over the band: it is never lightened.
+          if (what === BAND && light > 0) light = 0
+        }
+      }
+      if (light > 0) code = LIGHTER_CODE[code]
+      else if (light < 0) code = DARKER_CODE[code]
+      out[at] = colours[shadowed ? DARKER_CODE[code] : code]
+    }
+  }
+}

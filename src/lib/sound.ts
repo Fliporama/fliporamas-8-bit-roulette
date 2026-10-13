@@ -1,4 +1,4 @@
-export type SoundName = 'ballClick' | 'chip' | 'tick' | 'win' | 'bigWin' | 'loss'
+type SoundName = 'ballClick' | 'chip' | 'tick' | 'win' | 'bigWin' | 'loss'
 
 const STORAGE_KEY = 'fliporama-muted'
 const GAIN = 0.06

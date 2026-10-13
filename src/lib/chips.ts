@@ -46,7 +46,7 @@ export function stackAnchor(kind: BetKind, centres: readonly Point[]): Point {
   }
 }
 
-export interface Box {
+interface Box {
   x: number
   y: number
   width: number

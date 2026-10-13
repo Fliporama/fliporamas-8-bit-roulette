@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import CountUp from './components/CountUp'
 import Felt from './components/Felt'
@@ -23,6 +24,7 @@ import { isMuted, setMuted } from './lib/sound'
 import { buildTally } from './lib/tally'
 import type { Tally, TallyStep } from './lib/tally'
 import { useRoomLight } from './lib/useRoomLight'
+import { WALL_REPEAT } from './lib/wall'
 import { CHIP_SPRITES } from './sprites/chips'
 import { ICONS } from './sprites/icons'
 import { RAIL } from './sprites/table'
@@ -193,7 +195,7 @@ function App() {
 
   return (
     <>
-      <div className="room-wall" aria-hidden="true">
+      <div className="room-wall" aria-hidden="true" style={{ '--repeat': WALL_REPEAT } as CSSProperties}>
         <Wall />
       </div>
       <div className="app-shell">

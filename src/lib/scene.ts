@@ -15,6 +15,37 @@ const STORAGE_KEY = 'fliporama-scene'
 /** Light steps added to the lamp's pool at each level. */
 export const LIGHT_SHIFT: Record<Light, number> = { dim: -1, normal: 0, flare: 1 }
 
+const STEP_MS = 100 // a change of level lands in two hard steps this far apart
+const FLICKER = { everyMin: 6000, everyMax: 14000, ms: 80, shift: -0.5 }
+
+/**
+ * Takes the room's light from the shift `from` to `level`, calling `show` with each shift in turn:
+ * half-way at once, then the level. At normal it then flickers now and then, unless `hidden` says nobody would see.
+ * Returns a function that stops it where it is.
+ */
+export function runLight(from: number, level: Light, show: (shift: number) => void, hidden: () => boolean): () => void {
+  const target = LIGHT_SHIFT[level]
+  const timers: ReturnType<typeof setTimeout>[] = []
+  const later = (run: () => void, ms: number) => timers.push(setTimeout(run, ms))
+  if (from !== target) {
+    show((from + target) / 2)
+    later(() => show(target), STEP_MS)
+  }
+  if (level === 'normal') {
+    const wait = () => FLICKER.everyMin + Math.random() * (FLICKER.everyMax - FLICKER.everyMin)
+    const flicker = () => {
+      // Not in a hidden tab: a flicker repaints the felt and the wall for nobody.
+      if (!hidden()) {
+        show(FLICKER.shift)
+        later(() => show(target), FLICKER.ms)
+      }
+      later(flicker, wait())
+    }
+    later(flicker, wait())
+  }
+  return () => timers.forEach((timer) => clearTimeout(timer))
+}
+
 /** The level a light shift shows as: anything below normal already looks dim, and only a full step up is a flare. */
 export function levelOf(shift: number): Light {
   if (shift < 0) return 'dim'

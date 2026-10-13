@@ -12,6 +12,12 @@ type OutsideBetKind =
   | 'column'
 export type BetKind = InsideBetKind | OutsideBetKind
 
+const INSIDE_KINDS: readonly BetKind[] = ['straight', 'split', 'street', 'sixLine']
+
+export function isInside(kind: BetKind): kind is InsideBetKind {
+  return INSIDE_KINDS.includes(kind)
+}
+
 export interface BetTarget {
   id: string
   kind: BetKind
@@ -94,68 +100,28 @@ export function createInsideTarget(
 
 const ORDINALS = ['1st', '2nd', '3rd']
 
+const POCKETS = Array.from({ length: 36 }, (_, index) => index + 1)
+
+/** Which pockets each outside bet covers, and its label. A dozen or column is the `group`th of three. */
+const OUTSIDE: Record<OutsideBetKind, { covers: (number: number, group: number) => boolean; label: (ordinal: string) => string }> = {
+  red: { covers: (number) => RED_NUMBERS.has(number), label: () => 'Red' },
+  black: { covers: (number) => !RED_NUMBERS.has(number), label: () => 'Black' },
+  even: { covers: (number) => number % 2 === 0, label: () => 'Even' },
+  odd: { covers: (number) => number % 2 === 1, label: () => 'Odd' },
+  low: { covers: (number) => number <= 18, label: () => '1-18' },
+  high: { covers: (number) => number > 18, label: () => '19-36' },
+  dozen: { covers: (number, group) => Math.ceil(number / 12) === group, label: (ordinal) => `${ordinal} 12` },
+  column: { covers: (number, group) => (number - 1) % 3 === group - 1, label: (ordinal) => `${ordinal} column` },
+}
+
 export function createOutsideTarget(kind: OutsideBetKind, group: 1 | 2 | 3 = 1): BetTarget {
-  let numbers: number[]
-  let label: string
-  let returnMultiplier = 2
-
-  switch (kind) {
-    case 'red':
-      numbers = [...RED_NUMBERS]
-      label = 'Red'
-      break
-    case 'black':
-      numbers = Array.from({ length: 36 }, (_, index) => index + 1).filter(
-        (number) => !RED_NUMBERS.has(number),
-      )
-      label = 'Black'
-      break
-    case 'even':
-      numbers = Array.from({ length: 18 }, (_, index) => (index + 1) * 2)
-      label = 'Even'
-      break
-    case 'odd':
-      numbers = Array.from({ length: 18 }, (_, index) => index * 2 + 1)
-      label = 'Odd'
-      break
-    case 'low':
-      numbers = Array.from({ length: 18 }, (_, index) => index + 1)
-      label = '1-18'
-      break
-    case 'high':
-      numbers = Array.from({ length: 18 }, (_, index) => index + 19)
-      label = '19-36'
-      break
-    case 'dozen':
-      numbers = Array.from({ length: 12 }, (_, index) => (group - 1) * 12 + index + 1)
-      label = `${ORDINALS[group - 1]} 12`
-      returnMultiplier = 3
-      break
-    case 'column':
-      numbers = Array.from({ length: 12 }, (_, index) => index * 3 + group)
-      label = `${ORDINALS[group - 1]} column`
-      returnMultiplier = 3
-      break
-  }
-
-  return target(kind, numbers, label, returnMultiplier)
+  const { covers, label } = OUTSIDE[kind]
+  const numbers = POCKETS.filter((number) => covers(number, group))
+  return target(kind, numbers, label(ORDINALS[group - 1]), 36 / numbers.length)
 }
 
 export function formatChips(amount: number): string {
   return amount.toLocaleString('en-US')
-}
-
-export function calculateReturns(
-  number: number,
-  placements: readonly BetPlacement[],
-): number {
-  return placements.reduce(
-    (total, placement) =>
-      placement.target.numbers.includes(number)
-        ? total + placement.stake * placement.target.returnMultiplier
-        : total,
-    0,
-  )
 }
 
 const UINT32_RANGE = 0x1_0000_0000

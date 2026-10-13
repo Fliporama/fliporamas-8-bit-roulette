@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { calculateReturns, createInsideTarget, createOutsideTarget } from './roulette'
+import { createInsideTarget, createOutsideTarget } from './roulette'
 import { buildTally, stepDuration } from './tally'
 
 const straight7 = createInsideTarget('straight', [7])!
@@ -20,7 +20,7 @@ describe('buildTally', () => {
     expect(tally.steps.map((step) => step.target.id)).toEqual([column1.id, red.id, straight7.id])
     expect(tally.steps.map((step) => step.payout)).toEqual([6, 20, 180])
     expect(tally.steps.map((step) => step.runningTotal)).toEqual([6, 26, 206])
-    expect(tally.returned).toBe(calculateReturns(7, bets))
+    expect(tally.returned).toBe(206)
     expect(tally.tier).toBe('big')
   })
 

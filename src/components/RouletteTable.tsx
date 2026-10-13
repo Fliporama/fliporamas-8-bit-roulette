@@ -1,12 +1,11 @@
 import ChipLayer from './ChipLayer'
 import type { PlacedBet } from '../lib/chips'
-import { createOutsideTarget, formatChips, getPocketColor } from '../lib/roulette'
+import { createOutsideTarget, formatChips, getPocketColor, isInside } from '../lib/roulette'
 import type { BetTarget, InsideBetKind } from '../lib/roulette'
 import type { TallyStep } from '../lib/tally'
 
 // Streets in order, each listed 3-2-1, so the grid reads like a real table in either orientation.
 const NUMBERS = Array.from({ length: 36 }, (_, index) => index + 3 - 2 * (index % 3))
-const INSIDE_KINDS = ['straight', 'split', 'street', 'sixLine']
 const COLUMNS = ([3, 2, 1] as const).map((group) => createOutsideTarget('column', group))
 const DOZENS = ([1, 2, 3] as const).map((group) => createOutsideTarget('dozen', group))
 const EVEN_MONEY = (['low', 'even', 'red', 'black', 'odd', 'high'] as const).map((kind) =>
@@ -49,7 +48,7 @@ export default function RouletteTable({
   onBet,
 }: RouletteTableProps) {
   const straight = new Set(bets.filter((bet) => bet.target.kind === 'straight').map((bet) => bet.target.numbers[0]))
-  const scoringInside = scoring && INSIDE_KINDS.includes(scoring.target.kind) ? scoring : undefined
+  const scoringInside = scoring && isInside(scoring.target.kind) ? scoring : undefined
 
   const pocket = (number: number) => {
     const stake = numberStakes[number] ?? 0

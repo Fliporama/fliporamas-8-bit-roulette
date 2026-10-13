@@ -1,6 +1,6 @@
 # Roadmap: Fliporama Roulette to an award-grade site
 
-**Current phase:** 5 (The first ten seconds), not started
+**Current phase:** 6 (Sound and music), not started. Do the audit fixes under "Before Phase 6" first.
 **To resume in a new session:** say "continue the roadmap". The session protocol is in `CLAUDE.md`.
 
 ## Brief
@@ -56,7 +56,7 @@ One phase is one session. Each gets its own brainstorm, spec (`docs/superpowers/
   - A particle system for chips, sparks and confetti, replacing the simple burst in `WinTally.tsx`.
   - Done when: effects hold 60 fps on a phone and the game is fully playable with them off.
 
-- [ ] **Phase 5. The first ten seconds**
+- [x] **Phase 5. The first ten seconds** (done 2026-10-13)
   - An arcade power-on boot sequence, a title screen with attract mode, scene transitions, and a short playable tutorial for the bet types.
   - Juries decide early; this phase is the biggest single lever on a score.
   - Done when: a stranger understands what this is and places a bet within 15 seconds, with no text explanation.
@@ -136,6 +136,7 @@ What the trial showed in Phase 5: the per-task reviewers read diffs and caught l
 - **`npm run capture -- intro`** (also `phone` and `reduced`) plays a first visit and fails if a bet cannot be placed within 15 seconds. Measured: 7.3 s on desktop, 7.1 s at phone size.
 - **For Phase 6 (sound):** nothing in the intro makes a sound. The boot's line and flicker, the start press, the card's lift and the hand's taps are the places for it.
 - **For Phase 7 (phone):** at 390 px the hand skips number 17 because it is below the fold, and the title card covers the croupier's face.
+- **The owner approved the motion by eye** on 2026-10-13 (boot, lift, hand, preview outline at two art pixels, the phone title).
 - **Not done:** nothing was added to `/?styleguide` for the boot, the title or the hand. No stranger has tried it; the 15-second capture is the stand-in.
 - **Budgets, as measured for Phase 5:** first load is 140.2 kB of JavaScript gzipped. The title at rest measures 16.7 ms a frame at 4x slowdown (`TITLE=1 node scripts/perf/idle.mjs`; one row of eight read 16.9 ms). Frame times for a round could not be compared with the table below: the machine was slow and noisy that day, and `main` itself measured 21 to 24 ms at desktop size against the 18.4 ms recorded, with this branch between 20 and 38 ms over five runs. With `/?play` none of the intro's layers is mounted, and the review found nothing that adds work per frame in play. Measure a round again on a quiet machine before trusting either number.
 - **Small things left by the review:**

@@ -11,6 +11,7 @@ import ScreenEffects from './components/ScreenEffects'
 import Settings from './components/Settings'
 import Sprite from './components/Sprite'
 import Wall from './components/Wall'
+import Boot from './components/Boot'
 import Title from './components/Title'
 import WinTally from './components/WinTally'
 import {
@@ -424,8 +425,8 @@ function App() {
       </div>
 
       {/* Outside the shell: its rise-in animation would make a fixed card position against the whole page. */}
-      {/* Until the boot screen exists, boot shows the title. */}
-      {stage !== 'play' && <Title onStart={start} />}
+      {stage === 'boot' && <Boot onDone={() => setStage('title')} />}
+      {stage === 'title' && <Title onStart={start} />}
     </>
   )
 }

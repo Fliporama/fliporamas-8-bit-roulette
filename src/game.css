@@ -1375,6 +1375,79 @@ button.pocket:disabled {
   50% { opacity: 0; }
 }
 
+/* The boot: a screen powering on. Hard steps only; above the title, under the tube so the scanlines fall on it. */
+
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 9;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: calc(var(--px) * 8);
+  background: var(--ink-0);
+}
+
+.boot::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 0;
+  translate: 0 -50%;
+  background: var(--lamp-0);
+}
+
+.boot[data-phase='line']::before { height: var(--px); }
+
+.boot[data-phase='open']::before {
+  height: var(--px);
+  animation: boot-open 400ms steps(1, end) forwards;
+}
+
+.boot[data-phase='flicker']::before {
+  height: 100%;
+  animation: boot-flicker 120ms steps(1, end);
+}
+
+.boot-name {
+  margin: 0;
+  color: var(--brass-2);
+  font-family: var(--font-display);
+  font-size: var(--type-3);
+}
+
+.boot-blocks {
+  display: flex;
+  gap: var(--px);
+}
+
+.boot-blocks i {
+  width: calc(var(--px) * 4);
+  height: calc(var(--px) * 4);
+  box-sizing: border-box;
+  border: var(--px) solid var(--brass-2);
+  animation: boot-fill 1ms steps(1, end) forwards;
+}
+
+@keyframes boot-open {
+  0% { height: var(--px); }
+  25% { height: round(down, 25vh, var(--px)); }
+  50% { height: round(down, 50vh, var(--px)); }
+  75% { height: round(down, 75vh, var(--px)); }
+  100% { height: 100%; }
+}
+
+@keyframes boot-flicker {
+  33% { background: var(--ink-0); }
+  66% { background: var(--lamp-0); }
+}
+
+@keyframes boot-fill {
+  to { background: var(--brass-2); }
+}
+
 /* Everything thrown into the air: above the wheel's overlay and the win banner, and never in the way of a click. */
 .particles {
   position: fixed;

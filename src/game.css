@@ -1636,3 +1636,34 @@ button.pocket:disabled {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* The ghost hand: over the game, under the title card. Only a hand and an outline; it takes no input. */
+
+.ghost-hand {
+  position: fixed;
+  inset: 0;
+  z-index: 7;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.ghost-hand > div {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+[data-tapped] {
+  outline: var(--px) solid var(--lamp-0);
+  outline-offset: calc(var(--px) * -1);
+  animation: tap-blink 280ms steps(1) 1;
+}
+
+@keyframes tap-blink {
+  0% { outline-color: transparent; }
+  50% { outline-color: var(--lamp-0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-tapped] { animation: none; }
+}

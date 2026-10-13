@@ -12,6 +12,7 @@ import Settings from './components/Settings'
 import Sprite from './components/Sprite'
 import Wall from './components/Wall'
 import Boot from './components/Boot'
+import GhostHand from './components/GhostHand'
 import Title from './components/Title'
 import WinTally from './components/WinTally'
 import {
@@ -27,7 +28,7 @@ import { PARTICLE_SHARE, getEffects, setEffects } from './lib/effects'
 import type { Effects } from './lib/effects'
 import { isSceneOn, levelOf, lightFor, lookFor, reactionFor, setSceneOn } from './lib/scene'
 import type { Look, Moment } from './lib/scene'
-import { firstStage, introSeen } from './lib/intro'
+import { ATTRACT_AFTER_MS, firstStage, introSeen, markIntroSeen, owesHand } from './lib/intro'
 import type { Stage } from './lib/intro'
 import { isMuted, setMuted } from './lib/sound'
 import { buildTally } from './lib/tally'
@@ -39,6 +40,7 @@ import { ICONS } from './sprites/icons'
 import { RAIL } from './sprites/table'
 
 const STARTING_BANKROLL = 1000
+const HAND_START_MS = 600 // after start, before the tutorial hand appears
 const RAIL_PIECES = 24 // more than the widest table needs; the frame clips the rest
 const INSIDE_MODES: { kind: InsideBetKind; label: string }[] = [
   { kind: 'straight', label: 'Straight' },
@@ -73,6 +75,7 @@ function App() {
     }
     return firstStage(location.search, introSeen(), reduced)
   })
+  const [handOwed, setHandOwed] = useState(() => owesHand(location.search, introSeen()))
   const [look, setLook] = useState<{ at: Look; id: number }>({ at: 0, id: 0 })
 
   const roundCount = useRef(0)
@@ -192,6 +195,13 @@ function App() {
     setMessage(returned > 0 ? `NICE HIT. ${formatChips(returned)} CHIPS RETURNED` : 'NO WIN THIS ROUND. PLACE NEW BETS')
   }
 
+  // The player's first press or key in the game ends the tutorial for good.
+  function dismissHand() {
+    if (!handOwed) return
+    markIntroSeen()
+    setHandOwed(false)
+  }
+
   function start() {
     setStage('play')
   }
@@ -248,7 +258,7 @@ function App() {
           </div>
         </header>
 
-        <main id="game" inert={stage !== 'play'} data-light={levelOf(Math.round(light))}>
+        <main id="game" onPointerDownCapture={dismissHand} onKeyDownCapture={dismissHand} inert={stage !== 'play'} data-light={levelOf(Math.round(light))}>
           <div className="game-layout">
             <section className="table-section" aria-label="Roulette betting table">
               <div className="section-heading">
@@ -431,6 +441,8 @@ function App() {
       </div>
 
       {/* Outside the shell: its rise-in animation would make a fixed card position against the whole page. */}
+      {stage === 'title' && <GhostHand delayMs={ATTRACT_AFTER_MS} />}
+      {stage === 'play' && handOwed && phase === 'betting' && <GhostHand delayMs={HAND_START_MS} />}
       {stage === 'boot' && <Boot onDone={() => setStage('title')} />}
       <AnimatePresence>{stage === 'title' && <Title onStart={start} />}</AnimatePresence>
     </>

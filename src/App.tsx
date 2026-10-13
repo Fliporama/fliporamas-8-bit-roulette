@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import CountUp from './components/CountUp'
@@ -195,6 +195,12 @@ function App() {
   function start() {
     setStage('play')
   }
+
+  // Hand the keyboard to the first chip once play begins; a page opened with ?play keeps its focus.
+  const openedOn = useRef(stage)
+  useEffect(() => {
+    if (stage === 'play' && openedOn.current !== 'play') document.querySelector<HTMLElement>('.chip-choice')?.focus()
+  }, [stage])
 
   function chooseSound(on: boolean) {
     setMuted(!on)
@@ -426,7 +432,7 @@ function App() {
 
       {/* Outside the shell: its rise-in animation would make a fixed card position against the whole page. */}
       {stage === 'boot' && <Boot onDone={() => setStage('title')} />}
-      {stage === 'title' && <Title onStart={start} />}
+      <AnimatePresence>{stage === 'title' && <Title onStart={start} />}</AnimatePresence>
     </>
   )
 }

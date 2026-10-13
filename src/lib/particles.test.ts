@@ -43,6 +43,12 @@ it('throws chips only on a win, and more of them on a jackpot', () => {
   expect(chips('jackpot')).toBeGreaterThan(chips('win'))
 })
 
+it('a start burst is sparks only', () => {
+  const sparks = burst('start', 0, 0)
+  expect(sparks).toHaveLength(16)
+  expect(sparks.every((spark) => spark.chip === undefined && spark.token.startsWith('lamp-'))).toBe(true)
+})
+
 it('sends particles up, then brings them down', () => {
   let [chip] = burst('win', 0, 0, 1, seeded()).filter((particle) => particle.chip !== undefined)
   const heights: number[] = []

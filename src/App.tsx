@@ -66,15 +66,7 @@ function App() {
   const [sceneOn, setSceneOnState] = useState(isSceneOn)
   const [effects, setEffectsState] = useState(getEffects)
   const reducedMotion = useReducedMotion()
-  const [stage, setStage] = useState<Stage>(() => {
-    let reduced = false
-    try {
-      reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
-    } catch {
-      // No matchMedia: treat as full motion.
-    }
-    return firstStage(location.search, introSeen(), reduced)
-  })
+  const [stage, setStage] = useState<Stage>(() => firstStage(location.search, introSeen(), Boolean(reducedMotion)))
   const [handOwed, setHandOwed] = useState(() => owesHand(location.search, introSeen()))
   const [look, setLook] = useState<{ at: Look; id: number }>({ at: 0, id: 0 })
 
@@ -212,7 +204,7 @@ function App() {
     setMessage(returned > 0 ? `NICE HIT. ${formatChips(returned)} CHIPS RETURNED` : 'NO WIN THIS ROUND. PLACE NEW BETS')
   }
 
-  // The player's first press or key in the game ends the tutorial for good.
+  // The player's first click or key in the game ends the tutorial for good.
   function dismissHand() {
     if (!handOwed) return
     markIntroSeen()
@@ -226,7 +218,7 @@ function App() {
   // Hand the keyboard to the first chip once play begins; a page opened with ?play keeps its focus.
   const openedOn = useRef(stage)
   useEffect(() => {
-    if (stage === 'play' && openedOn.current !== 'play') document.querySelector<HTMLElement>('.chip-choice')?.focus()
+    if (stage === 'play' && openedOn.current !== 'play') document.querySelector<HTMLElement>('.chip-choice')?.focus({ preventScroll: true })
   }, [stage])
 
   function chooseSound(on: boolean) {
@@ -286,7 +278,7 @@ function App() {
           </div>
         </header>
 
-        <main id="game" onPointerDownCapture={dismissHand} onKeyDownCapture={dismissHand} inert={stage !== 'play'} data-light={levelOf(Math.round(light))}>
+        <main id="game" onClickCapture={dismissHand} onKeyDownCapture={dismissHand} inert={stage !== 'play'} data-light={levelOf(Math.round(light))}>
           <div className="game-layout">
             <section className="table-section" aria-label="Roulette betting table">
               <div className="section-heading">

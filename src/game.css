@@ -758,12 +758,12 @@ button.pocket:disabled {
   border-color: var(--brass-2);
 }
 
-/* An example of what the picked bet covers: lit and stepped for a second, held still under reduced motion. */
+/* An example of what the picked bet covers: outlined and blinked for a second, held still under reduced motion.
+   The face keeps its colour, as on hover, so the number stays readable. */
 .pocket.is-preview {
-  --face: var(--lit);
-  outline: var(--px) solid var(--lamp-0);
-  outline-offset: calc(var(--px) * -1);
-  animation: preview-pulse 500ms steps(2, end) 2;
+  outline: calc(var(--px) * 2) solid var(--lamp-0);
+  outline-offset: calc(var(--px) * -2);
+  animation: preview-pulse 500ms steps(1) 2;
 }
 
 @keyframes preview-pulse {

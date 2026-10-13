@@ -1,6 +1,6 @@
 # Roadmap: Fliporama Roulette to an award-grade site
 
-**Current phase:** 4 (Screen effects and juice), built and waiting for the owner to judge it in pull request #7
+**Current phase:** 5 (The first ten seconds), not started
 **To resume in a new session:** say "continue the roadmap". The session protocol is in `CLAUDE.md`.
 
 ## Brief
@@ -51,7 +51,7 @@ One phase is one session. Each gets its own brainstorm, spec (`docs/superpowers/
   - The room responds: lights dim when the wheel spins and flare on a win.
   - Done when: the page looks alive with no input for 30 seconds.
 
-- [ ] **Phase 4. Screen effects and juice**
+- [x] **Phase 4. Screen effects and juice** (done 2026-10-13)
   - A WebGL post-processing layer over the page: CRT curvature and scanlines, bloom on gold, chromatic split on big wins, film grain. A settings toggle and a low-power fallback.
   - A particle system for chips, sparks and confetti, replacing the simple burst in `WinTally.tsx`.
   - Done when: effects hold 60 fps on a phone and the game is fully playable with them off.
@@ -108,12 +108,12 @@ Update this section at the end of every session: what was finished, what was lef
 
 ### Overnight run, 2026-10-13 (finished 05:30)
 
-Unattended, at the owner's request. Nothing was merged. Two pull requests are open for the owner to judge, and the second is stacked on the first:
+Unattended, at the owner's request. It produced two pull requests, both merged by the owner's instruction later the same day:
 
-- **#6, `fix/overnight-followups`:** the wheel painter and the review backlog. Merge this first.
-- **#7, `feat/screen-effects`:** Phase 4, built to the owner gate. The phase is not ticked: it needs the owner's eye on every strength and timing, and a real phone. Its spec (`docs/superpowers/specs/2026-10-13-screen-effects-design.md`) marks each choice made in the owner's place as "Decided", with its reason. After #6 is squash-merged, #7 will need rebasing onto `main` (or its base changing) before it merges cleanly.
+- **#6:** the wheel painter and the review backlog.
+- **#7:** Phase 4. Its spec (`docs/superpowers/specs/2026-10-13-screen-effects-design.md`) marks each choice made in the owner's place as "Decided", with its reason.
 
-When the owner has judged #7: apply what they ask, tick Phase 4, and move "Current phase" to 5.
+**Phase 4 was ticked without the owner judging it by eye.** They merged it and moved on to Phase 5. Every strength and timing of the screen layer, the colour split and the particles is still open to change if they ask, and "60 fps on a phone" has not been checked on a real phone.
 
 ### What Phase 4 left
 
@@ -150,7 +150,7 @@ Production build, 4x CPU slowdown, on the owner's machine:
 Each cell gives two runs of `node scripts/perf/round.mjs` against the production preview.
 
 - **The spin is close to 60 fps but does not hold it.** The wheel is now painted by `wheelPainter` in `src/lib/wheelPixels.ts`, which works out each pixel's geometry once per size; a test holds it to `wheelPixel` at every pixel. What is left is a handful of long frames (the worst is 130 to 200 ms) and about one frame in twenty-five over 20 ms. In a profile of a spin (`SPIN=1 node scripts/perf/profile.mjs 1440 900`, dev build) the painter is still the largest script cost at about a seventh of the time, and the browser's own work (style, paint, compositing) is twice that. The long single frames have not been traced; the likely places are the overlay opening and React re-rendering the table when a bet is placed or the tally starts.
-- **With Phase 4's effects at "full"** (pull request #7): a round measures 18.2 and 18.4 ms at desktop size with 36 and 37 frames over 20 ms, and 17.6 and 18.1 ms at phone size with 15 and 23; the idle page stays at 16.7 ms. That is the same as without them, because the grain holds still during the spin. With the grain left moving, the desktop round was 20.4 and 19.3 ms with 81 and 56 slow frames. These runs use a headless browser, whose graphics are drawn in software; a real GPU should do no worse.
+- **With Phase 4's effects at "full"**: a round measures 18.2 and 18.4 ms at desktop size with 36 and 37 frames over 20 ms, and 17.6 and 18.1 ms at phone size with 15 and 23; the idle page stays at 16.7 ms. That is the same as without them, because the grain holds still during the spin. With the grain left moving, the desktop round was 20.4 and 19.3 ms with 81 and 56 slow frames. These runs use a headless browser, whose graphics are drawn in software; a real GPU should do no worse.
 - **Measuring:** `scripts/perf/round.mjs` and `idle.mjs`, twice each, against `vite preview` rather than the dev server (the dev build is slower and noisier).
 - **First load:** 135.0 kB of JavaScript gzipped before Phase 4 and 138.6 kB with it, in three files, against the 200 kB budget.
 

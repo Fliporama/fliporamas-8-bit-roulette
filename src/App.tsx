@@ -449,10 +449,13 @@ function App() {
           </div>
         </main>
 
-        <AnimatePresence>
-          {/* Keyed per round: a wheel still fading out must not be reused by the next spin. */}
-          {phase === 'spinning' && round && <RouletteWheel key={round.id} result={round.result} onLanded={startTally} />}
-        </AnimatePresence>
+        {/* Leaving play (a replay) unmounts the presence too, so the wheel goes at once instead of fading out. */}
+        {stage === 'play' && (
+          <AnimatePresence>
+            {/* Keyed per round: a wheel still fading out must not be reused by the next spin. */}
+            {phase === 'spinning' && round && <RouletteWheel key={round.id} result={round.result} onLanded={startTally} />}
+          </AnimatePresence>
+        )}
         {phase === 'tallying' && round && <WinTally tally={round.tally} onStep={setScoring} onDone={finishRound} />}
 
         {/* Reduced motion: nothing is thrown, whatever the setting. */}

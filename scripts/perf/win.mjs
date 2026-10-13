@@ -11,7 +11,7 @@ const errors = []
 page.on('console', (message) => message.type() === 'error' && errors.push(message.text()))
 page.on('pageerror', (error) => errors.push(error.message))
 await mkdir('captures', { recursive: true })
-await page.goto(process.env.URL ?? 'http://localhost:5173/')
+await page.goto((process.env.URL ?? 'http://localhost:5173/') + '?play')
 await page.waitForTimeout(800)
 
 await page.getByRole('button', { name: 'Settings' }).click()

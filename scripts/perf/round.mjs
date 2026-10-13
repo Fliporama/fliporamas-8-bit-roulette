@@ -6,7 +6,7 @@ for (const [label, width, height] of [['desktop', 1440, 900], ['phone  ', 390, 8
   const context = await browser.newContext({ viewport: { width, height }, hasTouch: width < 500 })
   if (process.env.SCENE) await context.addInitScript((value) => localStorage.setItem('fliporama-scene', value), process.env.SCENE)
   const page = await context.newPage()
-  await page.goto(process.env.URL ?? 'http://localhost:5173/')
+  await page.goto((process.env.URL ?? 'http://localhost:5173/') + '?play')
   await page.waitForTimeout(2500)
   const devtools = await context.newCDPSession(page)
   await devtools.send('Emulation.setCPUThrottlingRate', { rate: 4 })

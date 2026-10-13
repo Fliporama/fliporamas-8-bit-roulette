@@ -11,6 +11,7 @@ import ScreenEffects from './components/ScreenEffects'
 import Settings from './components/Settings'
 import Sprite from './components/Sprite'
 import Wall from './components/Wall'
+import Title from './components/Title'
 import WinTally from './components/WinTally'
 import {
   createInsideTarget,
@@ -25,6 +26,8 @@ import { PARTICLE_SHARE, getEffects, setEffects } from './lib/effects'
 import type { Effects } from './lib/effects'
 import { isSceneOn, levelOf, lightFor, lookFor, reactionFor, setSceneOn } from './lib/scene'
 import type { Look, Moment } from './lib/scene'
+import { firstStage, introSeen } from './lib/intro'
+import type { Stage } from './lib/intro'
 import { isMuted, setMuted } from './lib/sound'
 import { buildTally } from './lib/tally'
 import type { Tally, TallyStep } from './lib/tally'
@@ -60,13 +63,22 @@ function App() {
   const [sceneOn, setSceneOnState] = useState(isSceneOn)
   const [effects, setEffectsState] = useState(getEffects)
   const reducedMotion = useReducedMotion()
+  const [stage, setStage] = useState<Stage>(() => {
+    let reduced = false
+    try {
+      reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
+    } catch {
+      // No matchMedia: treat as full motion.
+    }
+    return firstStage(location.search, introSeen(), reduced)
+  })
   const [look, setLook] = useState<{ at: Look; id: number }>({ at: 0, id: 0 })
 
   const roundCount = useRef(0)
   const chipCount = useRef(0)
   const isLocked = phase !== 'betting'
   const moment: Moment = { phase, won: Boolean(round && round.tally.tier !== 'none') }
-  const light = useRoomLight(lightFor(moment), sceneOn)
+  const light = useRoomLight(stage === 'play' ? lightFor(moment) : 'dim', sceneOn)
   // The balance is settled the moment spin is pressed; the display holds the win back until the round ends.
   const shownBalance = balance - (round?.tally.returned ?? 0)
   const totalStake = bets.reduce((total, bet) => total + bet.stake, 0)
@@ -179,6 +191,10 @@ function App() {
     setMessage(returned > 0 ? `NICE HIT. ${formatChips(returned)} CHIPS RETURNED` : 'NO WIN THIS ROUND. PLACE NEW BETS')
   }
 
+  function start() {
+    setStage('play')
+  }
+
   function chooseSound(on: boolean) {
     setMuted(!on)
     setMutedState(!on)
@@ -211,7 +227,7 @@ function App() {
         <Wall />
       </div>
       <div className="app-shell" data-effects={reducedMotion ? 'off' : effects}>
-        <header className="topbar">
+        <header className="topbar" inert={stage !== 'play'}>
           <a className="brand" href="#game" aria-label="Fliporama Roulette home">
             <span className="brand-mark" aria-hidden="true">F</span>
             <span className="brand-name">FLIPORAMA</span>
@@ -225,7 +241,7 @@ function App() {
           </div>
         </header>
 
-        <main id="game" data-light={levelOf(Math.round(light))}>
+        <main id="game" inert={stage !== 'play'} data-light={levelOf(Math.round(light))}>
           <div className="game-layout">
             <section className="table-section" aria-label="Roulette betting table">
               <div className="section-heading">
@@ -393,6 +409,9 @@ function App() {
         </AnimatePresence>
         {phase === 'tallying' && round && <WinTally tally={round.tally} onStep={setScoring} onDone={finishRound} />}
 
+        {/* Until the boot screen exists, boot shows the title. */}
+        {stage !== 'play' && <Title onStart={start} />}
+
         {/* Reduced motion: nothing is thrown, whatever the setting. */}
         {effects !== 'off' && !reducedMotion && <Particles share={PARTICLE_SHARE[effects]} />}
 
@@ -401,7 +420,7 @@ function App() {
           <ScreenEffects light={light} moving={effects === 'full' && !reducedMotion} busy={phase === 'spinning'} onStruggle={() => setEffectsState('low')} />
         )}
 
-        <footer className="site-footer">
+        <footer className="site-footer" inert={stage !== 'play'}>
           <span>FLIPORAMA <i /> FREE-PLAY TABLE</span>
           <span>NO CASH VALUE <i /> CHIPS RESET EACH SESSION</span>
         </footer>

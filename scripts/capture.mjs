@@ -74,7 +74,7 @@ async function saveVideo(file) {
 async function captureIdle() {
   const prefix = phone ? 'phone-idle' : 'idle'
   const still = () => page.evaluate(() => document.querySelector('.scene')?.classList.contains('is-still'))
-  await page.goto(url)
+  await page.goto(`${url}?play`)
   await page.waitForTimeout(800)
 
   const stills = []
@@ -128,7 +128,7 @@ async function captureRound() {
   const shot = (step) => page.screenshot({ path: `${out}/${name}-${step}.png` })
   const spot = (id) => page.locator(`[data-spot^="${id}"]`).first()
 
-  await page.goto(url)
+  await page.goto(`${url}?play`)
   await page.waitForTimeout(800)
   await shot('1-idle')
   await checkOverflow()

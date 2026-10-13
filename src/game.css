@@ -1327,6 +1327,49 @@ button.pocket:disabled {
   font-weight: 400;
 }
 
+/* The title card: over the dimmed game, under the particles and the tube. */
+
+.title-card {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: calc(var(--px) * 8);
+  border: var(--px) solid var(--brass-1);
+  background: var(--ink-0);
+  cursor: pointer;
+}
+
+.title-logo {
+  margin: 0;
+  color: var(--brass-3);
+  font-family: var(--font-display);
+  font-size: var(--type-5);
+  text-shadow: 0 var(--px) 0 var(--ink-0);
+}
+
+.title-start {
+  border: 0;
+  background: var(--ink-0);
+  color: var(--lamp-0);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: var(--type-2);
+  animation: title-blink 1s steps(1, end) infinite;
+}
+
+.title-note {
+  margin: 0;
+  color: var(--smoke-2);
+  font-size: var(--type-3);
+}
+
+@keyframes title-blink {
+  50% { visibility: hidden; }
+}
+
 /* Everything thrown into the air: above the wheel's overlay and the win banner, and never in the way of a click. */
 .particles {
   position: fixed;
@@ -1484,6 +1527,10 @@ button.pocket:disabled {
   .site-footer { margin-top: calc(var(--px) * 8); }
 }
 
+@media (max-width: 760px) {
+  .title-logo { font-size: var(--type-4); }
+}
+
 @media (max-width: 520px) {
   .app-shell { padding-inline: calc(var(--px) * 4); }
   .topbar { height: calc(var(--px) * 18); }
@@ -1500,6 +1547,8 @@ button.pocket:disabled {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .title-start { animation: none; }
+
   *,
   *::before,
   *::after {

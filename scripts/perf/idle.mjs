@@ -11,7 +11,7 @@ for (const [label, width, height, scene] of [
   const context = await browser.newContext({ viewport: { width, height } })
   await context.addInitScript((value) => localStorage.setItem('fliporama-scene', value), scene)
   const page = await context.newPage()
-  await page.goto(process.env.URL ?? 'http://localhost:5173/')
+  await page.goto((process.env.URL ?? 'http://localhost:5173/') + '?play')
   await page.waitForTimeout(2500)
   const devtools = await context.newCDPSession(page)
   await devtools.send('Emulation.setCPUThrottlingRate', { rate: 4 })

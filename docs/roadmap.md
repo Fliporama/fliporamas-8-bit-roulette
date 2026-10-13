@@ -1,8 +1,7 @@
 # Roadmap: Fliporama Roulette to an award-grade site
 
-**Current phase:** 4 (Screen effects and juice), not started
+**Current phase:** 4 (Screen effects and juice), built and waiting for the owner to judge it in pull request #7
 **To resume in a new session:** say "continue the roadmap". The session protocol is in `CLAUDE.md`.
-**An overnight run is in progress:** say "continue the overnight run". Its queue and rules are under "Notes for next session".
 
 ## Brief
 
@@ -107,27 +106,27 @@ One phase is one session. Each gets its own brainstorm, spec (`docs/superpowers/
 
 Update this section at the end of every session: what was finished, what was left half-done, and anything the next session must know.
 
-### Overnight run, 2026-10-13 (in progress)
+### Overnight run, 2026-10-13 (finished 05:30)
 
-The owner asked for unattended work until 09:00 local time, and said to follow the assistant's own recommendations without asking. Whoever picks this up continues from the first unticked item.
+Unattended, at the owner's request. Nothing was merged. Two pull requests are open for the owner to judge, and the second is stacked on the first:
 
-Rules for the run:
+- **#6, `fix/overnight-followups`:** the wheel painter and the review backlog. Merge this first.
+- **#7, `feat/screen-effects`:** Phase 4, built to the owner gate. The phase is not ticked: it needs the owner's eye on every strength and timing, and a real phone. Its spec (`docs/superpowers/specs/2026-10-13-screen-effects-design.md`) marks each choice made in the owner's place as "Decided", with its reason. After #6 is squash-merged, #7 will need rebasing onto `main` (or its base changing) before it merges cleanly.
 
-- Decide instead of asking; record each decision where the owner will read it (the pull request description, and here).
-- Never merge and never push to `main`. Every piece of work ends as an open pull request for the owner to judge.
-- Anything that can only be judged by eye or ear is built to the owner gate and left there.
-- Stop starting new work at 09:00. Leave the tree clean and this list accurate.
-- The owner's plan has a tight usage limit. Work in the main session rather than spawning subagents. If the limit stops the run, the next session resumes from this list, so keep it true after every item.
-- When the run ends, replace this block with a short dated note of what was done, and remove the "overnight run is in progress" line at the top of this file.
+When the owner has judged #7: apply what they ask, tick Phase 4, and move "Current phase" to 5.
 
-Queue:
+### What Phase 4 left
 
-- [x] **1. Follow-ups branch** (`fix/overnight-followups`), done 03:10, pull request open and not merged: the measurable backlog from "Budgets, as measured" and "Left for later phases" below. Speed up the wheel painter until a round holds 60 fps at 4x slowdown, or as near as it gets, with before and after numbers; fix the deferred review findings that have an objective check; add the missing tests. The full brief is `docs/superpowers/plans/2026-10-13-overnight-followups.md`. Open a pull request; do not merge.
-- [ ] **2. Phase 4, Screen effects and juice**, only if item 1 is finished before about 07:00. Branch from the follow-ups branch, not from `main`. Follow the roadmap protocol in `CLAUDE.md`, but where it says to brainstorm with the owner, choose what you would recommend and write the choice and its reason into the spec. Build to the owner gate. Open a pull request; do not merge, and do not tick the phase.
+- **Three settings, one panel.** `src/components/Settings.tsx` is a native popover behind one top-bar button: sound, room animation, screen effects (full, low, off; `src/lib/effects.ts`, stored as `fliporama-effects`). Phase 6's volume controls belong in it.
+- **The screen layer** is `src/components/ScreenEffects.tsx`: one WebGL canvas over the page. It can only add darkness and add light; it cannot bend or blur the page, so "CRT curvature" is rounded corners and a bowed vignette, and "bloom" is lamp light added round the bulb and the win banner. Every strength is a constant at the top of that file. It reads the room's light number, holds its grain still during a spin, and steps down to "low" by itself if it cannot keep pace.
+- **Particles:** `emit(kind, x, y)` from `src/lib/particles.ts` works like `play(name)`; `src/components/Particles.tsx` draws them. Bursts are `land`, `win` and `jackpot`. Phase 5's boot sequence and transitions can add kinds there.
+- **The colour split** on big and huge wins is two SVG filters in `ScreenEffects.tsx` and the `split` keyframes in `src/game.css`.
+- **Looking at a win:** `node scripts/perf/win.mjs` plays rounds until a big win and saves stills to `captures/win-*.png`, with the settings panel in `win-0-settings.png`. A huge win (the `jackpot` burst and the wide split) has not been seen in a capture: it needs a single straight bet to come in.
+- **Not done:** nothing was added to `/?styleguide` for the layer or the particles. No real phone was tested; "60 fps on a phone" rests on the 4x-slowdown numbers below.
 
 - **2026-10-13, Phase 3 done.** The owner approved the room: a lit wall behind the page, and above the table a scene with a hanging lamp, a croupier, smoke, a frosted door with passing silhouettes, a clock, a fan and a gramophone. Read `docs/art-bible.md` before any visual work.
 
-### What Phase 4 builds on
+### What Phase 4 was built on
 
 - **The room's light is one number.** `useRoomLight` in `src/lib/useRoomLight.ts` returns a shift in light steps (-1 dim, 0 normal, 1 flare, with a brief -0.5 flicker) derived from game state by `lightFor` in `src/lib/scene.ts`. The felt, the scene's wall and the lamp all read it, and `#game` carries the shown level as `data-light`. A WebGL layer (bloom on a flare, a darker vignette on a dim) should read the same number rather than derive its own.
 - **Settings.** Room animation is one top-bar button, stored as `fliporama-scene` by `src/lib/scene.ts`, beside mute (`fliporama-muted` in `src/lib/sound.ts`). Phase 4's effects toggle and low-power fallback make three settings: that is the point to build a settings panel and move all of them into it.
@@ -151,8 +150,9 @@ Production build, 4x CPU slowdown, on the owner's machine:
 Each cell gives two runs of `node scripts/perf/round.mjs` against the production preview.
 
 - **The spin is close to 60 fps but does not hold it.** The wheel is now painted by `wheelPainter` in `src/lib/wheelPixels.ts`, which works out each pixel's geometry once per size; a test holds it to `wheelPixel` at every pixel. What is left is a handful of long frames (the worst is 130 to 200 ms) and about one frame in twenty-five over 20 ms. In a profile of a spin (`SPIN=1 node scripts/perf/profile.mjs 1440 900`, dev build) the painter is still the largest script cost at about a seventh of the time, and the browser's own work (style, paint, compositing) is twice that. The long single frames have not been traced; the likely places are the overlay opening and React re-rendering the table when a bet is placed or the tally starts.
-- **Phase 4 adds a full-screen effect on top of this.** Measure a round before and after with `scripts/perf/round.mjs`, twice each, against `vite preview` rather than the dev server (the dev build is slower and noisier).
-- **First load:** 135.0 kB of JavaScript gzipped, in three files, against the 200 kB budget.
+- **With Phase 4's effects at "full"** (pull request #7): a round measures 18.2 and 18.4 ms at desktop size with 36 and 37 frames over 20 ms, and 17.6 and 18.1 ms at phone size with 15 and 23; the idle page stays at 16.7 ms. That is the same as without them, because the grain holds still during the spin. With the grain left moving, the desktop round was 20.4 and 19.3 ms with 81 and 56 slow frames. These runs use a headless browser, whose graphics are drawn in software; a real GPU should do no worse.
+- **Measuring:** `scripts/perf/round.mjs` and `idle.mjs`, twice each, against `vite preview` rather than the dev server (the dev build is slower and noisier).
+- **First load:** 135.0 kB of JavaScript gzipped before Phase 4 and 138.6 kB with it, in three files, against the 200 kB budget.
 
 ### Left for later phases
 

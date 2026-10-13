@@ -1,11 +1,14 @@
 import { useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import CountUp from './components/CountUp'
 import Felt from './components/Felt'
+import Particles from './components/Particles'
 import RouletteTable from './components/RouletteTable'
 import RouletteWheel from './components/RouletteWheel'
 import Scene from './components/Scene'
+import ScreenEffects from './components/ScreenEffects'
+import Settings from './components/Settings'
 import Sprite from './components/Sprite'
 import Wall from './components/Wall'
 import WinTally from './components/WinTally'
@@ -18,6 +21,8 @@ import {
 import type { BetTarget, InsideBetKind } from './lib/roulette'
 import { CHIP_VALUES } from './lib/chips'
 import type { ChipValue, PlacedBet } from './lib/chips'
+import { PARTICLE_SHARE, getEffects, setEffects } from './lib/effects'
+import type { Effects } from './lib/effects'
 import { isSceneOn, levelOf, lightFor, lookFor, reactionFor, setSceneOn } from './lib/scene'
 import type { Look, Moment } from './lib/scene'
 import { isMuted, setMuted } from './lib/sound'
@@ -53,6 +58,8 @@ function App() {
   const [message, setMessage] = useState('PICK A CHIP, THEN PLACE YOUR BET')
   const [muted, setMutedState] = useState(isMuted)
   const [sceneOn, setSceneOnState] = useState(isSceneOn)
+  const [effects, setEffectsState] = useState(getEffects)
+  const reducedMotion = useReducedMotion()
   const [look, setLook] = useState<{ at: Look; id: number }>({ at: 0, id: 0 })
 
   const roundCount = useRef(0)
@@ -172,14 +179,19 @@ function App() {
     setMessage(returned > 0 ? `NICE HIT. ${formatChips(returned)} CHIPS RETURNED` : 'NO WIN THIS ROUND. PLACE NEW BETS')
   }
 
-  function toggleMute() {
-    setMuted(!muted)
-    setMutedState(!muted)
+  function chooseSound(on: boolean) {
+    setMuted(!on)
+    setMutedState(!on)
   }
 
-  function toggleScene() {
-    setSceneOn(!sceneOn)
-    setSceneOnState(!sceneOn)
+  function chooseScene(on: boolean) {
+    setSceneOn(on)
+    setSceneOnState(on)
+  }
+
+  function chooseEffects(level: Effects) {
+    setEffects(level)
+    setEffectsState(level)
   }
 
   function resetSession() {
@@ -198,7 +210,7 @@ function App() {
       <div className="room-wall" aria-hidden="true" style={{ '--repeat': WALL_REPEAT } as CSSProperties}>
         <Wall />
       </div>
-      <div className="app-shell">
+      <div className="app-shell" data-effects={reducedMotion ? 'off' : effects}>
         <header className="topbar">
           <a className="brand" href="#game" aria-label="Fliporama Roulette home">
             <span className="brand-mark" aria-hidden="true">F</span>
@@ -209,12 +221,7 @@ function App() {
             <span>FREE PLAY</span>
             <span className="status-divider">/</span>
             <span>LOCAL SESSION</span>
-            <button className="button icon-action" type="button" title="Room animation" aria-label="Room animation" aria-pressed={sceneOn} onClick={toggleScene}>
-              <Sprite data={sceneOn ? ICONS.lampOn : ICONS.lampOff} />
-            </button>
-            <button className="button icon-action" type="button" title={muted ? 'Unmute sound' : 'Mute sound'} aria-label={muted ? 'Unmute sound' : 'Mute sound'} aria-pressed={muted} onClick={toggleMute}>
-              <Sprite data={muted ? ICONS.mute : ICONS.sound} />
-            </button>
+            <Settings sound={!muted} onSound={chooseSound} scene={sceneOn} onScene={chooseScene} effects={effects} onEffects={chooseEffects} />
           </div>
         </header>
 
@@ -385,6 +392,14 @@ function App() {
           {phase === 'spinning' && round && <RouletteWheel key={round.id} result={round.result} onLanded={startTally} />}
         </AnimatePresence>
         {phase === 'tallying' && round && <WinTally tally={round.tally} onStep={setScoring} onDone={finishRound} />}
+
+        {/* Reduced motion: nothing is thrown, whatever the setting. */}
+        {effects !== 'off' && !reducedMotion && <Particles share={PARTICLE_SHARE[effects]} />}
+
+        {/* If the moving layer cannot keep pace it steps down for this visit; the stored choice is left alone. */}
+        {effects !== 'off' && (
+          <ScreenEffects light={light} moving={effects === 'full' && !reducedMotion} busy={phase === 'spinning'} onStruggle={() => setEffectsState('low')} />
+        )}
 
         <footer className="site-footer">
           <span>FLIPORAMA <i /> FREE-PLAY TABLE</span>

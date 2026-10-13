@@ -135,6 +135,13 @@ async function captureIntro() {
   const TITLE_GUARD = 400 // the title ignores a press for its first 300 ms
 
   // 1. The fast path, with empty storage.
+  // Under reduced motion the boot must never mount: watch for it from the first node on.
+  if (reduced)
+    await page.addInitScript(() => {
+      const note = () => document.querySelector('.boot') && (window.__bootSeen = true)
+      new MutationObserver(note).observe(document, { childList: true, subtree: true })
+      note()
+    })
   const started = Date.now()
   await page.goto(url)
   if (!reduced) {
@@ -144,7 +151,7 @@ async function captureIntro() {
     await shot('2-boot-check')
   }
   await page.locator('.title-start').waitFor()
-  if (reduced && (await page.locator('.boot').count()) > 0) errors.push('The boot showed with reduced motion')
+  if (reduced && (await page.evaluate(() => window.__bootSeen))) errors.push('The boot showed with reduced motion')
   const shown = await page.evaluate(() => [window.scrollY, document.activeElement?.classList.contains('title-start')])
   if (shown[0] !== 0) errors.push(`The page was scrolled when the title appeared: ${shown[0]}`)
   if (!shown[1]) errors.push('The start button did not have focus when the title appeared')
@@ -183,11 +190,19 @@ async function captureIntro() {
   }
 
   // 3. Attract: left alone on the title, the hand shows the loop.
-  await page.reload()
+  await page.goto(url) // a fresh load starts at the top; a reload kept load 1's scroll position
   await page.locator('.title-start').waitFor()
   await page.waitForTimeout(10_000)
   await shot('7-attract')
-  if ((await page.locator('.ghost-hand').count()) === 0) errors.push('No ghost hand after 10 s on the title')
+  // The layer stays mounted while the title is up; the hand shows when its visibility is on.
+  // On a phone the hand may have no visible target at this moment, so allow one more loop (about 5 s).
+  const handShown = () => page.evaluate(() => getComputedStyle(document.querySelector('.ghost-hand')).visibility === 'visible')
+  let seen = await handShown()
+  for (let waited = 0; !seen && waited < 5000; waited += 250) {
+    await page.waitForTimeout(250)
+    seen = await handShown()
+  }
+  if (!seen) errors.push('The ghost hand was not visible after 10 s on the title')
 
   await context.close()
   await browser.close()

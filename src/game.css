@@ -1327,16 +1327,20 @@ button.pocket:disabled {
   font-weight: 400;
 }
 
-/* The title card: over the dimmed game, under the particles and the tube. */
+/* The title card: a panel over the dimmed room, under the particles and the tube. */
 
 .title-card {
   position: fixed;
-  inset: 0;
+  top: 50%;
+  left: 50%;
   z-index: 8;
   display: grid;
-  place-content: center;
   justify-items: center;
   gap: calc(var(--px) * 8);
+  box-sizing: border-box;
+  max-width: calc(100vw - 32px);
+  padding: calc(var(--px) * 14) calc(var(--px) * 12);
+  translate: -50% -50%;
   border: var(--px) solid var(--brass-1);
   background: var(--ink-0);
   cursor: pointer;

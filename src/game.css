@@ -758,6 +758,22 @@ button.pocket:disabled {
   border-color: var(--brass-2);
 }
 
+/* An example of what the picked bet covers: outlined and blinked for a second, held still under reduced motion.
+   The face keeps its colour, as on hover, so the number stays readable. */
+.pocket.is-preview {
+  outline: calc(var(--px) * 2) solid var(--lamp-0);
+  outline-offset: calc(var(--px) * -2);
+  animation: preview-pulse 500ms steps(1) 2;
+}
+
+@keyframes preview-pulse {
+  50% { outline-color: transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pocket.is-preview { animation: none; }
+}
+
 .pocket.is-winner {
   z-index: 1;
   border-color: var(--brass-2);
@@ -1327,6 +1343,127 @@ button.pocket:disabled {
   font-weight: 400;
 }
 
+/* The title card: a panel over the dimmed room, under the particles and the tube. */
+
+.title-card {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 8;
+  display: grid;
+  justify-items: center;
+  gap: calc(var(--px) * 8);
+  box-sizing: border-box;
+  max-width: calc(100vw - 32px);
+  padding: calc(var(--px) * 14) calc(var(--px) * 12);
+  translate: -50% -50%;
+  border: var(--px) solid var(--brass-1);
+  background: var(--ink-0);
+  cursor: pointer;
+}
+
+.title-logo {
+  margin: 0;
+  color: var(--brass-3);
+  font-family: var(--font-display);
+  font-size: var(--type-5);
+  text-shadow: 0 var(--px) 0 var(--ink-0);
+}
+
+.title-start {
+  border: 0;
+  background: var(--ink-0);
+  color: var(--lamp-0);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: var(--type-2);
+  animation: title-blink 1s steps(1, end) infinite;
+}
+
+.title-note {
+  margin: 0;
+  color: var(--smoke-2);
+  font-size: var(--type-3);
+}
+
+/* Opacity, not visibility: a hidden button loses focus. */
+@keyframes title-blink {
+  50% { opacity: 0; }
+}
+
+/* The boot: a screen powering on. Hard steps only; above the title, under the tube so the scanlines fall on it. */
+
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 9;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: calc(var(--px) * 8);
+  background: var(--ink-0);
+}
+
+.boot::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 0;
+  translate: 0 -50%;
+  background: var(--lamp-0);
+}
+
+.boot[data-phase='line']::before { height: var(--px); }
+
+.boot[data-phase='open']::before {
+  height: var(--px);
+  animation: boot-open 400ms steps(1, end) forwards;
+}
+
+.boot[data-phase='flicker']::before {
+  height: 100%;
+  animation: boot-flicker 120ms steps(1, end);
+}
+
+.boot-name {
+  margin: 0;
+  color: var(--brass-2);
+  font-family: var(--font-display);
+  font-size: var(--type-3);
+}
+
+.boot-blocks {
+  display: flex;
+  gap: var(--px);
+}
+
+.boot-blocks i {
+  width: calc(var(--px) * 4);
+  height: calc(var(--px) * 4);
+  box-sizing: border-box;
+  border: var(--px) solid var(--brass-2);
+  animation: boot-fill 1ms steps(1, end) forwards;
+}
+
+@keyframes boot-open {
+  0% { height: var(--px); }
+  25% { height: round(down, 25vh, var(--px)); }
+  50% { height: round(down, 50vh, var(--px)); }
+  75% { height: round(down, 75vh, var(--px)); }
+  100% { height: 100%; }
+}
+
+@keyframes boot-flicker {
+  33% { background: var(--ink-0); }
+  66% { background: var(--lamp-0); }
+}
+
+@keyframes boot-fill {
+  to { background: var(--brass-2); }
+}
+
 /* Everything thrown into the air: above the wheel's overlay and the win banner, and never in the way of a click. */
 .particles {
   position: fixed;
@@ -1484,6 +1621,10 @@ button.pocket:disabled {
   .site-footer { margin-top: calc(var(--px) * 8); }
 }
 
+@media (max-width: 760px) {
+  .title-logo { font-size: var(--type-4); }
+}
+
 @media (max-width: 520px) {
   .app-shell { padding-inline: calc(var(--px) * 4); }
   .topbar { height: calc(var(--px) * 18); }
@@ -1500,6 +1641,8 @@ button.pocket:disabled {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .title-start { animation: none; }
+
   *,
   *::before,
   *::after {
@@ -1508,4 +1651,35 @@ button.pocket:disabled {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* The ghost hand: over the game, under the title card. Only a hand and an outline; it takes no input. */
+
+.ghost-hand {
+  position: fixed;
+  inset: 0;
+  z-index: 7;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.ghost-hand > div {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+[data-tapped] {
+  outline: var(--px) solid var(--lamp-0);
+  outline-offset: calc(var(--px) * -1);
+  animation: tap-blink 280ms steps(1) 1;
+}
+
+@keyframes tap-blink {
+  0% { outline-color: transparent; }
+  50% { outline-color: var(--lamp-0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-tapped] { animation: none; }
 }

@@ -1,6 +1,8 @@
 // usage (from the project root): node scripts/perf/idle.mjs
+// Set TITLE=1 to measure the title card instead of the table.
 import { chromium } from 'playwright-core'
 
+const title = process.env.TITLE === '1'
 const browser = await chromium.launch({ channel: 'msedge' })
 for (const [label, width, height, scene] of [
   ['desktop scene on ', 1440, 900, '1'],
@@ -10,8 +12,10 @@ for (const [label, width, height, scene] of [
 ]) {
   const context = await browser.newContext({ viewport: { width, height } })
   await context.addInitScript((value) => localStorage.setItem('fliporama-scene', value), scene)
+  // A seen intro opens on the title with no boot.
+  if (title) await context.addInitScript(() => localStorage.setItem('fliporama-intro', '1'))
   const page = await context.newPage()
-  await page.goto(process.env.URL ?? 'http://localhost:5173/')
+  await page.goto((process.env.URL ?? 'http://localhost:5173/') + (title ? '' : '?play'))
   await page.waitForTimeout(2500)
   const devtools = await context.newCDPSession(page)
   await devtools.send('Emulation.setCPUThrottlingRate', { rate: 4 })

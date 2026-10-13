@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import CountUp from './components/CountUp'
@@ -11,6 +11,9 @@ import ScreenEffects from './components/ScreenEffects'
 import Settings from './components/Settings'
 import Sprite from './components/Sprite'
 import Wall from './components/Wall'
+import Boot from './components/Boot'
+import GhostHand from './components/GhostHand'
+import Title from './components/Title'
 import WinTally from './components/WinTally'
 import {
   createInsideTarget,
@@ -25,6 +28,8 @@ import { PARTICLE_SHARE, getEffects, setEffects } from './lib/effects'
 import type { Effects } from './lib/effects'
 import { isSceneOn, levelOf, lightFor, lookFor, reactionFor, setSceneOn } from './lib/scene'
 import type { Look, Moment } from './lib/scene'
+import { ATTRACT_AFTER_MS, PREVIEW_EXAMPLE, PREVIEW_MS, firstStage, forgetIntro, introSeen, markIntroSeen, owesHand } from './lib/intro'
+import type { Stage } from './lib/intro'
 import { isMuted, setMuted } from './lib/sound'
 import { buildTally } from './lib/tally'
 import type { Tally, TallyStep } from './lib/tally'
@@ -35,6 +40,7 @@ import { ICONS } from './sprites/icons'
 import { RAIL } from './sprites/table'
 
 const STARTING_BANKROLL = 1000
+const HAND_START_MS = 600 // after start, before the tutorial hand appears
 const RAIL_PIECES = 24 // more than the widest table needs; the frame clips the rest
 const INSIDE_MODES: { kind: InsideBetKind; label: string }[] = [
   { kind: 'straight', label: 'Straight' },
@@ -60,13 +66,18 @@ function App() {
   const [sceneOn, setSceneOnState] = useState(isSceneOn)
   const [effects, setEffectsState] = useState(getEffects)
   const reducedMotion = useReducedMotion()
+  const [stage, setStage] = useState<Stage>(() => firstStage(location.search, introSeen(), Boolean(reducedMotion)))
+  const [handOwed, setHandOwed] = useState(() => owesHand(location.search, introSeen()))
   const [look, setLook] = useState<{ at: Look; id: number }>({ at: 0, id: 0 })
 
+  const [preview, setPreview] = useState<readonly number[]>([])
+  const previewed = useRef(new Set<InsideBetKind>())
+  const previewTimer = useRef<number | undefined>(undefined)
   const roundCount = useRef(0)
   const chipCount = useRef(0)
   const isLocked = phase !== 'betting'
   const moment: Moment = { phase, won: Boolean(round && round.tally.tier !== 'none') }
-  const light = useRoomLight(lightFor(moment), sceneOn)
+  const light = useRoomLight(stage === 'play' ? lightFor(moment) : 'dim', sceneOn)
   // The balance is settled the moment spin is pressed; the display holds the win back until the round ends.
   const shownBalance = balance - (round?.tally.returned ?? 0)
   const totalStake = bets.reduce((total, bet) => total + bet.stake, 0)
@@ -81,8 +92,16 @@ function App() {
     }
   }
 
+  function clearPreview() {
+    window.clearTimeout(previewTimer.current)
+    setPreview([])
+  }
+
+  useEffect(() => () => window.clearTimeout(previewTimer.current), [])
+
   function placeBet(target: BetTarget | undefined) {
     if (!target || isLocked) return
+    clearPreview()
     if (balance < chipValue) {
       setMessage('NOT ENOUGH CHIPS FOR THAT BET')
       return
@@ -131,6 +150,12 @@ function App() {
   function chooseMode(nextMode: InsideBetKind, label: string) {
     setMode(nextMode)
     setPendingSplit([])
+    clearPreview()
+    if (!previewed.current.has(nextMode)) {
+      previewed.current.add(nextMode)
+      setPreview(PREVIEW_EXAMPLE[nextMode])
+      previewTimer.current = window.setTimeout(() => setPreview([]), PREVIEW_MS)
+    }
     setMessage(nextMode === 'split' ? 'PICK TWO ADJACENT POCKETS' : `${label.toUpperCase()} BET SELECTED`)
   }
 
@@ -179,6 +204,23 @@ function App() {
     setMessage(returned > 0 ? `NICE HIT. ${formatChips(returned)} CHIPS RETURNED` : 'NO WIN THIS ROUND. PLACE NEW BETS')
   }
 
+  // The player's first click or key in the game ends the tutorial for good.
+  function dismissHand() {
+    if (!handOwed) return
+    markIntroSeen()
+    setHandOwed(false)
+  }
+
+  function start() {
+    setStage('play')
+  }
+
+  // Hand the keyboard to the first chip once play begins; a page opened with ?play keeps its focus.
+  const openedOn = useRef(stage)
+  useEffect(() => {
+    if (stage === 'play' && openedOn.current !== 'play') document.querySelector<HTMLElement>('.chip-choice')?.focus({ preventScroll: true })
+  }, [stage])
+
   function chooseSound(on: boolean) {
     setMuted(!on)
     setMutedState(!on)
@@ -205,13 +247,24 @@ function App() {
     setMessage('FRESH SESSION. GOOD LUCK')
   }
 
+  function replayIntro() {
+    const next = reducedMotion ? 'title' : 'boot'
+    forgetIntro()
+    resetSession()
+    previewed.current.clear()
+    clearPreview()
+    openedOn.current = next // so the start press hands focus to the first chip again
+    setHandOwed(true)
+    setStage(next)
+  }
+
   return (
     <>
       <div className="room-wall" aria-hidden="true" style={{ '--repeat': WALL_REPEAT } as CSSProperties}>
         <Wall />
       </div>
       <div className="app-shell" data-effects={reducedMotion ? 'off' : effects}>
-        <header className="topbar">
+        <header className="topbar" inert={stage !== 'play'}>
           <a className="brand" href="#game" aria-label="Fliporama Roulette home">
             <span className="brand-mark" aria-hidden="true">F</span>
             <span className="brand-name">FLIPORAMA</span>
@@ -221,11 +274,11 @@ function App() {
             <span>FREE PLAY</span>
             <span className="status-divider">/</span>
             <span>LOCAL SESSION</span>
-            <Settings sound={!muted} onSound={chooseSound} scene={sceneOn} onScene={chooseScene} effects={effects} onEffects={chooseEffects} />
+            <Settings sound={!muted} onSound={chooseSound} scene={sceneOn} onScene={chooseScene} effects={effects} onEffects={chooseEffects} onReplay={replayIntro} />
           </div>
         </header>
 
-        <main id="game" data-light={levelOf(Math.round(light))}>
+        <main id="game" onClickCapture={dismissHand} onKeyDownCapture={dismissHand} inert={stage !== 'play'} data-light={levelOf(Math.round(light))}>
           <div className="game-layout">
             <section className="table-section" aria-label="Roulette betting table">
               <div className="section-heading">
@@ -270,6 +323,7 @@ function App() {
                     numberStakes={numberStakes}
                     stakes={betStakeById}
                     selectedNumbers={pendingSplit}
+                    preview={preview}
                     winner={phase === 'tallying' && round ? round.result : lastSpin?.number}
                     scoring={scoring}
                     result={phase === 'tallying' ? round?.result : undefined}
@@ -387,10 +441,13 @@ function App() {
           </div>
         </main>
 
-        <AnimatePresence>
-          {/* Keyed per round: a wheel still fading out must not be reused by the next spin. */}
-          {phase === 'spinning' && round && <RouletteWheel key={round.id} result={round.result} onLanded={startTally} />}
-        </AnimatePresence>
+        {/* Leaving play (a replay) unmounts the presence too, so the wheel goes at once instead of fading out. */}
+        {stage === 'play' && (
+          <AnimatePresence>
+            {/* Keyed per round: a wheel still fading out must not be reused by the next spin. */}
+            {phase === 'spinning' && round && <RouletteWheel key={round.id} result={round.result} onLanded={startTally} />}
+          </AnimatePresence>
+        )}
         {phase === 'tallying' && round && <WinTally tally={round.tally} onStep={setScoring} onDone={finishRound} />}
 
         {/* Reduced motion: nothing is thrown, whatever the setting. */}
@@ -401,11 +458,17 @@ function App() {
           <ScreenEffects light={light} moving={effects === 'full' && !reducedMotion} busy={phase === 'spinning'} onStruggle={() => setEffectsState('low')} />
         )}
 
-        <footer className="site-footer">
+        <footer className="site-footer" inert={stage !== 'play'}>
           <span>FLIPORAMA <i /> FREE-PLAY TABLE</span>
           <span>NO CASH VALUE <i /> CHIPS RESET EACH SESSION</span>
         </footer>
       </div>
+
+      {/* Outside the shell: its rise-in animation would make a fixed card position against the whole page. */}
+      {stage === 'title' && <GhostHand delayMs={ATTRACT_AFTER_MS} />}
+      {stage === 'play' && handOwed && phase === 'betting' && <GhostHand delayMs={HAND_START_MS} />}
+      {stage === 'boot' && <Boot onDone={() => setStage('title')} />}
+      <AnimatePresence>{stage === 'title' && <Title onStart={start} />}</AnimatePresence>
     </>
   )
 }

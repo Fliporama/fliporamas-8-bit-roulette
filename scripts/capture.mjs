@@ -3,6 +3,7 @@
 //   npm run capture                      play one round: screenshots and a video
 //   npm run capture -- styleguide        one full-page screenshot of /?styleguide
 //   npm run capture -- idle              leave the page alone for 30 seconds: stills, a video and frame times
+//   npm run capture -- intro             power-on to the first bet: boot, title, press start, the hand
 //
 // Add `phone` for a 390 px wide phone, `reduced` to ask for reduced motion, or a URL to capture
 // a deployed preview. Fails if the page logs an error or scrolls sideways.
@@ -16,7 +17,11 @@ const phone = args.includes('phone')
 const styleguide = args.includes('styleguide')
 const reduced = args.includes('reduced')
 const idle = args.includes('idle')
+const intro = args.includes('intro')
 const url = args.find((arg) => arg.startsWith('http')) ?? 'http://localhost:5173/'
+// Straight to the table, past the intro; a preview URL may already carry a query.
+const playUrl = new URL(url)
+playUrl.searchParams.set('play', '')
 const viewport = phone ? { width: 390, height: 844 } : { width: 1440, height: 900 }
 const out = 'captures'
 const name = reduced ? 'reduced' : phone ? 'phone' : 'desktop'
@@ -38,6 +43,7 @@ page.on('pageerror', (error) => errors.push(error.message))
 
 if (styleguide) await captureStyleguide()
 else if (idle) await captureIdle()
+else if (intro) await captureIntro()
 else await captureRound()
 
 if (errors.length > 0) {
@@ -74,7 +80,7 @@ async function saveVideo(file) {
 async function captureIdle() {
   const prefix = phone ? 'phone-idle' : 'idle'
   const still = () => page.evaluate(() => document.querySelector('.scene')?.classList.contains('is-still'))
-  await page.goto(url)
+  await page.goto(playUrl.href)
   await page.waitForTimeout(800)
 
   const stills = []
@@ -124,11 +130,109 @@ async function captureIdle() {
   console.log(`Saved ${prefix} stills and ${prefix}.webm to ${out}/`)
 }
 
+// The first ten seconds: boot, title, press start, the tutorial hand and a first bet within 15 seconds.
+async function captureIntro() {
+  const prefix = name === 'desktop' ? 'intro' : `${name}-intro`
+  const shot = (step) => page.screenshot({ path: `${out}/${prefix}-${step}.png` })
+  const FIRST_BET_LIMIT = 15_000
+  const TITLE_GUARD = 400 // the title ignores a press for its first 300 ms
+  // The layer stays mounted while the hand is owed; the hand shows when its visibility is on.
+  const handShown = () => page.evaluate(() => [...document.querySelectorAll('.ghost-hand')].some((hand) => getComputedStyle(hand).visibility === 'visible'))
+
+  // 1. The fast path, with empty storage.
+  // Under reduced motion the boot must never mount: watch for it from the first node on.
+  if (reduced)
+    await page.addInitScript(() => {
+      const note = () => document.querySelector('.boot') && (window.__bootSeen = true)
+      new MutationObserver(note).observe(document, { childList: true, subtree: true })
+      note()
+    })
+  const started = Date.now()
+  await page.goto(url)
+  if (!reduced) {
+    await page.waitForTimeout(Math.max(0, 400 - (Date.now() - started)))
+    await shot('1-boot-line')
+    await page.waitForTimeout(Math.max(0, 1500 - (Date.now() - started)))
+    await shot('2-boot-check')
+  }
+  await page.locator('.title-start').waitFor()
+  if (reduced && (await page.evaluate(() => window.__bootSeen))) errors.push('The boot showed with reduced motion')
+  const shown = await page.evaluate(() => [window.scrollY, document.activeElement?.classList.contains('title-start')])
+  if (shown[0] !== 0) errors.push(`The page was scrolled when the title appeared: ${shown[0]}`)
+  if (!shown[1]) errors.push('The start button did not have focus when the title appeared')
+  await page.waitForTimeout(TITLE_GUARD)
+  await shot('3-title')
+  // With reduced motion the room light is never driven (as in the round capture), so it stays normal.
+  if (!reduced) await checkLight('dim', 'on the title')
+  await page.locator('.title-start').click()
+  await page.waitForTimeout(150)
+  await shot('4-lift')
+  await page.waitForTimeout(850)
+  // Start hands the keyboard to the first chip, and must not scroll the page to do it.
+  const begun = await page.evaluate(() => [window.scrollY, document.activeElement === document.querySelector('.chip-choice')])
+  if (begun[0] !== 0) errors.push(`The page was scrolled 1 s after start: ${begun[0]}`)
+  if (!begun[1]) errors.push('The first chip did not have focus 1 s after start')
+  let handSeen = await handShown()
+  await page.waitForTimeout(1500)
+  await shot('5-hand')
+  handSeen ||= await handShown()
+  // On a phone the hand's targets may be off screen, so it is not checked there.
+  if (!phone && !handSeen) errors.push('The tutorial hand did not show after start')
+  await page.locator('[data-chip="25"]').click()
+  if (!phone && (await handShown())) errors.push('The tutorial hand stayed after the first click')
+  await page.locator('[data-spot="n17"]').click()
+  const taken = Date.now() - started
+  const bets = await page.locator('.bet-line').count()
+  console.log(`First bet ${(taken / 1000).toFixed(1)} s after load, ${bets} bet line(s)`)
+  if (taken > FIRST_BET_LIMIT) errors.push(`The first bet took ${taken} ms`)
+  if (bets !== 1) errors.push(`Expected 1 bet line, found ${bets}`)
+  await checkLight('normal', 'after the first bet')
+  await page.waitForTimeout(400)
+  await shot('6-first-bet')
+  await checkOverflow()
+
+  // 2. A press during the boot skips the boot only; the title's guard keeps it from starting the game.
+  // Once by mouse and once by key: the mouse press lands on the boot, which may swallow the click whole.
+  const skips = [
+    ['press', () => page.mouse.click(viewport.width / 2, viewport.height / 2)],
+    ['key', () => page.keyboard.press('Enter')],
+  ]
+  for (const [how, skip] of reduced ? [] : skips) {
+    await page.evaluate(() => localStorage.clear())
+    await page.reload()
+    await page.waitForTimeout(500)
+    await skip()
+    await page.waitForTimeout(200)
+    if ((await page.locator('.title-card').count()) === 0) errors.push(`No title after the skipping ${how}`)
+    if ((await page.locator('.boot').count()) > 0) errors.push(`The boot survived the skipping ${how}`)
+    await page.waitForTimeout(TITLE_GUARD)
+    if ((await page.locator('.title-card').count()) === 0) errors.push(`The skipping ${how} started the game`)
+  }
+
+  // 3. Attract: left alone on the title, the hand shows the loop.
+  await page.goto(url) // a fresh load starts at the top; a reload kept load 1's scroll position
+  await page.locator('.title-start').waitFor()
+  await page.waitForTimeout(10_000)
+  await shot('7-attract')
+  // On a phone the hand may have no visible target at this moment, so allow one more loop (about 5 s).
+  let seen = await handShown()
+  for (let waited = 0; !seen && waited < 5000; waited += 250) {
+    await page.waitForTimeout(250)
+    seen = await handShown()
+  }
+  if (!seen) errors.push('The ghost hand was not visible after 10 s on the title')
+
+  await context.close()
+  await browser.close()
+  await saveVideo(`${prefix}.webm`)
+  console.log(`Saved ${prefix} stills and ${prefix}.webm to ${out}/`)
+}
+
 async function captureRound() {
   const shot = (step) => page.screenshot({ path: `${out}/${name}-${step}.png` })
   const spot = (id) => page.locator(`[data-spot^="${id}"]`).first()
 
-  await page.goto(url)
+  await page.goto(playUrl.href)
   await page.waitForTimeout(800)
   await shot('1-idle')
   await checkOverflow()

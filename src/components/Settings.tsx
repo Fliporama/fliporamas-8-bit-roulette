@@ -50,10 +50,11 @@ interface SettingsProps {
   onScene: (on: boolean) => void
   effects: Effects
   onEffects: (level: Effects) => void
+  onReplay: () => void
 }
 
 /** The top bar's settings button and the panel it opens: a native popover, so the browser handles Escape and clicking away. */
-export default function Settings({ sound, onSound, scene, onScene, effects, onEffects }: SettingsProps) {
+export default function Settings({ sound, onSound, scene, onScene, effects, onEffects, onReplay }: SettingsProps) {
   const id = useId()
   return (
     <>
@@ -64,6 +65,7 @@ export default function Settings({ sound, onSound, scene, onScene, effects, onEf
         <Choice label="SOUND" options={ON_OFF} value={sound} onChange={onSound} />
         <Choice label="ROOM ANIMATION" options={ON_OFF} value={scene} onChange={onScene} />
         <Choice label="SCREEN EFFECTS" options={LEVELS} value={effects} onChange={onEffects} />
+        <button className="button" type="button" popoverTarget={id} popoverTargetAction="hide" onClick={onReplay}>Replay intro</button>
       </div>
     </>
   )

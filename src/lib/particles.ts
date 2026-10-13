@@ -1,7 +1,7 @@
 import { CHIP_VALUES } from './chips'
 import type { ChipValue } from './chips'
 
-export type Burst = 'land' | 'win' | 'jackpot'
+export type Burst = 'land' | 'win' | 'jackpot' | 'start'
 
 /** One thing in the air. Places are in art pixels and speeds in art pixels a second. */
 export interface Particle {
@@ -37,6 +37,8 @@ const SPARKS = ['lamp-0', 'lamp-1']
 const CONFETTI = ['paper-0', 'oxblood-1', 'smoke-1', 'felt-2', 'brass-2'] // the five chip faces
 
 const BURSTS: Record<Burst, readonly Part[]> = {
+  // The start button is pressed: sparks only.
+  start: [{ count: 16, tokens: SPARKS, size: 1, across: 180, up: [80, 260], life: [0.4, 0.7] }],
   // A chip lands: dust kicked out along the felt, and a glint.
   land: [
     { count: 4, tokens: ['smoke-1', 'smoke-2'], size: 1, across: 45, up: [10, 40], life: [0.2, 0.35] },

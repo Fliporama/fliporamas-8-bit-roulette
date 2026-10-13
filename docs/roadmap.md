@@ -1,6 +1,6 @@
 # Roadmap: Fliporama Roulette to an award-grade site
 
-**Current phase:** 5 (The first ten seconds), not started
+**Current phase:** 6 (Sound and music), not started. Do the audit fixes under "Before Phase 6" first.
 **To resume in a new session:** say "continue the roadmap". The session protocol is in `CLAUDE.md`.
 
 ## Brief
@@ -56,7 +56,7 @@ One phase is one session. Each gets its own brainstorm, spec (`docs/superpowers/
   - A particle system for chips, sparks and confetti, replacing the simple burst in `WinTally.tsx`.
   - Done when: effects hold 60 fps on a phone and the game is fully playable with them off.
 
-- [ ] **Phase 5. The first ten seconds**
+- [x] **Phase 5. The first ten seconds** (done 2026-10-13)
   - An arcade power-on boot sequence, a title screen with attract mode, scene transitions, and a short playable tutorial for the bet types.
   - Juries decide early; this phase is the biggest single lever on a score.
   - Done when: a stranger understands what this is and places a bet within 15 seconds, with no text explanation.
@@ -105,6 +105,47 @@ One phase is one session. Each gets its own brainstorm, spec (`docs/superpowers/
 ## Notes for next session
 
 Update this section at the end of every session: what was finished, what was left half-done, and anything the next session must know.
+
+### Before Phase 6: the audit fixes
+
+The owner asked for these once the Phase 5 pull request has merged, on their own branch off `main`. They come from a whole-tree audit for over-engineering on 2026-10-13; about 125 lines go and no dependency does.
+
+1. Four hand-written copies of "a stored setting that survives blocked storage" (`src/lib/scene.ts`, `effects.ts`, `sound.ts`, `intro.ts`) and three separate reads of the reduced-motion media query (the third is in `src/App.tsx`). One `stored(key)` helper and one `prefersReducedMotion()`.
+2. The frame-gap measuring loop and the browser set-up are written out in `scripts/capture.mjs`, `scripts/perf/idle.mjs` and `scripts/perf/round.mjs`. One shared helper.
+3. `createOutsideTarget` in `src/lib/roulette.ts` is a 40-line switch that picks numbers, a label and a multiplier. A lookup table.
+4. `calculateReturns` in `src/lib/roulette.ts` is called only by tests; the game uses `buildTally().returned`. Delete it and its two tests, and assert the number directly in `tally.test.ts`.
+5. The list of inside bet kinds is declared in `RouletteTable.tsx`, `ChipLayer.tsx` and `App.tsx`. Export one `isInside(kind)` from `roulette.ts`.
+6. `HandStep`, `EyesEvent`, `WallView` and `WheelView` are exported but used only in their own files or tests. Drop the `export`.
+
+### How Phase 5 was run, and how to run Phase 6
+
+The owner is trying subagent-driven execution for Phases 5 and 6: a fresh subagent builds each task of the plan, a fresh reviewer checks it, and one reviewer reads the whole branch at the end. Run Phase 6 the same way, with every subagent on Opus 5.5 (the owner asked for that part-way through Phase 5, whose tasks had run on Sonnet).
+
+What the trial showed in Phase 5: the per-task reviewers read diffs and caught logic and checks that could not fail, but every visual fault was found by the controller reading a screenshot (a title card that hid the room; a phone page that loaded scrolled half-way down). Keep reading the stills yourself.
+
+### What Phase 5 left
+
+- **The stage.** `App` holds one value, `boot`, `title` or `play` (`Stage` and `firstStage` in `src/lib/intro.ts`). The header, the game and the footer are `inert` until `play`, and the room's light is held at dim.
+- **The layers** are `src/components/Boot.tsx`, `Title.tsx` and `GhostHand.tsx`. They render as siblings after `.app-shell`, not inside it: the shell's entrance animation makes it the containing block for fixed-position children for its first 420 ms, which once put the title half-way down a phone page. Any new full-screen layer belongs there too. Stacking order in `src/game.css`: hand 7, title 8, boot 9, wheel overlay 10, particles 11, screen effects 12.
+- **One stored flag,** `fliporama-intro`, set at the player's first click or key press in the game. Until then a reload boots again. "Replay intro" in the settings panel clears it and resets the session.
+- **`/?play`** opens the game with no intro. The round and idle captures and every script in `scripts/perf/` use it.
+- **The title ignores a press for its first 300 ms,** so the click or key that skips the boot cannot also start the game. A script must wait 400 ms after the title appears before pressing start.
+- **The hand's steps are data:** `HAND_STEPS` in `src/lib/intro.ts` (the 25 chip, number 17, the spin button). It measures its target at the start of each step, skips one that is off screen, and marks what it taps with a `data-tapped` attribute. It changes no game state.
+- **Bet-type previews:** the first time a mode is picked, `RouletteTable` lights the numbers in `PREVIEW_EXAMPLE` for a second through its `preview` prop.
+- **A `start` particle burst,** set off from the start button.
+- **`npm run capture -- intro`** (also `phone` and `reduced`) plays a first visit and fails if a bet cannot be placed within 15 seconds. Measured: 7.3 s on desktop, 7.1 s at phone size.
+- **For Phase 6 (sound):** nothing in the intro makes a sound. The boot's line and flicker, the start press, the card's lift and the hand's taps are the places for it.
+- **For Phase 7 (phone):** at 390 px the hand skips number 17 because it is below the fold, and the title card covers the croupier's face.
+- **The owner approved the motion by eye** on 2026-10-13 (boot, lift, hand, preview outline at two art pixels, the phone title).
+- **Not done:** nothing was added to `/?styleguide` for the boot, the title or the hand. No stranger has tried it; the 15-second capture is the stand-in.
+- **Budgets, as measured for Phase 5:** first load is 140.2 kB of JavaScript gzipped. The title at rest measures 16.7 ms a frame at 4x slowdown (`TITLE=1 node scripts/perf/idle.mjs`; one row of eight read 16.9 ms). Frame times for a round could not be compared with the table below: the machine was slow and noisy that day, and `main` itself measured 21 to 24 ms at desktop size against the 18.4 ms recorded, with this branch between 20 and 38 ms over five runs. With `/?play` none of the intro's layers is mounted, and the review found nothing that adds work per frame in play. Measure a round again on a quiet machine before trusting either number.
+- **Small things left by the review:**
+  - A held Enter on the start button can dismiss the tutorial hand before it shows: key repeats land in the game once focus moves to the first chip.
+  - On a phone the tiles a bet-type preview lights are at or below the fold when the mode is picked from the top of the page.
+  - A click on a disabled control (the spin button before any bet) does not dismiss the hand.
+  - The boot's durations are stated in both `Boot.tsx` and `src/game.css`; change them together.
+  - `scripts/capture.mjs` still appends `?styleguide` to a URL without checking for an existing query.
+  - The hand rests at fractional screen coordinates, not on the art-pixel grid.
 
 ### Overnight run, 2026-10-13 (finished 05:30)
 

@@ -9,7 +9,7 @@ const page = await browser.newPage()
 let off = 0
 for (const width of [1440, 1439, 1438, 1437, 1001, 1000, 999]) {
   await page.setViewportSize({ width, height: 900 })
-  await page.goto(process.env.URL ?? 'http://localhost:5173/')
+  await page.goto((process.env.URL ?? 'http://localhost:5173/') + '?play')
   await page.waitForSelector('.scene-stage')
   const measure = (unsnapped) =>
     page.evaluate(

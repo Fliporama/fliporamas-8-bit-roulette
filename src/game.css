@@ -758,6 +758,22 @@ button.pocket:disabled {
   border-color: var(--brass-2);
 }
 
+/* An example of what the picked bet covers: lit and stepped for a second, held still under reduced motion. */
+.pocket.is-preview {
+  --face: var(--lit);
+  outline: var(--px) solid var(--lamp-0);
+  outline-offset: calc(var(--px) * -1);
+  animation: preview-pulse 500ms steps(2, end) 2;
+}
+
+@keyframes preview-pulse {
+  50% { outline-color: transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pocket.is-preview { animation: none; }
+}
+
 .pocket.is-winner {
   z-index: 1;
   border-color: var(--brass-2);

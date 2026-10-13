@@ -19,6 +19,8 @@ interface RouletteTableProps {
   numberStakes: Record<number, number>
   stakes: ReadonlyMap<string, number>
   selectedNumbers: number[]
+  /** Numbers an example bet of the picked kind covers, lit for a moment. */
+  preview: readonly number[]
   winner: number | undefined
   scoring: TallyStep | undefined
   /** The landed pocket while the round is being tallied. */
@@ -36,6 +38,7 @@ export default function RouletteTable({
   numberStakes,
   stakes,
   selectedNumbers,
+  preview,
   winner,
   scoring,
   result,
@@ -53,7 +56,7 @@ export default function RouletteTable({
     const selected = selectedNumbers.includes(number)
     return (
       <button
-        className={`pocket pocket-${getPocketColor(number)}${straight.has(number) ? ' has-chip' : ''}${selected ? ' is-pending' : ''}${number === winner ? ' is-winner' : ''}${scoringInside?.target.numbers.includes(number) ? ' is-scoring' : ''}`}
+        className={`pocket pocket-${getPocketColor(number)}${straight.has(number) ? ' has-chip' : ''}${selected ? ' is-pending' : ''}${preview.includes(number) ? ' is-preview' : ''}${number === winner ? ' is-winner' : ''}${scoringInside?.target.numbers.includes(number) ? ' is-scoring' : ''}`}
         type="button"
         aria-label={`${mode} bet on pocket ${number}${stake ? `, ${stake} chips placed` : ''}`}
         aria-pressed={selected}

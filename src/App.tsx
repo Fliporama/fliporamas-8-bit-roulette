@@ -28,7 +28,7 @@ import { PARTICLE_SHARE, getEffects, setEffects } from './lib/effects'
 import type { Effects } from './lib/effects'
 import { isSceneOn, levelOf, lightFor, lookFor, reactionFor, setSceneOn } from './lib/scene'
 import type { Look, Moment } from './lib/scene'
-import { ATTRACT_AFTER_MS, firstStage, introSeen, markIntroSeen, owesHand } from './lib/intro'
+import { ATTRACT_AFTER_MS, PREVIEW_EXAMPLE, PREVIEW_MS, firstStage, introSeen, markIntroSeen, owesHand } from './lib/intro'
 import type { Stage } from './lib/intro'
 import { isMuted, setMuted } from './lib/sound'
 import { buildTally } from './lib/tally'
@@ -78,6 +78,9 @@ function App() {
   const [handOwed, setHandOwed] = useState(() => owesHand(location.search, introSeen()))
   const [look, setLook] = useState<{ at: Look; id: number }>({ at: 0, id: 0 })
 
+  const [preview, setPreview] = useState<readonly number[]>([])
+  const previewed = useRef(new Set<InsideBetKind>())
+  const previewTimer = useRef<number | undefined>(undefined)
   const roundCount = useRef(0)
   const chipCount = useRef(0)
   const isLocked = phase !== 'betting'
@@ -97,8 +100,16 @@ function App() {
     }
   }
 
+  function clearPreview() {
+    window.clearTimeout(previewTimer.current)
+    setPreview([])
+  }
+
+  useEffect(() => () => window.clearTimeout(previewTimer.current), [])
+
   function placeBet(target: BetTarget | undefined) {
     if (!target || isLocked) return
+    clearPreview()
     if (balance < chipValue) {
       setMessage('NOT ENOUGH CHIPS FOR THAT BET')
       return
@@ -147,6 +158,12 @@ function App() {
   function chooseMode(nextMode: InsideBetKind, label: string) {
     setMode(nextMode)
     setPendingSplit([])
+    clearPreview()
+    if (!previewed.current.has(nextMode)) {
+      previewed.current.add(nextMode)
+      setPreview(PREVIEW_EXAMPLE[nextMode])
+      previewTimer.current = window.setTimeout(() => setPreview([]), PREVIEW_MS)
+    }
     setMessage(nextMode === 'split' ? 'PICK TWO ADJACENT POCKETS' : `${label.toUpperCase()} BET SELECTED`)
   }
 
@@ -303,6 +320,7 @@ function App() {
                     numberStakes={numberStakes}
                     stakes={betStakeById}
                     selectedNumbers={pendingSplit}
+                    preview={preview}
                     winner={phase === 'tallying' && round ? round.result : lastSpin?.number}
                     scoring={scoring}
                     result={phase === 'tallying' ? round?.result : undefined}

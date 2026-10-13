@@ -11,6 +11,7 @@
 // (set CAPTURE_BROWSER=chrome to use Chrome), so there is no browser download.
 import { mkdir, readFile, readdir, rename, rm } from 'node:fs/promises'
 import { chromium } from 'playwright-core'
+import { recordFrames, slowDown } from './perf/frames.mjs'
 
 const args = process.argv.slice(2)
 const phone = args.includes('phone')
@@ -104,25 +105,12 @@ async function captureIdle() {
   if (await still()) errors.push('The scene did not resume')
 
   // Frame cost on a slower machine: the gaps between animation frames, with the CPU held to a quarter speed.
-  const devtools = await context.newCDPSession(page)
-  await devtools.send('Emulation.setCPUThrottlingRate', { rate: 4 })
+  await slowDown(context, page)
   await page.waitForTimeout(1500) // let the redraw after the resize finish: this measures the room at rest
-  const frames = await page.evaluate(
-    () =>
-      new Promise((resolve) => {
-        const gaps = []
-        let last = performance.now()
-        const began = last
-        const tick = (now) => {
-          gaps.push(now - last)
-          last = now
-          if (now - began < 5000) requestAnimationFrame(tick)
-          else resolve({ average: gaps.reduce((total, gap) => total + gap, 0) / gaps.length, worst: Math.max(...gaps) })
-        }
-        requestAnimationFrame(tick)
-      }),
-  )
-  console.log(`Frames at 4x slowdown: average ${frames.average.toFixed(1)} ms, worst ${frames.worst.toFixed(1)} ms`)
+  const measure = await recordFrames(page)
+  await page.waitForTimeout(5000)
+  const frames = await measure()
+  console.log(`Frames at 4x slowdown: average ${frames.average} ms, worst ${frames.worst} ms`)
 
   await context.close()
   await browser.close()

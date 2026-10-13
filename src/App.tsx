@@ -28,7 +28,7 @@ import { PARTICLE_SHARE, getEffects, setEffects } from './lib/effects'
 import type { Effects } from './lib/effects'
 import { isSceneOn, levelOf, lightFor, lookFor, reactionFor, setSceneOn } from './lib/scene'
 import type { Look, Moment } from './lib/scene'
-import { ATTRACT_AFTER_MS, PREVIEW_EXAMPLE, PREVIEW_MS, firstStage, introSeen, markIntroSeen, owesHand } from './lib/intro'
+import { ATTRACT_AFTER_MS, PREVIEW_EXAMPLE, PREVIEW_MS, firstStage, forgetIntro, introSeen, markIntroSeen, owesHand } from './lib/intro'
 import type { Stage } from './lib/intro'
 import { isMuted, setMuted } from './lib/sound'
 import { buildTally } from './lib/tally'
@@ -255,6 +255,17 @@ function App() {
     setMessage('FRESH SESSION. GOOD LUCK')
   }
 
+  function replayIntro() {
+    const next = reducedMotion ? 'title' : 'boot'
+    forgetIntro()
+    resetSession()
+    previewed.current.clear()
+    clearPreview()
+    openedOn.current = next // so the start press hands focus to the first chip again
+    setHandOwed(true)
+    setStage(next)
+  }
+
   return (
     <>
       <div className="room-wall" aria-hidden="true" style={{ '--repeat': WALL_REPEAT } as CSSProperties}>
@@ -271,7 +282,7 @@ function App() {
             <span>FREE PLAY</span>
             <span className="status-divider">/</span>
             <span>LOCAL SESSION</span>
-            <Settings sound={!muted} onSound={chooseSound} scene={sceneOn} onScene={chooseScene} effects={effects} onEffects={chooseEffects} />
+            <Settings sound={!muted} onSound={chooseSound} scene={sceneOn} onScene={chooseScene} effects={effects} onEffects={chooseEffects} onReplay={replayIntro} />
           </div>
         </header>
 
